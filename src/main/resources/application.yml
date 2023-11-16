@@ -1,0 +1,11 @@
+v1API: /api
+
+spring:
+  profiles:
+    active:
+      - @active.spring.profile@
+  application:
+    name: linchpin-service
+  cloud:
+    config:
+      enabled: true

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="LOG_DIR" value="/var/log/linchpin-api/"/>
+
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="RollingFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/linchpin-logger.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>
+                ${LOG_DIR}/%d{yyyy-MM-dd}/linchpin-%i.log
+            </fileNamePattern>
+            <maxFileSize>200MB</maxFileSize>
+            <maxHistory>50</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">-->
+    <!--        <syslogHost>172.29.140.3</syslogHost>-->
+    <!--        <port>514</port>-->
+    <!--        <facility>AUTH</facility>-->
+    <!--        <suffixPattern>[%thread] %logger %msg</suffixPattern>-->
+    <!--    </appender>-->
+
+    <appender name="logstash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <param name="Encoding" value="UTF-8"/>
+        <remoteHost>log-stash-srv</remoteHost>
+        <port>5044</port>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <writeTimeout>1 minute</writeTimeout>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="RollingFile"/>
+        <appender-ref ref="Console"/>
+        <appender-ref ref="logstash"/>
+    </root>
+
+</configuration>
