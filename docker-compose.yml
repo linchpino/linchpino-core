@@ -1,17 +1,17 @@
-version: '3.3'
-services:
-  user-info-api:
-    image: linchpino.com/repository/docker-registry/linchpin-api:BUILD_NUMBER
-    container_name: linchpin-api
-    ports:
-      - 9950:8080
-      - 9951:8000
-    tty: true
-    build: src
-    restart: always
-    networks:
-      - linchpin-app
-networks:
-  linchpin-app:
-    name: linchpin_network
-    external: true
+#version: '3.3'
+#services:
+#  user-info-api:
+#    image: linchpino.com/repository/docker-registry/linchpin-api:BUILD_NUMBER
+#    container_name: linchpin-api
+#    ports:
+#      - 9950:8080
+#      - 9951:8000
+#    tty: true
+#    build: src
+#    restart: always
+#    networks:
+#      - linchpin-app
+#networks:
+#  linchpin-app:
+#    name: linchpin_network
+#    external: true
