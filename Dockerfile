@@ -3,7 +3,7 @@ USER root
 WORKDIR /builder
 ADD . /builder
 RUN gradle build --stacktrace
-RUN ls -la /builder
+RUN ls -la /builder/build/libs/
 
 FROM openjdk:8-jre-alpine
 WORKDIR /app
