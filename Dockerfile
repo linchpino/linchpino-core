@@ -1,12 +1,18 @@
-FROM gradle:4.5-jdk8-alpine as builder
-USER root
-WORKDIR /builder
-ADD . /builder
-RUN gradle build --stacktrace
-RUN ls -la /builder/build/libs/
+# Part 1: Build the app using Maven
+FROM maven:3.6.0-jdk-8-alpine
 
-FROM openjdk:8-jre-alpine
-WORKDIR /app
-EXPOSE 8080
-COPY --from=builder /builder/build/libs/server.jar .
-CMD ["java", "-jar", "server.jar"]
+## download dependencies
+ADD pom.xml /
+RUN mvn verify clean
+## build after dependencies are down so it wont redownload unless the POM changes
+ADD . /
+RUN mvn package
+
+# Part 2: use the JAR file used in the first part and copy it across ready to RUN
+FROM openjdk:8-jdk-alpine
+WORKDIR /root/
+## COPY packaged JAR file and rename as app.jar 
+## → this relies on your MAVEN package command building a jar 
+## that matches *-jar-with-dependencies.jar with a single match
+COPY --from=0 /target/*-jar-with-dependencies.jar app.jar 
+RUN la -la
