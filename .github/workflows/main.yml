@@ -32,3 +32,11 @@ jobs:
             with:
               images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
               
+          - name: Build and push
+            uses: docker/build-push-action@v3
+            with:
+              context: .
+              file: Dockerfile
+              push: true
+              tags: ${{ steps.meta.outputs.tags }}
+              labels: ${{ steps.meta.outputs.labels }}
