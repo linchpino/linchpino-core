@@ -9,7 +9,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Use an official OpenJDK image as the base image
- FROM openjdk:19-jdk-alpine
+ FROM openjdk:23-jdk
 # Set the working directory in the container
 WORKDIR /app
 # Copy the built JAR file from the previous stage to the container
