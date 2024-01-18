@@ -41,7 +41,7 @@ jobs:
               tags: ${{ steps.meta.outputs.tags }}
               labels: ${{ steps.meta.outputs.labels }}
               
-      Deploy-to-underconstruction-server:
+      Deploy-to-linchpino-core-server:
         runs-on: ubuntu-latest
         permissions:
           contents: read
@@ -53,6 +53,7 @@ jobs:
              install -m 600 -D /dev/null ~/.ssh/id_rsa
              echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
              ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+             cat ~/.ssh/known_hosts
              
           - name: Connect to linchpino-core on GCP instance 
             run: ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
