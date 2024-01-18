@@ -56,4 +56,4 @@ jobs:
              cat ~/.ssh/known_hosts
              
           - name: Connect to linchpino-core on GCP instance 
-            run: ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
+            run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}
