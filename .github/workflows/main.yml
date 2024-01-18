@@ -40,3 +40,19 @@ jobs:
               push: true
               tags: ${{ steps.meta.outputs.tags }}
               labels: ${{ steps.meta.outputs.labels }}
+              
+      Deploy-to-underconstruction-server:
+        runs-on: ubuntu-latest
+        permissions:
+          contents: read
+          packages: write
+        needs: Build-and-push-to-GHCR
+        steps:
+          - name: 'Install ssh keys'
+            run: |
+             install -m 600 -D /dev/null ~/.ssh/id_rsa
+             echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+             ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+             
+          - name: Connect to linchpino-core on GCP instance 
+            run: ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && sudo git pull && docker-compose pull && docker-compose stop ${{ secrets.SERVICE_NAME }} && sleep 2 && docker-compose rm -f ${{ secrets.SERVICE_NAME }} && docker-compose up -d && exit"
