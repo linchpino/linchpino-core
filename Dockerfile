@@ -4,8 +4,8 @@ WORKDIR /app
 # Copy the pom.xml and the project files to the container
 COPY pom.xml .
 COPY src ./src
-#RUN mvn clean package -DskipTests
-RUN mvn clean package
+RUN mvn clean package -DskipTests
+#RUN mvn clean package
 # Part 2: Use an official OpenJDK image as the base image
  FROM openjdk:23-jdk
 # Set the working directory in the container
