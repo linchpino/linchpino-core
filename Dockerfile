@@ -1,7 +1,7 @@
-#FROM openjdk:17.0.1-jdk
-#MAINTAINER portfolio
-#VOLUME /tmp
-#ARG JAR_FILE=target/linchpin.jar
-#COPY ${JAR_FILE} linchpin.jar
-#EXPOSE 9950 9951
-#ENTRYPOINT ["java","-jar","linchpin.jar"]
+FROM openjdk:21.0.1-jdk
+MAINTAINER lonchpino
+VOLUME /tmp
+ARG JAR_FILE=target/linchpino.jar
+COPY ${JAR_FILE} linchpino.jar
+EXPOSE 8088 9951
+ENTRYPOINT ["java","-jar","linchpino.jar"]

@@ -21,6 +21,7 @@
         <kotlin.version>2.0.0-Beta2</kotlin.version>
         <jakarta.version>3.1.0</jakarta.version>
         <openAPI.version>1.6.14</openAPI.version>
+        <postgres.version>42.7.1</postgres.version>
     </properties>
 
     <dependencies>
@@ -62,6 +63,10 @@
             <version>${jakarta.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -74,6 +79,21 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>${openAPI.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgres.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.1.4.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>5.2.3.Final</version>
         </dependency>
     </dependencies>
 
@@ -111,4 +131,53 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--Dev-->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <packaging.type>jar</packaging.type>
+                <active.spring.profile>dev</active.spring.profile>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <resources>
+                    <resource>
+                        <filtering>true</filtering>
+                        <directory>${project.basedir}/src/main/resources</directory>
+                        <includes>
+                            <include>banner.txt</include>
+                            <include>message_exception.properties</include>
+                            <include>application.yml</include>
+                            <include>application-dev.yml</include>
+                            <!--                            <include>schema.sql</include>-->
+                            <!--                            <include>data.sql</include>-->
+                            <include>git.properties</include>
+                        </includes>
+                    </resource>
+                    <resource>
+                        <filtering>false</filtering>
+                        <directory>${project.basedir}/src/main/resources</directory>
+                        <includes>
+                            <include>static/**/*</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
+    </profiles>
 </project>

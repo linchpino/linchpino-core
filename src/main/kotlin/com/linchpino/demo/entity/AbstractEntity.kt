@@ -1,7 +1,13 @@
 package com.linchpino.demo.entity
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.Temporal
+import jakarta.persistence.TemporalType
 import lombok.EqualsAndHashCode
 import lombok.Getter
 import lombok.Setter
@@ -21,7 +27,7 @@ import java.util.*
 @EntityListeners(AuditingEntityListener::class)
 abstract class AbstractEntity(
     @Id @Column(name = "ID") @GeneratedValue(strategy = GenerationType.IDENTITY) @EqualsAndHashCode.Include
-    private var id: Long? = -1,
+    private var id: Long = -1,
 
     @CreatedBy
     @Column(name = "CREATED_BY", nullable = false, updatable = false, columnDefinition = "char(15)", length = 15)
