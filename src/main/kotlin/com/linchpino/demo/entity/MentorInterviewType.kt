@@ -21,5 +21,5 @@ import lombok.Setter
 class MentorInterviewType : AbstractEntity(){
     @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    var interviewTypeId: Long = -1
+    var interviewType: InterviewType? = null
 }

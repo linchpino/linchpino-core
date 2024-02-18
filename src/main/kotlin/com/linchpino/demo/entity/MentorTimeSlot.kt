@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 class MentorTimeSlot : AbstractEntity() {
     @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    var accountId: Long = -1
+    var account: Account? = null
 
     @Column(name = "DATE")
     lateinit var date: LocalDate

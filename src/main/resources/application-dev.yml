@@ -3,7 +3,7 @@ server:
   servlet:
     context-path: /linchpino-api
 
-springdoc:
+spring-doc:
   swagger-ui:
     path: /api.html
 
@@ -25,7 +25,6 @@ spring:
       enabled: true
       bootstrap-mode: default # for Prod Profile Set default
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     generate-ddl: true
     hibernate.naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     hibernate.ddl-auto: none
@@ -51,10 +50,6 @@ spring:
     defer-datasource-initialization: true
     hibernate:
       use-new-id-generator-mappings: false
-  h2.console:
-    enabled: true
-    path: /h2
-    settings.web-allow-others: true
   jackson:
     serialization:
       write-dates-as-timestamps: false

@@ -21,25 +21,22 @@ import lombok.Setter
 class Interview : AbstractEntity() {
     @JoinColumn(name = "JOB_POSITION_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private val jobPositionId: Long = -1
+    private val jobPosition: JobPosition? = null
 
     @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private val interviewTypeId: Long = -1
+    private val interviewType: InterviewType? = null
 
     @JoinColumn(name = "TIME_SLOT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private val timeSlotId: Long = -1
+    private val timeSlot: MentorTimeSlot? = null
 
     @JoinColumn(name = "MENTOR_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private val mentorAccountId: Long = -1
+    private val mentorAccount: Account? = null
 
     @JoinColumn(name = "JOB_SEEKER_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private val jobSeekerAccountId: Long = -1
+    private val jobSeekerAccount: Account? = null
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "STATUS")
-//    lateinit var MentorTimeSlotEnum status
 }
