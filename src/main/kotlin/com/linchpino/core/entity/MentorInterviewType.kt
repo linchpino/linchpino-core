@@ -1,4 +1,4 @@
-package com.linchpino.demo.entity
+package com.linchpino.core.entity
 
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType

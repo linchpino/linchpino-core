@@ -1,6 +1,6 @@
-package com.linchpino.demo.repository
+package com.linchpino.core.repository
 
-import com.linchpino.demo.entity.MentorTimeSlot
+import com.linchpino.core.entity.MentorTimeSlot
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

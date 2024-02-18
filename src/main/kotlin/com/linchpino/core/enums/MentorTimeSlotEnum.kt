@@ -1,4 +1,4 @@
-package com.linchpino.demo.enums
+package com.linchpino.core.enums
 
 enum class MentorTimeSlotEnum {
     AVAILABLE,

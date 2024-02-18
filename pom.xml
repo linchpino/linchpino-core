@@ -12,14 +12,13 @@
     </parent>
 
     <groupId>com.linchpino</groupId>
-    <artifactId>demo</artifactId>
+    <artifactId>core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Linchpino-core</name>
     <description>Linchpino-core</description>
 
     <properties>
         <kotlin.version>2.0.0-Beta2</kotlin.version>
-        <jakarta.version>3.1.0</jakarta.version>
         <openAPI.version>2.0.2</openAPI.version>
         <postgres.version>42.7.1</postgres.version>
     </properties>

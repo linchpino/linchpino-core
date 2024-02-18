@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8088
   servlet:
     context-path: /linchpino-api
 
@@ -8,22 +8,11 @@ spring-doc:
     path: /api.html
 
 spring:
-  jmx: # JMX support in Spring provides the features to easily and transparently integrate your Spring application into a JMX infrastructure.
-    enabled: false
-  cloud: # GCP
-    discovery:
-      enabled: false
-    config:
-      enabled: false
   datasource:
     driverClassName: org.postgresql.Driver
     username: postgres
     password: postgres
     url: jdbc:postgresql://localhost:5432/postgres
-  data:
-    jpa.repositories:
-      enabled: true
-      bootstrap-mode: default # for Prod Profile Set default
   jpa:
     generate-ddl: true
     hibernate.naming.physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

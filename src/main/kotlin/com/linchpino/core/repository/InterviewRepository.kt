@@ -1,6 +1,6 @@
-package com.linchpino.demo.repository
+package com.linchpino.core.repository
 
-import com.linchpino.demo.entity.Interview
+import com.linchpino.core.entity.Interview
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
