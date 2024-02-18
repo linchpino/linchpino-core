@@ -20,7 +20,7 @@
     <properties>
         <kotlin.version>2.0.0-Beta2</kotlin.version>
         <jakarta.version>3.1.0</jakarta.version>
-        <openAPI.version>1.6.14</openAPI.version>
+        <openAPI.version>2.0.2</openAPI.version>
         <postgres.version>42.7.1</postgres.version>
     </properties>
 
@@ -64,7 +64,7 @@
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${openAPI.version}</version>
         </dependency>
         <dependency>
