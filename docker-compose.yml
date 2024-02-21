@@ -33,3 +33,13 @@ networks:
     external: true
 volumes:
   postgres-data:
+
+version: "3.3"
+services:
+  linchpino-core:
+    image: ghcr.io/linchpino/linchpino-core:development
+    container_name: linchpino-core
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
