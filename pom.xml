@@ -19,7 +19,7 @@
 
     <properties>
         <kotlin.version>2.0.0-Beta2</kotlin.version>
-        <openAPI.version>2.0.2</openAPI.version>
+        <openAPI.version>2.3.0</openAPI.version>
         <postgres.version>42.7.1</postgres.version>
     </properties>
 

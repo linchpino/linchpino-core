@@ -1,11 +1,6 @@
-v1API: /api
-
 spring:
   profiles:
     active:
       - @active.spring.profile@
   application:
     name: linchpino-service
-  cloud:
-    config:
-      enabled: false
