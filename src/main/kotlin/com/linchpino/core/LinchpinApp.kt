@@ -1,4 +1,4 @@
-package com.linchpino.demo
+package com.linchpino.core
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

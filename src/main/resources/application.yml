@@ -1,0 +1,6 @@
+spring:
+  profiles:
+    active:
+      - @active.spring.profile@
+  application:
+    name: linchpino-service
