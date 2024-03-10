@@ -1,5 +1,7 @@
 package com.linchpino.core.entity
 
+import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -7,17 +9,15 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import lombok.AllArgsConstructor
 import lombok.Builder
-import lombok.Getter
+import lombok.Data
 import lombok.NoArgsConstructor
-import lombok.Setter
 
-@Entity
-@Table(name = "ACCOUNT")
+@Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@AllArgsConstructor
+@Table(name = "ACCOUNT")
+@Entity
 class Account : AbstractEntity() {
     @Column(name = "FIRST_NAME")
     lateinit var firstName: String
@@ -31,11 +31,11 @@ class Account : AbstractEntity() {
     @Column(name = "password")
     lateinit var password: String //encrypt password!
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "TYPE")
-//    lateinit val AccountTypeEnum type
-//
-//    @Enumerated(EnumType.STRING)
-//    @Column(name = "STATUS")
-//    lateinit val MentorTimeSlotEnum status
+    @Enumerated(EnumType.STRING)
+    @Column(name = "TYPE")
+    var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    var status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN
 }
