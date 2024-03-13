@@ -10,6 +10,3 @@ interface AccountMapper {
     fun accountDtoToAccount(dto: AccountDto): Account
     fun accountToAccountDto(car: Account): AccountDto
 }
-
-data class AccountDto(val make: String, val model: String)
-data class Account(val make: String, val model: String)

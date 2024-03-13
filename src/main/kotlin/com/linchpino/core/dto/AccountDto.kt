@@ -4,12 +4,11 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import lombok.Data
 
-@Data
-class AccountDto {
-    lateinit var firstName: String
-    lateinit var lastName: String
-    lateinit var email: String
-    lateinit var password: String
-    var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
-    var status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN
-}
+data class AccountDto(
+	val firstName: String,
+	val lastName: String,
+	val email: String,
+	val password: String,
+	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
+	val status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN,
+)
