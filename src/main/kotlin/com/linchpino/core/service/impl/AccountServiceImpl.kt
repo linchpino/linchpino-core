@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service
 
 @Service
 @Slf4j
-class AccountServiceImpl(private val repository: AccountRepository, private val mapper: AccountMapper) :
+open class AccountServiceImpl(private val repository: AccountRepository, private val mapper: AccountMapper) :
     AccountService {
 
     override fun newAccount(accountDto: AccountDto) {
