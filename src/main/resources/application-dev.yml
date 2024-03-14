@@ -1,10 +1,18 @@
 server:
-  servlet:
-    context-path: /linchpino-api
+    servlet:
+        context-path: /linchpino-api
 
 spring:
-  datasource:
-    driverClassName: org.postgresql.Driver
-    username: postgres
-    password: postgres
-    url: jdbc:postgresql://localhost:5432/postgres
+    datasource:
+        driverClassName: org.postgresql.Driver
+        username: postgres
+        password: postgres
+        url: jdbc:postgresql://localhost:5432/linchpino
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+            ddl-auto: none
+        show-sql: true
+        properties:
+            hibernate:
+                format_sql: true

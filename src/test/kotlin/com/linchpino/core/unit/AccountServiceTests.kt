@@ -1,4 +1,4 @@
-package com.example.core.unit
+package com.linchpino.core.unit
 
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

@@ -12,3 +12,12 @@ data class AccountDto(
 	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
 	val status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN,
 )
+
+data class CreateAccountResult(
+	val id:Long,
+	val firstName: String,
+	val lastName: String,
+	val email: String,
+	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
+	val status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN,
+)

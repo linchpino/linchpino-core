@@ -1,4 +1,4 @@
-package com.example.core.it
+package com.linchpino.core.it
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

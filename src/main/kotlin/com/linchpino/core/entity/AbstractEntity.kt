@@ -25,27 +25,30 @@ import java.util.*
 @Setter
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener::class)
-abstract class AbstractEntity(
-    @Id @Column(name = "ID") @GeneratedValue(strategy = GenerationType.IDENTITY) @EqualsAndHashCode.Include
-    private var id: Long = -1,
+abstract class AbstractEntity (
+	@Id
+	@Column(name = "ID")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@EqualsAndHashCode.Include
+	val id: Long? = null,
 
-    @CreatedBy
-    @Column(name = "CREATED_BY", nullable = false, updatable = false, columnDefinition = "char(15)", length = 15)
-    private val createdBy: String? = null,
+	@CreatedBy
+	@Column(name = "CREATED_BY", nullable = false, updatable = false, columnDefinition = "char(15)", length = 255)
+	var createdBy: String? = null,
 
-    @CreatedDate
-    @Column(name = "CREATED_ON", nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private val createdOn: Date? = null,
+	@CreatedDate
+	@Column(name = "CREATED_ON", nullable = false, updatable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	var createdOn: Date? = null,
 
-    @LastModifiedBy
-    @Column(name = "MODIFIED_BY", nullable = false, columnDefinition = "char(15)", length = 15)
-    private val modifiedBy: String? = null,
+	@LastModifiedBy
+	@Column(name = "MODIFIED_BY", nullable = true, columnDefinition = "char(15)", length = 255)
+	var modifiedBy: String? = null,
 
-    @LastModifiedDate
-    @Column(name = "MODIFIED_ON", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private val modifiedOn: Date? = null
+	@LastModifiedDate
+	@Column(name = "MODIFIED_ON", nullable = true)
+	@Temporal(TemporalType.TIMESTAMP)
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	var modifiedOn: Date? = null,
 )

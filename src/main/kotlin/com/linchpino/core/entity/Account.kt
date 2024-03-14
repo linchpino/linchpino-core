@@ -3,6 +3,7 @@ package com.linchpino.core.entity
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import jakarta.persistence.*
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 
 
 @Table(name = "ACCOUNT")
