@@ -33,7 +33,7 @@ abstract class AbstractEntity (
 	val id: Long? = null,
 
 	@CreatedBy
-	@Column(name = "CREATED_BY", nullable = false, updatable = false, columnDefinition = "char(15)", length = 255)
+	@Column(name = "CREATED_BY", nullable = true, updatable = false, columnDefinition = "char(15)", length = 255)
 	var createdBy: String? = null,
 
 	@CreatedDate
