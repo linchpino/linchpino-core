@@ -26,8 +26,8 @@ class AccountController(private val accountService: AccountService) {
 		ApiResponse(responseCode = "400", description = "Invalid request body")
 	])
 	@PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun newAccount(@RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
-        val result = accountService.newAccount(createAccountRequest)
+    fun createAccount(@RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
+        val result = accountService.createAccount(createAccountRequest)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 }

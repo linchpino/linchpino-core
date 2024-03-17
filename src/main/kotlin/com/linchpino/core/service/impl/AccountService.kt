@@ -14,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class AccountService(private val repository: AccountRepository, private val mapper: AccountMapper) {
 
-	fun newAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
+	fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
 		val account: Account = mapper.accountDtoToAccount(createAccountRequest)
-		account.createdBy = createAccountRequest.email // todo temporary should be removed
 		repository.save(account)
 		return mapper.entityToResultDto(account)
 	}
