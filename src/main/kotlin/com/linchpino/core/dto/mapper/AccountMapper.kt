@@ -4,7 +4,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.service.impl.AccountService
+import com.linchpino.core.service.AccountService
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Named

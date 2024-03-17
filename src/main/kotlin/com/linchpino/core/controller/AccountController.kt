@@ -2,7 +2,7 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.service.impl.AccountService
+import com.linchpino.core.service.AccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses

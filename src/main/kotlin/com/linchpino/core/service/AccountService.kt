@@ -1,4 +1,4 @@
-package com.linchpino.core.service.impl
+package com.linchpino.core.service
 
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
