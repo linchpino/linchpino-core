@@ -9,7 +9,6 @@ data class CreateAccountRequest(
 	val email: String,
 	val password: String,
 	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
-	val status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN,
 )
 
 data class CreateAccountResult(
