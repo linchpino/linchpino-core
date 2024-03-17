@@ -8,7 +8,7 @@ data class CreateAccountRequest(
 	val lastName: String,
 	val email: String,
 	val password: String,
-	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
+	val type: Int?,
 )
 
 data class CreateAccountResult(
