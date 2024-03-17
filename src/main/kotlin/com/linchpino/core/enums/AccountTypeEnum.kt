@@ -1,7 +1,7 @@
 package com.linchpino.core.enums
 
 enum class AccountTypeEnum {
-    INTERVIEWER,
-    INTERVIEWEE,
+    MENTOR,
+	JOBSEEKER,
     UNKNOWN
 }
