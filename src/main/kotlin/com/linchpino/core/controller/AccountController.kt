@@ -6,6 +6,7 @@ import com.linchpino.core.service.impl.AccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -26,7 +27,7 @@ class AccountController(private val accountService: AccountService) {
 		ApiResponse(responseCode = "400", description = "Invalid request body")
 	])
 	@PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun createAccount(@RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
+    fun createAccount(@Valid @RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
         val result = accountService.createAccount(createAccountRequest)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
