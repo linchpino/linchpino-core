@@ -8,7 +8,6 @@ import com.linchpino.core.service.impl.AccountService
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Named
-import java.util.function.Predicate
 
 @Mapper(componentModel = "spring", uses = [AccountService::class])
 interface AccountMapper {
@@ -20,10 +19,6 @@ interface AccountMapper {
 	companion object {
 		@JvmStatic
 		@Named("mapFromInt")
-		fun mapFromInt(type: Int): AccountTypeEnum {
-			return AccountTypeEnum.entries.stream()
-				.filter(Predicate<AccountTypeEnum> { s: AccountTypeEnum -> s.v == type }).findFirst()
-				.orElse(AccountTypeEnum.UNKNOWN)
-		}
+		fun mapFromInt(type: Int) =  AccountTypeEnum.entries.firstOrNull { it.v == type }?:AccountTypeEnum.UNKNOWN
 	}
 }
