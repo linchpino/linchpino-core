@@ -24,7 +24,7 @@ class AccountControllerTestIT {
     private lateinit var mockMvc: MockMvc
 
     @Test
-    fun `test creating new account`() {
+    fun `test creating jobSeeker account`() {
         val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123",1)
 
         mockMvc.perform(
@@ -39,5 +39,43 @@ class AccountControllerTestIT {
 			.andExpect(MockMvcResultMatchers.jsonPath("$.email").value("john.doe@example.com"))
 			.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
 			.andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
+			.andExpect(MockMvcResultMatchers.jsonPath("$.type").value("JOBSEEKER"))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("UNKNOWN"))
     }
+
+	@Test
+	fun `test creating account with blank firstName results in bad request`() {
+		val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", 1)
+
+		mockMvc.perform(
+			MockMvcRequestBuilders.post("/api/accounts")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapper().writeValueAsString(invalidRequest))
+		)
+			.andExpect(MockMvcResultMatchers.status().isBadRequest)
+	}
+
+	@Test
+	fun `test creating account with blank lastName results in bad request`() {
+		val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", 1)
+
+		mockMvc.perform(
+			MockMvcRequestBuilders.post("/api/accounts")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapper().writeValueAsString(invalidRequest))
+		)
+			.andExpect(MockMvcResultMatchers.status().isBadRequest)
+	}
+
+	@Test
+	fun `test creating account with invalid email results in bad request`() {
+		val invalidRequest = CreateAccountRequest("John", "", "john.doe_example.com", "secret", 1)
+
+		mockMvc.perform(
+			MockMvcRequestBuilders.post("/api/accounts")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapper().writeValueAsString(invalidRequest))
+		)
+			.andExpect(MockMvcResultMatchers.status().isBadRequest)
+	}
 }
