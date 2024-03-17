@@ -13,8 +13,8 @@ import org.mapstruct.Named
 interface AccountMapper {
 
 	@Mapping(target = "type", source = "type", qualifiedByName = ["mapFromInt"])
-	fun accountDtoToAccount(dto: CreateAccountRequest?): Account
-	fun entityToResultDto(entity: Account?): CreateAccountResult
+	fun accountDtoToAccount(dto: CreateAccountRequest): Account
+	fun entityToResultDto(entity: Account): CreateAccountResult
 
 	companion object {
 		@JvmStatic
