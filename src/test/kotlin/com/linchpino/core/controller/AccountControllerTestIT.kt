@@ -1,4 +1,4 @@
-package com.linchpino.core.it
+package com.linchpino.core.controller
 
 import com.linchpino.core.PostgresContainerConfig
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -25,7 +25,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating new account`() {
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123")
+        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123",1)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
