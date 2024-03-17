@@ -1,6 +1,6 @@
 package com.linchpino.core.controller
 
-import com.linchpino.core.dto.AccountDto
+import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.service.impl.AccountService
 import io.swagger.v3.oas.annotations.Operation
@@ -26,8 +26,8 @@ class AccountController(private val accountService: AccountService) {
 		ApiResponse(responseCode = "400", description = "Invalid request body")
 	])
 	@PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun newAccount(@RequestBody accountDto: AccountDto): ResponseEntity<CreateAccountResult> {
-        val result = accountService.newAccount(accountDto)
+    fun newAccount(@RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
+        val result = accountService.newAccount(createAccountRequest)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 }

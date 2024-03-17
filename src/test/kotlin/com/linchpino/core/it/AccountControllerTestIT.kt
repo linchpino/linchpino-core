@@ -2,7 +2,7 @@ package com.linchpino.core.it
 
 import com.linchpino.core.PostgresContainerConfig
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.linchpino.core.dto.AccountDto
+import com.linchpino.core.dto.CreateAccountRequest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -25,12 +25,12 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating new account`() {
-        val accountDto = AccountDto("John", "Doe", "john.doe@example.com", "password123")
+        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123")
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(accountDto))
+                .content(ObjectMapper().writeValueAsString(createAccountRequest))
         )
             .andExpect(MockMvcResultMatchers.status().isCreated)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))

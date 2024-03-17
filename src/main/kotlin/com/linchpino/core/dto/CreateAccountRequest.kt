@@ -2,9 +2,8 @@ package com.linchpino.core.dto
 
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
-import lombok.Data
 
-data class AccountDto(
+data class CreateAccountRequest(
 	val firstName: String,
 	val lastName: String,
 	val email: String,
