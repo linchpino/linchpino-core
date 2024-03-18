@@ -37,6 +37,6 @@ class AccountServiceTestIT {
 		assertEquals("John", persistedAccount.firstName)
 		assertEquals("Doe", persistedAccount.lastName)
 		assertEquals("john.doe@example.com", persistedAccount.email)
-		assertEquals(AccountTypeEnum.JOBSEEKER, persistedAccount.type)
+		assertEquals(AccountTypeEnum.JOB_SEEKER, persistedAccount.type)
 	}
 }
