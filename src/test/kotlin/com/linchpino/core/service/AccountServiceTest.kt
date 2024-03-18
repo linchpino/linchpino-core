@@ -4,6 +4,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
@@ -50,8 +51,7 @@ class AccountServiceTest {
 			"John",
 			"Doe",
 			"john.doe@example.com",
-			AccountTypeEnum.JOB_SEEKER,
-			MentorTimeSlotEnum.UNKNOWN
+			AccountTypeEnum.JOB_SEEKER
 		)
 
 		val captor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
@@ -74,5 +74,6 @@ class AccountServiceTest {
 		assertEquals("john.doe@example.com", savedAccount.email)
 		assertEquals("encodedPassword", savedAccount.password)
 		assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
+		assertEquals(AccountStatus.DEACTIVATED, savedAccount.status)
 	}
 }

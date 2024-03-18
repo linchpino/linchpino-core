@@ -1,5 +1,6 @@
 package com.linchpino.core.dto
 
+import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import jakarta.validation.constraints.Email
@@ -20,5 +21,5 @@ data class CreateAccountResult(
 	val lastName: String,
 	val email: String,
 	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
-	val status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN,
+	val status: AccountStatus = AccountStatus.DEACTIVATED,
 )

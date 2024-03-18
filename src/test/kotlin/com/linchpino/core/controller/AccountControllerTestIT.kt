@@ -39,8 +39,8 @@ class AccountControllerTestIT {
 			.andExpect(MockMvcResultMatchers.jsonPath("$.email").value("john.doe@example.com"))
 			.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
 			.andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-			.andExpect(MockMvcResultMatchers.jsonPath("$.type").value("JOBSEEKER"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("UNKNOWN"))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.type").value("JOB_SEEKER"))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("DEACTIVATED"))
     }
 
 	@Test
