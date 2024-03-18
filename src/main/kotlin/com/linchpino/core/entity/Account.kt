@@ -2,7 +2,6 @@ package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.enums.MentorTimeSlotEnum
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
