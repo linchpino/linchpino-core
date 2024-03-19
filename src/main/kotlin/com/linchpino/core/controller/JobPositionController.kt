@@ -1,5 +1,6 @@
 package com.linchpino.core.controller
 
+import com.linchpino.core.repository.InterviewTypeSearchResponse
 import com.linchpino.core.repository.JobPositionSearchResponse
 import com.linchpino.core.service.JobPositionService
 import io.swagger.v3.oas.annotations.Operation
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -32,6 +34,13 @@ class JobPositionController(private val jobPositionService: JobPositionService) 
 		@PageableDefault(size = 10) pageable: Pageable
 	): Page<JobPositionSearchResponse> {
 		return jobPositionService.searchByName(name, pageable)
+	}
+
+
+	@GetMapping("/{id}/interviewtype")
+	fun interviewTypes(@PathVariable id: Long): List<InterviewTypeSearchResponse> {
+		val findInterviewTypesFor = jobPositionService.findInterviewTypesFor(id)
+		return findInterviewTypesFor
 	}
 
 }

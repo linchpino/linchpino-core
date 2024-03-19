@@ -1,5 +1,6 @@
 package com.linchpino.core.service
 
+import com.linchpino.core.repository.InterviewTypeSearchResponse
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.JobPositionSearchResponse
 import org.springframework.data.domain.Page
@@ -15,4 +16,9 @@ class JobPositionService(private val jobPositionRepository: JobPositionRepositor
 	@Transactional(readOnly = true)
 	fun searchByName(name: String?, pageable: Pageable):Page<JobPositionSearchResponse> =
 		jobPositionRepository.search(name, pageable)
+
+	@Transactional(readOnly = true)
+	fun findInterviewTypesFor(jobPositionId: Long): List<InterviewTypeSearchResponse> {
+		return jobPositionRepository.findInterviewsByJobPositionId(jobPositionId)
+	}
 }

@@ -1,6 +1,7 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.PostgresContainerConfig
+import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.repository.JobPositionRepository
 import org.junit.jupiter.api.BeforeEach
@@ -34,7 +35,14 @@ class JobPositionControllerTestIT{
 
 	@BeforeEach
 	fun setUp() {
-		jobPositionRepository.saveAll(jobPositions())
+		val interviewType1 = InterviewType().apply { name = "InterViewTyp_1" }
+		val interviewType2 = InterviewType().apply { name = "InterViewTyp_2" }
+		val jobPositions = jobPositions()
+		jobPositions.first { it.title == "Software Engineer" }.apply {
+			interviewTypes.add(interviewType1)
+			interviewTypes.add(interviewType2)
+		}
+		jobPositionRepository.saveAll(jobPositions)
 	}
 
 	@Test
@@ -86,6 +94,15 @@ class JobPositionControllerTestIT{
 			.andExpect(jsonPath("$.content[2].title").value("Product Manager"))
 			.andExpect(jsonPath("$.content[3].title").value("Web Developer"))
 			.andExpect(jsonPath("$.content[4].title").value("Marketing Specialist"))
+	}
+
+
+	@Test
+	fun `test interviewTypes endpoint`() {
+		val jobId = 1L
+		// Perform the GET request to the endpoint
+		mockMvc.perform(get("/api/jobposition/$jobId/interviewtype"))
+			.andExpect(status().isOk)
 	}
 
 	private fun jobPositions() = listOf(

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 data class JobPositionSearchResponse(val id:Long,val title: String)
+data class InterviewTypeSearchResponse(val id:Long, val title: String)
 @Repository
 interface JobPositionRepository : JpaRepository<JobPosition, Long> {
 
@@ -17,6 +18,14 @@ interface JobPositionRepository : JpaRepository<JobPosition, Long> {
         WHERE (:title IS NULL OR jp.title LIKE %:title%)
     """)
 	fun search(title:String?,pageable: Pageable): Page<JobPositionSearchResponse>
+
+	@Query("""
+		SELECT new com.linchpino.core.repository.InterviewSearchResponse(it.id, it.name)
+		FROM InterviewType it
+		JOIN it.jobPositions jp
+		WHERE jp.id = :id
+	""" )
+	fun findInterviewsByJobPositionId(id:Long):List<InterviewTypeSearchResponse>
 }
 
 
