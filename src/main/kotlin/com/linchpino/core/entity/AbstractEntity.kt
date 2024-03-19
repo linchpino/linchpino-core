@@ -9,8 +9,6 @@ import jakarta.persistence.MappedSuperclass
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import lombok.EqualsAndHashCode
-import lombok.Getter
-import lombok.Setter
 import org.hibernate.annotations.DynamicUpdate
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
@@ -21,8 +19,6 @@ import org.springframework.format.annotation.DateTimeFormat
 import java.util.*
 
 @MappedSuperclass
-@Getter
-@Setter
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener::class)
 abstract class AbstractEntity (
@@ -51,4 +47,17 @@ abstract class AbstractEntity (
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	var modifiedOn: Date? = null,
-)
+){
+	override fun equals(other: Any?): Boolean {
+		if (this === other) return true
+		if (javaClass != other?.javaClass) return false
+
+		other as AbstractEntity
+
+		return id == other.id
+	}
+
+	override fun hashCode(): Int {
+		return javaClass.hashCode()
+	}
+}
