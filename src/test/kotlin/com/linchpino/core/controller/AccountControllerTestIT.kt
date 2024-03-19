@@ -14,6 +14,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest
@@ -36,13 +37,13 @@ class AccountControllerTestIT {
 		)
 			.andExpect(MockMvcResultMatchers.status().isCreated)
 			.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.firstName").value("John"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.lastName").value("Doe"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.email").value("john.doe@example.com"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
-			.andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
-			.andExpect(MockMvcResultMatchers.jsonPath("$.type").value("JOB_SEEKER"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("DEACTIVATED"))
+			.andExpect(jsonPath("$.firstName").value("John"))
+			.andExpect(jsonPath("$.lastName").value("Doe"))
+			.andExpect(jsonPath("$.email").value("john.doe@example.com"))
+			.andExpect(jsonPath("$.id").exists())
+			.andExpect(jsonPath("$.id").isNumber())
+			.andExpect(jsonPath("$.type").value("JOB_SEEKER"))
+			.andExpect(jsonPath("$.status").value("DEACTIVATED"))
 	}
 
 	@Test
@@ -54,10 +55,10 @@ class AccountControllerTestIT {
 				.content(ObjectMapper().writeValueAsString(invalidRequest))
 		)
 			.andExpect(MockMvcResultMatchers.status().isBadRequest)
-			.andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid Param"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap", hasSize<Int>(1)))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].field").value("firstName"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].message").value("firstname is required"))
+			.andExpect(jsonPath("$.error").value("Invalid Param"))
+			.andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
+			.andExpect(jsonPath("$.validationErrorMap[0].field").value("firstName"))
+			.andExpect(jsonPath("$.validationErrorMap[0].message").value("firstname is required"))
 	}
 
 	@Test
@@ -70,10 +71,10 @@ class AccountControllerTestIT {
 				.content(ObjectMapper().writeValueAsString(invalidRequest))
 		)
 			.andExpect(MockMvcResultMatchers.status().isBadRequest)
-			.andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid Param"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap", hasSize<Int>(1)))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].field").value("lastName"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].message").value("lastname is required"))
+			.andExpect(jsonPath("$.error").value("Invalid Param"))
+			.andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
+			.andExpect(jsonPath("$.validationErrorMap[0].field").value("lastName"))
+			.andExpect(jsonPath("$.validationErrorMap[0].message").value("lastname is required"))
 	}
 
 	@Test
@@ -86,10 +87,10 @@ class AccountControllerTestIT {
 				.content(ObjectMapper().writeValueAsString(invalidRequest))
 		)
 			.andExpect(MockMvcResultMatchers.status().isBadRequest)
-			.andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid Param"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap", hasSize<Int>(1)))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].field").value("email"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[0].message").value("email is not valid"))
+			.andExpect(jsonPath("$.error").value("Invalid Param"))
+			.andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
+			.andExpect(jsonPath("$.validationErrorMap[0].field").value("email"))
+			.andExpect(jsonPath("$.validationErrorMap[0].message").value("email is not valid"))
 	}
 
 	@Test
@@ -102,16 +103,11 @@ class AccountControllerTestIT {
 				.content(ObjectMapper().writeValueAsString(invalidRequest))
 		)
 			.andExpect(MockMvcResultMatchers.status().isBadRequest)
-			.andExpect(MockMvcResultMatchers.jsonPath("$.error").value("Invalid Param"))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap").isArray)
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[*].field", hasItem("email")))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[*].message", hasItem("email is not valid")))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.validationErrorMap[*].field", hasItem("firstName")))
-			.andExpect(
-				MockMvcResultMatchers.jsonPath(
-					"$.validationErrorMap[*].message",
-					hasItem("firstname is required")
-				)
-			)
+			.andExpect(jsonPath("$.error").value("Invalid Param"))
+			.andExpect(jsonPath("$.validationErrorMap").isArray)
+			.andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("email")))
+			.andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("email is not valid")))
+			.andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("firstName")))
+			.andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("firstname is required")))
 	}
 }
