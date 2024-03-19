@@ -41,18 +41,6 @@ class GlobalExceptionHandler {
 		exception: MethodArgumentNotValidException,
 		request: HttpServletRequest
 	): ResponseEntity<*> {
-		if (!exception.bindingResult.hasFieldErrors()) {
-			return ResponseEntity.status(exception.statusCode).body<Any>(
-				ErrorResponse(
-					Instant.now(),
-					HttpStatus.BAD_REQUEST.value(),
-					"Invalid Param",
-					listOf(),
-					request.servletPath
-				)
-			)
-		}
-
 		val errorMessages = exception.bindingResult.fieldErrors
 			.map { fieldError: FieldError ->
 				ErrorMessage(
