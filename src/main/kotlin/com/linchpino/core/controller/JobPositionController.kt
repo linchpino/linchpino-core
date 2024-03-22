@@ -39,8 +39,7 @@ class JobPositionController(private val jobPositionService: JobPositionService) 
 
 	@GetMapping("/{id}/interviewtype")
 	fun interviewTypes(@PathVariable id: Long): List<InterviewTypeSearchResponse> {
-		val findInterviewTypesFor = jobPositionService.findInterviewTypesFor(id)
-		return findInterviewTypesFor
+		return jobPositionService.findInterviewTypesFor(id)
 	}
 
 }

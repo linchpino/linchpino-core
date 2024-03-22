@@ -20,7 +20,7 @@ interface JobPositionRepository : JpaRepository<JobPosition, Long> {
 	fun search(title:String?,pageable: Pageable): Page<JobPositionSearchResponse>
 
 	@Query("""
-		SELECT new com.linchpino.core.repository.InterviewSearchResponse(it.id, it.name)
+		SELECT new com.linchpino.core.repository.InterviewTypeSearchResponse(it.id, it.name)
 		FROM InterviewType it
 		JOIN it.jobPositions jp
 		WHERE jp.id = :id

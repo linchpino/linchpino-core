@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional
 @Import(PostgresContainerConfig::class)
 @Transactional
 @SpringBootTest
-class JobPositionControllerTestIT{
+class JobPositionControllerTestIT {
 
 
 	@Autowired
@@ -42,9 +42,11 @@ class JobPositionControllerTestIT{
 			interviewTypes.add(interviewType1)
 			interviewTypes.add(interviewType2)
 		}
+		jobPositions.first { it.title == "Data Scientist" }.apply {
+			interviewTypes.add(interviewType2)
+		}
 		jobPositionRepository.saveAll(jobPositions)
 	}
-
 	@Test
 	fun `test jobPositions search by name`() {
 
@@ -82,7 +84,6 @@ class JobPositionControllerTestIT{
 	}
 
 
-
 	@Test
 	fun `test jobPositions search without providing name returns page of jobPositions based on provided page size`() {
 
@@ -98,23 +99,42 @@ class JobPositionControllerTestIT{
 
 
 	@Test
-	fun `test interviewTypes endpoint`() {
-		val jobId = 1L
+	fun `test get interview types by job id returns interview types for that job id`() {
+		val all = jobPositionRepository.findAll()
+		val jobId = all.first { it.title == "Software Engineer" }.id
 		// Perform the GET request to the endpoint
 		mockMvc.perform(get("/api/jobposition/$jobId/interviewtype"))
 			.andExpect(status().isOk)
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$.length()").value(2))
+			.andExpect(jsonPath("$[0].id").isNumber)
+			.andExpect(jsonPath("$[0].title").value("InterViewTyp_1"))
+			.andExpect(jsonPath("$[1].id").isNumber)
+			.andExpect(jsonPath("$[1].title").value("InterViewTyp_2"));
+	}
+
+	@Test
+	fun `test get interview types by job id only returns interview types belonging to that id`() {
+		val jobId = jobPositionRepository.findAll().first { it.title == "Data Scientist" }.id
+		// Perform the GET request to the endpoint
+		mockMvc.perform(get("/api/jobposition/$jobId/interviewtype"))
+			.andExpect(status().isOk)
+			.andExpect(jsonPath("$").isArray())
+			.andExpect(jsonPath("$.length()").value(1))
+			.andExpect(jsonPath("$[0].id").isNumber)
+			.andExpect(jsonPath("$[0].title").value("InterViewTyp_2"));
 	}
 
 	private fun jobPositions() = listOf(
-		JobPosition().apply { 	title = "Software Engineer"	},
-		JobPosition().apply { 	title = "Data Scientist"	},
-		JobPosition().apply { 	title = "Product Manager"	},
-		JobPosition().apply { 	title = "Web Developer"	},
-		JobPosition().apply { 	title = "Marketing Specialist"	},
-		JobPosition().apply { 	title = "Human Resources Manager"	},
-		JobPosition().apply { 	title = "Financial Analyst"	},
-		JobPosition().apply { 	title = "Graphic Designer"	},
-		JobPosition().apply { 	title = "Customer Service Representative"	},
-		JobPosition().apply { 	title = "Project Coordinator"	},
+		JobPosition().apply { title = "Software Engineer" },
+		JobPosition().apply { title = "Data Scientist" },
+		JobPosition().apply { title = "Product Manager" },
+		JobPosition().apply { title = "Web Developer" },
+		JobPosition().apply { title = "Marketing Specialist" },
+		JobPosition().apply { title = "Human Resources Manager" },
+		JobPosition().apply { title = "Financial Analyst" },
+		JobPosition().apply { title = "Graphic Designer" },
+		JobPosition().apply { title = "Customer Service Representative" },
+		JobPosition().apply { title = "Project Coordinator" },
 	)
 }
