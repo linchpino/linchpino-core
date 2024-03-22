@@ -20,7 +20,7 @@
 	<properties>
 		<kotlin.version>1.9.22</kotlin.version>
 		<openAPI.version>2.3.0</openAPI.version>
-		<postgres.version>42.7.1</postgres.version>
+		<postgres.version>42.7.2</postgres.version>
 		<mapstruct.version>1.5.5.Final</mapstruct.version>
 		<lombok.version>1.18.24</lombok.version>
 	</properties>
