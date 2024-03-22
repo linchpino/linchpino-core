@@ -13,5 +13,5 @@ class InterviewType : AbstractEntity(){
     lateinit var name: String
 
 	@ManyToMany(mappedBy = "interviewTypes")
-	val jobPositions = mutableListOf<JobPosition>()
+	val jobPositions = mutableSetOf<JobPosition>()
 }
