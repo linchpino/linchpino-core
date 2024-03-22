@@ -8,7 +8,6 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 
-
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {

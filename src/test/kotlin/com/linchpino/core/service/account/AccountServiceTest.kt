@@ -1,4 +1,4 @@
-package com.linchpino.core.service
+package com.linchpino.core.service.account
 
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
@@ -7,6 +7,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.service.AccountService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
