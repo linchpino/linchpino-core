@@ -16,12 +16,12 @@ import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import org.springframework.format.annotation.DateTimeFormat
-import java.util.Date
+import java.util.*
 
 @MappedSuperclass
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener::class)
-abstract class AbstractEntity (
+abstract class AbstractEntity(
 	@Id
 	@Column(name = "ID")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,14 +47,14 @@ abstract class AbstractEntity (
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	var modifiedOn: Date? = null,
-){
+) {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (javaClass != other?.javaClass) return false
 
 		other as AbstractEntity
 
-		return id == other.id
+		return id != null && id == other.id
 	}
 
 	override fun hashCode(): Int {

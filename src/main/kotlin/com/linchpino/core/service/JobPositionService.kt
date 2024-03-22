@@ -14,7 +14,7 @@ class JobPositionService(private val jobPositionRepository: JobPositionRepositor
 
 
 	@Transactional(readOnly = true)
-	fun searchByName(name: String?, pageable: Pageable):Page<JobPositionSearchResponse> =
+	fun searchByName(name: String?, pageable: Pageable): Page<JobPositionSearchResponse> =
 		jobPositionRepository.search(name, pageable)
 
 	@Transactional(readOnly = true)

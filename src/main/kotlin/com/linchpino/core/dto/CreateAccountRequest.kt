@@ -2,7 +2,6 @@ package com.linchpino.core.dto
 
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.enums.MentorTimeSlotEnum
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -16,7 +15,7 @@ data class CreateAccountRequest(
 )
 
 data class CreateAccountResult(
-	val id:Long,
+	val id: Long,
 	val firstName: String,
 	val lastName: String,
 	val email: String,

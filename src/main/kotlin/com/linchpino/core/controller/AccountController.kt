@@ -22,13 +22,15 @@ class AccountController(private val accountService: AccountService) {
 
 	@Operation(summary = "Create a new account")
 	@ResponseStatus(HttpStatus.CREATED)
-	@ApiResponses(value = [
-		ApiResponse(responseCode = "201", description = "Account created successfully"),
-		ApiResponse(responseCode = "400", description = "Invalid request body")
-	])
+	@ApiResponses(
+		value = [
+			ApiResponse(responseCode = "201", description = "Account created successfully"),
+			ApiResponse(responseCode = "400", description = "Invalid request body")
+		]
+	)
 	@PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun createAccount(@Valid @RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
-        val result = accountService.createAccount(createAccountRequest)
-        return ResponseEntity.status(HttpStatus.CREATED).body(result)
-    }
+	fun createAccount(@Valid @RequestBody createAccountRequest: CreateAccountRequest): ResponseEntity<CreateAccountResult> {
+		val result = accountService.createAccount(createAccountRequest)
+		return ResponseEntity.status(HttpStatus.CREATED).body(result)
+	}
 }

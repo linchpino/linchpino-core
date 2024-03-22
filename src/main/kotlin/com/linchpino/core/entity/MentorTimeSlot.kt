@@ -22,18 +22,18 @@ import java.time.LocalDateTime
 @Getter
 @Setter
 class MentorTimeSlot : AbstractEntity() {
-    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var account: Account? = null
+	@JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	var account: Account? = null
 
-    @Column(name = "DATE")
-    lateinit var date: LocalDate
+	@Column(name = "DATE")
+	lateinit var date: LocalDate
 
-    @Column(name = "FROM_TIME")
-    lateinit var fromTime: LocalDateTime
+	@Column(name = "FROM_TIME")
+	lateinit var fromTime: LocalDateTime
 
-    @Column(name = "TO_TOME")
-    lateinit var toTime: LocalDateTime
+	@Column(name = "TO_TOME")
+	lateinit var toTime: LocalDateTime
 
 //    @Enumerated(EnumType.STRING)
 //    @Column(name = "STATUS")

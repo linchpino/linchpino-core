@@ -19,24 +19,24 @@ import lombok.Setter
 @Getter
 @Setter
 class Interview : AbstractEntity() {
-    @JoinColumn(name = "JOB_POSITION_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private val jobPosition: JobPosition? = null
+	@JoinColumn(name = "JOB_POSITION_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	private val jobPosition: JobPosition? = null
 
-    @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private val interviewType: InterviewType? = null
+	@JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	private val interviewType: InterviewType? = null
 
-    @JoinColumn(name = "TIME_SLOT_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private val timeSlot: MentorTimeSlot? = null
+	@JoinColumn(name = "TIME_SLOT_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	private val timeSlot: MentorTimeSlot? = null
 
-    @JoinColumn(name = "MENTOR_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private val mentorAccount: Account? = null
+	@JoinColumn(name = "MENTOR_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	private val mentorAccount: Account? = null
 
-    @JoinColumn(name = "JOB_SEEKER_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private val jobSeekerAccount: Account? = null
+	@JoinColumn(name = "JOB_SEEKER_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	private val jobSeekerAccount: Account? = null
 
 }

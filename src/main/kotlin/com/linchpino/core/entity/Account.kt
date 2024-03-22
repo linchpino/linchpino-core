@@ -12,23 +12,23 @@ import jakarta.persistence.Table
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {
-    @Column(name = "FIRST_NAME")
-    lateinit var firstName: String
+	@Column(name = "FIRST_NAME")
+	lateinit var firstName: String
 
-    @Column(name = "LAST_NAME")
-    lateinit var lastName: String
+	@Column(name = "LAST_NAME")
+	lateinit var lastName: String
 
-    @Column(name = "email")
-    lateinit var email: String
+	@Column(name = "email")
+	lateinit var email: String
 
-    @Column(name = "password")
-    lateinit var password: String //encrypt password!
+	@Column(name = "password")
+	lateinit var password: String //encrypt password!
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "TYPE")
-    var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
+	@Enumerated(EnumType.STRING)
+	@Column(name = "TYPE")
+	var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "STATUS")
-    var status: AccountStatus = AccountStatus.DEACTIVATED
+	@Enumerated(EnumType.STRING)
+	@Column(name = "STATUS")
+	var status: AccountStatus = AccountStatus.DEACTIVATED
 }

@@ -20,6 +20,6 @@ class SecurityConfig {
 	}
 
 	@Bean
-	fun passwordEncoder():PasswordEncoder = BCryptPasswordEncoder()
+	fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
 }

@@ -18,8 +18,8 @@ import lombok.Setter
 @NoArgsConstructor
 @Getter
 @Setter
-class MentorInterviewType : AbstractEntity(){
-    @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    var interviewType: InterviewType? = null
+class MentorInterviewType : AbstractEntity() {
+	@JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY)
+	var interviewType: InterviewType? = null
 }

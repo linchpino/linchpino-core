@@ -39,11 +39,11 @@ class JobPositionControllerTestIT {
 		val interviewType2 = InterviewType().apply { name = "InterViewTyp_2" }
 		val jobPositions = jobPositions()
 		jobPositions.first { it.title == "Software Engineer" }.apply {
-			interviewTypes.add(interviewType1)
-			interviewTypes.add(interviewType2)
+			addInterviewType(interviewType1)
+			addInterviewType(interviewType2)
 		}
 		jobPositions.first { it.title == "Data Scientist" }.apply {
-			interviewTypes.add(interviewType2)
+			addInterviewType(interviewType2)
 		}
 		jobPositionRepository.saveAll(jobPositions)
 	}
