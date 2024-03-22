@@ -1,6 +1,7 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.NonNullableArgumentCaptor
+import com.linchpino.core.repository.InterviewTypeSearchResponse
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.JobPositionSearchResponse
 import org.assertj.core.api.Assertions.assertThat
@@ -49,6 +50,25 @@ class JobPositionServiceTest {
 		assertThat(result).isEqualTo(page)
 		verify(jobPositionRepository, times(1)).search("Software Engineer", Pageable.unpaged())
 
+	}
+
+	@Test
+	fun `test find interview types based on job position id`() {
+		// Given
+		val jobPositionId = 123L
+
+		val idCaptor = ArgumentCaptor.forClass(Long::class.java)
+		val interviewType1 = InterviewTypeSearchResponse(1, "InterviewType1")
+		`when`(jobPositionRepository.findInterviewsByJobPositionId(jobPositionId)).thenReturn(listOf(interviewType1))
+
+		// When
+		val result = jobPositionService.findInterviewTypesFor(jobPositionId)
+
+		// Then
+		verify(jobPositionRepository, times(1)).findInterviewsByJobPositionId(idCaptor.capture())
+		assertThat(idCaptor.value).isEqualTo(jobPositionId)
+		assertThat(result.size).isEqualTo(1)
+		assertThat(result.first()).isEqualTo(interviewType1)
 	}
 
 }
