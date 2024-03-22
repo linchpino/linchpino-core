@@ -23,15 +23,17 @@ class JobPosition : AbstractEntity(){
 		joinColumns = [JoinColumn(name = "job_position_id")],
 		inverseJoinColumns = [JoinColumn(name = "interview_type_id")]
 	)
-	val interviewTypes = mutableListOf<InterviewType>()
+	private val interviewTypes = mutableSetOf<InterviewType>()
 
 	fun addInterviewType(interviewType: InterviewType) {
 		interviewTypes.add(interviewType)
 		interviewType.jobPositions.add(this)
 	}
 
-	fun removeTag(interviewType: InterviewType) {
+	fun removeInterviewType(interviewType: InterviewType) {
 		interviewTypes.remove(interviewType)
 		interviewType.jobPositions.remove(this)
 	}
+
+	fun interviewTypes() = interviewTypes.toSet()
 }
