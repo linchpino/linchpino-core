@@ -1,5 +1,6 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.account
 
+import com.linchpino.core.controller.AccountController
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult

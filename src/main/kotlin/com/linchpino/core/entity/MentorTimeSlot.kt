@@ -1,10 +1,10 @@
 package com.linchpino.core.entity
 
 import com.linchpino.core.enums.MentorTimeSlotEnum
-import com.linchpino.core.enums.converters.MentorTimeSlotEnumConverter
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 @Entity
 @Table(name = "MENTOR_TIME_SLOT")
 class MentorTimeSlot : AbstractEntity() {
-    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
+    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = true)
     @ManyToOne(fetch = FetchType.LAZY)
     var account: Account? = null
 
@@ -24,7 +24,7 @@ class MentorTimeSlot : AbstractEntity() {
     @Column(name = "TO_TIME")
     lateinit var toTime: ZonedDateTime
 
-    @Convert(converter = MentorTimeSlotEnumConverter::class)
     @Column(name = "STATUS", nullable = false)
-    lateinit var status : MentorTimeSlotEnum
+    @Convert(converter = MentorTimeSlotEnumConverter::class)
+    lateinit var status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN
 }

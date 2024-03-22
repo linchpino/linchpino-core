@@ -14,14 +14,11 @@ import java.time.ZonedDateTime
 @Service
 @Slf4j
 @Transactional
-class AccountService(
-    private val repository: AccountRepository,
-    private val mapper: AccountMapper,
-    private val passwordEncoder: PasswordEncoder
-) {
+class AccountService(private val repository: AccountRepository, private val mapper: AccountMapper,private val passwordEncoder: PasswordEncoder) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val account: Account = mapper.accountDtoToAccount(createAccountRequest)
+        //account.createdOn(LocalDate.now())
         // encrypt password
         account.password = passwordEncoder.encode(account.password)
         repository.save(account)

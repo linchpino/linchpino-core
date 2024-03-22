@@ -1,4 +1,4 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.jobposition
 
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.entity.InterviewType

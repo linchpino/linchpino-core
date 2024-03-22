@@ -13,7 +13,6 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
 
-
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {
@@ -27,7 +26,7 @@ class Account : AbstractEntity() {
     lateinit var email: String
 
     @Column(name = "password")
-    lateinit var password: String //encrypt password!
+    lateinit var password: String
 
     @Convert(converter = AccountTypeEnumConverter::class)
     @Column(name = "TYPE")
