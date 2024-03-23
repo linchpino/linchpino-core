@@ -19,17 +19,17 @@ import org.springframework.transaction.annotation.Transactional
 class InterviewService(
     private val repository: InterviewRepository,
     private val accountRepository: AccountRepository,
-    private val mapper: InterviewMapper
 ) {
 
     fun newInterview(request: InterviewRequest): InterviewResult {
-        val interview: Interview = mapper.interviewDtoToInterview(request)
+        val email = request.jobSeekerEmail
+        val interview: Interview = InterviewMapper.interviewDtoToInterview(request)
         //interview.createdOn(LocalDate.now())
         //this email should fetch from the upcoming API
-        val isUserLoggedIn: Boolean? = isFalse(accountRepository.isUserExistByEmail("email"))
-        isUserLoggedIn ?: createAccountRequest("email")
+        val isUserLoggedIn: Boolean? = isFalse(accountRepository.isUserExistByEmail(email))
+        isUserLoggedIn ?: createAccountRequest(email)
         repository.save(interview)
-        return mapper.entityToResultDto(interview)
+        return InterviewMapper.entityToResultDto(interview)
     }
 
     private fun createAccountRequest(emailAdd: String) {

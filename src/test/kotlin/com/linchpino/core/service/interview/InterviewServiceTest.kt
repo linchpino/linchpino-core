@@ -2,8 +2,7 @@ package com.linchpino.core.service.interview
 
 import com.linchpino.core.dto.InterviewRequest
 import com.linchpino.core.dto.InterviewResult
-import com.linchpino.core.dto.SilenceAccountRequest
-import com.linchpino.core.dto.SilenceAccountResult
+import com.linchpino.core.dto.mapper.InterviewMapper
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.repository.InterviewRepository
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
@@ -28,21 +28,27 @@ class InterviewServiceTest {
     @Test
     fun `test creating new interview`() {
         // Given
-        val silenceAccountRequest = SilenceAccountRequest("john.doe@example.com", 1)
-        val silenceAccountResult = SilenceAccountResult(
-            "john.doe@example.com",
-            AccountStatus.DEACTIVATED
-        )
-        val interviewRequest = InterviewRequest(1, 1, 2, silenceAccountRequest)
+        val interviewRequest = InterviewRequest(1, 1, 2, "john.doe@example.com")
         val interviewResult = InterviewResult(
             1,
             1,
             1,
             1,
-            silenceAccountResult
+            "john.doe@example.com"
         )
+        val interview = Interview().apply {
+            jobPosition?.id = 1
+            interviewType?.id = 1
+            timeSlot?.id = 1
+            jobSeekerAccount?.email = "john.doe@example.com"
+            jobSeekerAccount?.status = AccountStatus.DEACTIVATED
+        }
 
         val captor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
+
+        Mockito.`when`(InterviewMapper.interviewDtoToInterview(interviewRequest)).thenReturn(interview)
+        Mockito.`when`(repository.save(interview)).thenReturn(interview)
+        Mockito.`when`(InterviewMapper.entityToResultDto(interview)).thenReturn(interviewResult)
 
         // When
         val result = service.newInterview(interviewRequest)

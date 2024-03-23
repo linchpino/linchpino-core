@@ -22,13 +22,3 @@ data class CreateAccountResult(
 	val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
 	val status: AccountStatus = AccountStatus.DEACTIVATED,
 )
-
-data class SilenceAccountRequest(
-	@field:Email(message = "email is not valid") val email: String,
-	@field:NotNull(message = "type is required") val status: Int,
-)
-
-data class SilenceAccountResult(
-	val email: String,
-	val status: AccountStatus = AccountStatus.DEACTIVATED,
-)

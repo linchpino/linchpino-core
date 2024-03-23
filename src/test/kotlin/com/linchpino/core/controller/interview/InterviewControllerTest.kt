@@ -3,9 +3,6 @@ package com.linchpino.core.controller.interview
 import com.linchpino.core.controller.InterviewController
 import com.linchpino.core.dto.InterviewRequest
 import com.linchpino.core.dto.InterviewResult
-import com.linchpino.core.dto.SilenceAccountRequest
-import com.linchpino.core.dto.SilenceAccountResult
-import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.service.InterviewService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,18 +25,13 @@ class InterviewControllerTest {
     @Test
     fun `test create new interview`() {
         // Given
-        val silenceAccountRequest = SilenceAccountRequest("john.doe@example.com", 1)
-        val silenceAccountResult = SilenceAccountResult(
-            "john.doe@example.com",
-            AccountStatus.DEACTIVATED
-        )
-        val interviewRequest = InterviewRequest(1, 1, 1, silenceAccountRequest)
+        val interviewRequest = InterviewRequest(1, 1, 1, "john.doe@example.com")
         val expectedResponse = InterviewResult(
             1,
             1,
             1,
             1,
-            silenceAccountResult
+            "john.doe@example.com"
         )
 
         `when`(service.newInterview(interviewRequest)).thenReturn(expectedResponse)

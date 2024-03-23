@@ -3,16 +3,16 @@ package com.linchpino.core.dto
 import jakarta.validation.constraints.NotNull
 
 data class InterviewRequest(
-    @field:NotNull(message = "JobPositionId is required") val JobPositionId: Long,
-    @field:NotNull(message = "InterviewTypeId is required") val InterviewTypeId: Long,
-    @field:NotNull(message = "MentorTimeSlotId is required") val MentorTimeSlotId: Long,
-    @field:NotNull(message = "jobSeekerAccount is required") val jobSeekerAccount: SilenceAccountRequest,
+    @field:NotNull(message = "jobPositionId is required") val jobPositionId: Long,
+    @field:NotNull(message = "interviewTypeId is required") val interviewTypeId: Long,
+    @field:NotNull(message = "timeSlotId is required") val timeSlotId: Long,
+    @field:NotNull(message = "jobSeekerEmail is required") val jobSeekerEmail: String,
 )
 
 data class InterviewResult(
-    val id: Long,
-    val JobPositionId: Long,
-    val InterviewTypeId: Long,
-    val MentorTimeSlotId: Long,
-    val jobSeekerAccount: SilenceAccountResult,
+    val id: Long?,
+    val jobPositionId: Long?,
+    val interviewTypeId: Long?,
+    val timeSlotId: Long?,
+    val jobSeekerEmail: String?,
 )

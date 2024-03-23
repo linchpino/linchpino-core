@@ -9,7 +9,7 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "MENTOR_INTERVIEW_TYPE")
 class MentorInterviewType : AbstractEntity(){
-    @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = false)
+    @JoinColumn(name = "INTERVIEW_TYPE_ID", referencedColumnName = "ID", nullable = true)
     @ManyToOne(fetch = FetchType.LAZY)
     var interviewType: InterviewType? = null
 }

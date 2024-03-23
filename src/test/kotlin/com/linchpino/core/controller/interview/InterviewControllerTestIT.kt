@@ -3,9 +3,6 @@ package com.linchpino.core.controller.interview
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.InterviewRequest
-import com.linchpino.core.dto.SilenceAccountRequest
-import com.linchpino.core.dto.SilenceAccountResult
-import com.linchpino.core.enums.AccountStatus
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -26,14 +23,7 @@ class InterviewControllerTestIT {
     private lateinit var mockMvc: MockMvc
 
     private fun dataProvider(param: String) {
-        InterviewRequest(1, 1, 1, SilenceAccountRequest(param, 1))
-    }
-
-    private fun accountDataProvider(): SilenceAccountResult {
-        return SilenceAccountResult(
-            "john.doe@example.com",
-            AccountStatus.DEACTIVATED
-        )
+        InterviewRequest(1, 1, 1, param)
     }
 
     @Test
@@ -45,10 +35,10 @@ class InterviewControllerTestIT {
         )
             .andExpect(MockMvcResultMatchers.status().isCreated)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.JobPositionId").value(1))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.InterviewTypeId").value(1))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.MentorTimeSlotId").value(1))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.jobSeekerAccount").value(accountDataProvider()))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.jobPositionId").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.interviewTypeId").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.timeSlotId").value(1))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.jobSeekerEmail").value("john.doe@example.com"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber)
     }
