@@ -1,4 +1,4 @@
-name: Run SonarQube with Maven
+name: SonarCloudMaven
 
 on: 
     push:
