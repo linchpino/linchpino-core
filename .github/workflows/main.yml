@@ -5,9 +5,9 @@ on:
     workflows: [ "Run SonarQube with Maven" ]
     types:
       - completed
-  push:
-    branches:
-      - development
+#  push:
+#    branches:
+#     - development
       
 env:
   REGISTRY: ghcr.io
