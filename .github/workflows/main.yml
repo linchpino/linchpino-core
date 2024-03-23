@@ -1,6 +1,10 @@
 name: Deploy Images to GHCR
 
 on:
+  workflow_run:
+    workflows: [ "Run SonarQube with Maven" ]
+    types:
+      - completed
   push:
     branches:
       - development
