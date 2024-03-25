@@ -1,9 +1,13 @@
 name: Deploy Images to GHCR
 
 on:
-  push:
-    branches:
-      - development
+  workflow_run:
+    workflows: [ "SonarCloudMaven" ]
+    types:
+      - completed
+#  push:
+#    branches:
+#     - development
       
 env:
   REGISTRY: ghcr.io

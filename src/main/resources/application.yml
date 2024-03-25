@@ -4,9 +4,9 @@ spring:
 
     datasource:
         driverClassName: org.postgresql.Driver
-        username: ${POSTGRES_USERNAME:postgres}
-        password: ${POSTGRES_PASSWORD:postgres}
-        url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/linchpino}
+        username: ${POSTGRES_USERNAME:linchpinodbuser}
+        password: ${POSTGRES_PASSWORD:Ps@135792468}
+        url: ${POSTGRES_URL:jdbc:postgresql://api-dev.linchpino.com:5432/linchpinocore}
     jpa:
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         hibernate:
