@@ -1,14 +1,15 @@
 import com.linchpino.core.controller.JobPositionController
-import com.linchpino.core.repository.JobPositionSearchResponse
+import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.service.JobPositionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.times
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -66,4 +67,32 @@ class JobPositionControllerTest {
 		assertThat(result.content.size).isEqualTo(1)
 
 	}
+
+    @Test
+    fun `test find interviewTypes by jobPositionId`() {
+        // Given
+        val page:Page<InterviewTypeSearchResponse> = PageImpl(
+            listOf(
+                InterviewTypeSearchResponse(1, "InterviewType1")
+            )
+        )
+
+        `when`(
+            jobPositionService.findInterviewTypesBy(
+                1,
+                Pageable.unpaged()
+            )
+        ).thenReturn(page)
+
+
+        // When
+        val result = jobPositionController.interviewTypes(1, Pageable.unpaged())
+
+        // Then
+        verify(jobPositionService, times(1)).findInterviewTypesBy(1, Pageable.unpaged())
+        assertThat(result.totalPages).isEqualTo(1)
+        assertThat(result.content.size).isEqualTo(1)
+        assertThat(result.content[0].title).isEqualTo("InterviewType1")
+
+    }
 }

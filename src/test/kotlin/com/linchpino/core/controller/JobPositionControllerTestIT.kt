@@ -42,9 +42,6 @@ class JobPositionControllerTestIT {
 			addInterviewType(interviewType1)
 			addInterviewType(interviewType2)
 		}
-		jobPositions.first { it.title == "Data Scientist" }.apply {
-			addInterviewType(interviewType2)
-		}
 		jobPositionRepository.saveAll(jobPositions)
 	}
 	@Test
@@ -55,6 +52,15 @@ class JobPositionControllerTestIT {
 			.andExpect(jsonPath("$.content.length()").value(1))
 			.andExpect(jsonPath("$.content[0].title").value("Software Engineer"))
 	}
+
+    @Test
+    fun `test jobPositions search by name is case insensitive`() {
+
+        mockMvc.perform(get("/api/jobposition/search?name=EngiNeEr"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].title").value("Software Engineer"))
+    }
 
 
 	@Test
@@ -87,7 +93,7 @@ class JobPositionControllerTestIT {
 	@Test
 	fun `test jobPositions search without providing name returns page of jobPositions based on provided page size`() {
 
-		mockMvc.perform(get("/api/jobposition/search?size=5"))
+		mockMvc.perform(get("/api/jobposition/search").queryParam("size","5"))
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.content.length()").value(5))
 			.andExpect(jsonPath("$.content[0].title").value("Software Engineer"))
@@ -105,24 +111,35 @@ class JobPositionControllerTestIT {
 		// Perform the GET request to the endpoint
 		mockMvc.perform(get("/api/jobposition/$jobId/interviewtype"))
 			.andExpect(status().isOk)
-			.andExpect(jsonPath("$").isArray())
-			.andExpect(jsonPath("$.length()").value(2))
-			.andExpect(jsonPath("$[0].id").isNumber)
-			.andExpect(jsonPath("$[0].title").value("InterViewTyp_1"))
-			.andExpect(jsonPath("$[1].id").isNumber)
-			.andExpect(jsonPath("$[1].title").value("InterViewTyp_2"));
+			.andExpect(jsonPath("$.content.length()").value(2))
+			.andExpect(jsonPath("$.content[0].id").isNumber)
+			.andExpect(jsonPath("$.content[0].title").value("InterViewTyp_1"))
+			.andExpect(jsonPath("$.content[1].id").isNumber)
+			.andExpect(jsonPath("$.content[1].title").value("InterViewTyp_2"))
 	}
 
+    @Test
+    fun `test get interview types by job id returns interview types for that job id based on pageable data`() {
+        val all = jobPositionRepository.findAll()
+        val jobId = all.first { it.title == "Software Engineer" }.id
+        // Perform the GET request to the endpoint
+        mockMvc.perform(get("/api/jobposition/$jobId/interviewtype")
+            .queryParam("size","1")
+            .queryParam("page","0"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].id").isNumber)
+            .andExpect(jsonPath("$.content[0].title").value("InterViewTyp_1"))
+    }
+
 	@Test
-	fun `test get interview types by job id only returns interview types belonging to that id`() {
-		val jobId = jobPositionRepository.findAll().first { it.title == "Data Scientist" }.id
+	fun `test get interview types by job id returns empty result if no interviewType found for that job id`() {
+		val jobId = jobPositionRepository.findAll().first { it.title == "Product Manager" }.id
 		// Perform the GET request to the endpoint
 		mockMvc.perform(get("/api/jobposition/$jobId/interviewtype"))
 			.andExpect(status().isOk)
-			.andExpect(jsonPath("$").isArray())
-			.andExpect(jsonPath("$.length()").value(1))
-			.andExpect(jsonPath("$[0].id").isNumber)
-			.andExpect(jsonPath("$[0].title").value("InterViewTyp_2"));
+			.andExpect(jsonPath("$.content").isArray)
+			.andExpect(jsonPath("$.content.length()").value(0))
 	}
 
 	private fun jobPositions() = listOf(

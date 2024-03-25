@@ -1,7 +1,7 @@
 package com.linchpino.core.controller
 
-import com.linchpino.core.repository.InterviewTypeSearchResponse
-import com.linchpino.core.repository.JobPositionSearchResponse
+import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.service.JobPositionService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -38,8 +38,8 @@ class JobPositionController(private val jobPositionService: JobPositionService) 
 
 
 	@GetMapping("/{id}/interviewtype")
-	fun interviewTypes(@PathVariable id: Long): List<InterviewTypeSearchResponse> {
-		return jobPositionService.findInterviewTypesFor(id)
+	fun interviewTypes(@PathVariable id: Long,@PageableDefault(size = 10) pageable: Pageable): Page<InterviewTypeSearchResponse> {
+		return jobPositionService.findInterviewTypesBy(id,pageable)
 	}
 
 }
