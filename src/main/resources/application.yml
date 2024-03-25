@@ -1,17 +1,17 @@
 spring:
-    application:
-        name: linchpino-service
+  application:
+    name: linchpino-service
 
-    datasource:
-        driverClassName: org.postgresql.Driver
-        username: ${POSTGRES_USERNAME:postgres}
-        password: ${POSTGRES_PASSWORD:postgres}
-        url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/linchpino}
-    jpa:
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-        hibernate:
-            ddl-auto: none
-        show-sql: ${HIBERNATE_SHOW_SQL:true}
-        properties:
-            hibernate:
-                format_sql: true
+  datasource:
+    driverClassName: org.postgresql.Driver
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/linchpino}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: ${HIBERNATE_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: true

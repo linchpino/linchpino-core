@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import
 class TestLinchpinApp
 
 fun main(args: Array<String>) {
-	fromApplication<LinchpinApp>().with(TestLinchpinApp::class).run(*args)
+    fromApplication<LinchpinApp>().with(TestLinchpinApp::class).run(*args)
 }
 
 

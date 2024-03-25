@@ -27,14 +27,14 @@ class AccountControllerTest {
         // Given
         val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
         val expectedResponse = CreateAccountResult(
-			1,
-			"John",
-			"Doe",
-			"john.doe@example.com",
-			AccountTypeEnum.JOB_SEEKER
-		)
+            1,
+            "John",
+            "Doe",
+            "john.doe@example.com",
+            AccountTypeEnum.JOB_SEEKER
+        )
 
-		`when`(accountService.createAccount(createAccountRequest)).thenReturn(expectedResponse)
+        `when`(accountService.createAccount(createAccountRequest)).thenReturn(expectedResponse)
 
         // When
         val result = accountController.createAccount(createAccountRequest)

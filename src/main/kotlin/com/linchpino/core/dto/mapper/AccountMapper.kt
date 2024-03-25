@@ -12,13 +12,14 @@ import org.mapstruct.Named
 @Mapper(componentModel = "spring", uses = [AccountService::class])
 interface AccountMapper {
 
-	@Mapping(target = "type", source = "type", qualifiedByName = ["mapFromInt"])
-	fun accountDtoToAccount(dto: CreateAccountRequest): Account
-	fun entityToResultDto(entity: Account): CreateAccountResult
+    @Mapping(target = "type", source = "type", qualifiedByName = ["mapFromInt"])
+    fun accountDtoToAccount(dto: CreateAccountRequest): Account
+    fun entityToResultDto(entity: Account): CreateAccountResult
 
-	companion object {
-		@JvmStatic
-		@Named("mapFromInt")
-		fun mapFromInt(type: Int) =  AccountTypeEnum.entries.firstOrNull { it.typeValue == type }?:AccountTypeEnum.UNKNOWN
-	}
+    companion object {
+        @JvmStatic
+        @Named("mapFromInt")
+        fun mapFromInt(type: Int) =
+            AccountTypeEnum.entries.firstOrNull { it.typeValue == type } ?: AccountTypeEnum.UNKNOWN
+    }
 }

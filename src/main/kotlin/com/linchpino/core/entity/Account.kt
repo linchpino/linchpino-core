@@ -2,11 +2,7 @@ package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 
 @Table(name = "ACCOUNT")
