@@ -12,5 +12,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 class LinchpinApp
 
 fun main(args: Array<String>) {
-	runApplication<LinchpinApp>(*args)
+    runApplication<LinchpinApp>(*args)
 }

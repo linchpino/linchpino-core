@@ -14,16 +14,16 @@ import org.springframework.transaction.annotation.Transactional
 @Slf4j
 @Transactional
 class AccountService(
-	private val repository: AccountRepository,
-	private val mapper: AccountMapper,
-	private val passwordEncoder: PasswordEncoder
+    private val repository: AccountRepository,
+    private val mapper: AccountMapper,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
-	fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
-		val account: Account = mapper.accountDtoToAccount(createAccountRequest)
-		// encrypt password
-		account.password = passwordEncoder.encode(account.password)
-		repository.save(account)
-		return mapper.entityToResultDto(account)
-	}
+    fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
+        val account: Account = mapper.accountDtoToAccount(createAccountRequest)
+        // encrypt password
+        account.password = passwordEncoder.encode(account.password)
+        repository.save(account)
+        return mapper.entityToResultDto(account)
+    }
 }

@@ -9,9 +9,9 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "INTERVIEW_TYPE")
 class InterviewType : AbstractEntity() {
-	@Column(name = "NAME")
-	lateinit var name: String
+    @Column(name = "NAME")
+    lateinit var name: String
 
-	@ManyToMany(mappedBy = "interviewTypes")
-	val jobPositions = mutableSetOf<JobPosition>()
+    @ManyToMany(mappedBy = "interviewTypes")
+    val jobPositions = mutableSetOf<JobPosition>()
 }

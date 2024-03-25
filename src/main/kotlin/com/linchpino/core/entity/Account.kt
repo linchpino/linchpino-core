@@ -2,33 +2,29 @@ package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatus
 import com.linchpino.core.enums.AccountTypeEnum
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {
-	@Column(name = "FIRST_NAME")
-	lateinit var firstName: String
+    @Column(name = "FIRST_NAME")
+    lateinit var firstName: String
 
-	@Column(name = "LAST_NAME")
-	lateinit var lastName: String
+    @Column(name = "LAST_NAME")
+    lateinit var lastName: String
 
-	@Column(name = "email")
-	lateinit var email: String
+    @Column(name = "email")
+    lateinit var email: String
 
-	@Column(name = "password")
-	lateinit var password: String //encrypt password!
+    @Column(name = "password")
+    lateinit var password: String //encrypt password!
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "TYPE")
-	var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
+    @Enumerated(EnumType.STRING)
+    @Column(name = "TYPE")
+    var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "STATUS")
-	var status: AccountStatus = AccountStatus.DEACTIVATED
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    var status: AccountStatus = AccountStatus.DEACTIVATED
 }

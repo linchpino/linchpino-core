@@ -1,16 +1,7 @@
 package com.linchpino.core.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
-import lombok.AllArgsConstructor
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
-import lombok.Setter
+import jakarta.persistence.*
+import lombok.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -22,18 +13,18 @@ import java.time.LocalDateTime
 @Getter
 @Setter
 class MentorTimeSlot : AbstractEntity() {
-	@JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
-	@ManyToOne(fetch = FetchType.LAZY)
-	var account: Account? = null
+    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    var account: Account? = null
 
-	@Column(name = "DATE")
-	lateinit var date: LocalDate
+    @Column(name = "DATE")
+    lateinit var date: LocalDate
 
-	@Column(name = "FROM_TIME")
-	lateinit var fromTime: LocalDateTime
+    @Column(name = "FROM_TIME")
+    lateinit var fromTime: LocalDateTime
 
-	@Column(name = "TO_TOME")
-	lateinit var toTime: LocalDateTime
+    @Column(name = "TO_TOME")
+    lateinit var toTime: LocalDateTime
 
 //    @Enumerated(EnumType.STRING)
 //    @Column(name = "STATUS")

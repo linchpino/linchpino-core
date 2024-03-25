@@ -8,9 +8,9 @@ import org.testcontainers.utility.DockerImageName
 
 @TestConfiguration(proxyBeanMethods = false)
 class PostgresContainerConfig {
-	@Bean
-	@ServiceConnection
-	fun postgresContainer() : PostgreSQLContainer<*> {
-		return PostgreSQLContainer(DockerImageName.parse("postgres:15.5"))
-	}
+    @Bean
+    @ServiceConnection
+    fun postgresContainer(): PostgreSQLContainer<*> {
+        return PostgreSQLContainer(DockerImageName.parse("postgres:15.5"))
+    }
 }
