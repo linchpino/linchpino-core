@@ -2,8 +2,7 @@ version: "3.3"
 services:
 
   linchpino-core:
-    # image: ghcr.io/linchpino/linchpino-core:development
-    image: custome01
+    image: ghcr.io/linchpino/linchpino-core:development
     container_name: linchpino-core
     restart: unless-stopped
     ports:
