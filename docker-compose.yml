@@ -1,9 +1,36 @@
 version: "3.3"
 services:
+
   linchpino-core:
-    image: ghcr.io/linchpino/linchpino-core:development
+    # image: ghcr.io/linchpino/linchpino-core:development
+    image: custome01
     container_name: linchpino-core
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8082:8080"
+    command: "mvn spring-boot:run -Dspring-boot.run.jvmArguments='-DPOSTGRES_USERNAME=linchpinodbuser -DPOSTGRES_PASSWORD=Ps@135792468 -DPOSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/linchpinocore'"
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./PostgresData:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=Ps@135792468
+      - POSTGRES_USER=linchpinodbuser
+      - POSTGRES_DB=linchpinocore
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: aminmirzaahmadi@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: Pg@135792468
+    volumes:
+      - ./PgadminData:/var/lib/pgadmin
 
