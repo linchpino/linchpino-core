@@ -2,7 +2,6 @@ package com.linchpino.core.repository
 
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.entity.Account
-import com.linchpino.core.enums.MentorTimeSlotEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

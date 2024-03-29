@@ -4,7 +4,6 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
-import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
