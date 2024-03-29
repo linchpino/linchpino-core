@@ -159,12 +159,11 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns empty list when interviewType matches the provided interviewTypeId`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
-        val id =  entityManager.createQuery("select max(id) from InterviewType",Long::class.java).singleResult
 
         // Perform GET request and verify response
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/accounts/mentors/search")
-                .param("interviewTypeId", (id + 1).toString())
+                .param("interviewTypeId", (-1).toString())
                 .param("date", "2024-03-26")
                 .contentType(MediaType.APPLICATION_JSON)
         )
