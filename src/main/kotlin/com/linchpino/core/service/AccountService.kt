@@ -4,11 +4,13 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 @Slf4j
@@ -26,4 +28,8 @@ class AccountService(
         repository.save(account)
         return mapper.entityToResultDto(account)
     }
+
+
+    fun findMentorsWithClosestTimeSlotsBy(date: LocalDate, interviewTypeId: Long) =
+        repository.closestMentorTimeSlots(date, interviewTypeId)
 }

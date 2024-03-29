@@ -14,4 +14,7 @@ class InterviewType : AbstractEntity() {
 
     @ManyToMany(mappedBy = "interviewTypes")
     val jobPositions = mutableSetOf<JobPosition>()
+
+    @ManyToMany(mappedBy = "interviewTypes")
+    val accounts = mutableSetOf<Account>()
 }

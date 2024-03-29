@@ -1,8 +1,51 @@
 package com.linchpino.core.repository
 
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 
 @Repository
-interface AccountRepository : JpaRepository<Account, Long>
+interface AccountRepository : JpaRepository<Account, Long>{
+
+    @Query(
+        """
+    SELECT NEW com.linchpino.core.dto.MentorWithClosestTimeSlot(
+            a.id ,
+            a.firstName,
+            a.lastName,
+            mts.id,
+            mts.fromTime,
+            mts.toTime
+        )
+    FROM
+        Account a
+    JOIN
+        a.interviewTypes it
+    JOIN
+        MentorTimeSlot mts ON mts.account.id = a.id
+    WHERE
+        a.type = 'MENTOR'
+        AND mts.date = :dateParam
+        AND it.id = :interviewTypeId
+        AND mts.fromTime = (
+            SELECT
+                MIN(mts2.fromTime)
+            FROM
+                MentorTimeSlot mts2
+            WHERE
+                mts2.account.id = a.id
+                AND mts2.date = :dateParam
+                AND mts2.status = 'AVAILABLE'
+        )
+    """
+    )
+    fun closestMentorTimeSlots(
+        dateParam: LocalDate,
+        interviewTypeId: Long,
+    ): List<MentorWithClosestTimeSlot>
+
+}

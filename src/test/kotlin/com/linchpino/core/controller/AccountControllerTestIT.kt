@@ -3,6 +3,15 @@ package com.linchpino.core.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.repository.AccountRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Test
@@ -16,6 +25,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,6 +36,11 @@ class AccountControllerTestIT {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+    @Autowired
+    private lateinit var accountRepository: AccountRepository
+
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
 
     @Test
     fun `test creating jobSeeker account`() {
@@ -109,5 +125,207 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("email is not valid")))
             .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("firstName")))
             .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("firstname is required")))
+    }
+
+    @Test
+    fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
+        // Given
+        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
+
+        // Perform GET request and verify response
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("interviewTypeId", id.toString())
+                .param("date", "2024-03-26")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").isArray)
+            .andExpect(jsonPath("$").value(hasSize<Int>(2)))
+            .andExpect(jsonPath("$.[0].mentorFirstName").value("John"))
+            .andExpect(jsonPath("$.[0].mentorLastName").value("Doe"))
+            .andExpect(jsonPath("$.[0].from").value("2024-03-26T13:00:00"))
+            .andExpect(jsonPath("$.[0].to").value("2024-03-26T14:00:00"))
+            .andExpect(jsonPath("$.[1].mentorFirstName").value("Jane"))
+            .andExpect(jsonPath("$.[1].mentorLastName").value("Smith"))
+            .andExpect(jsonPath("$.[1].from").value("2024-03-26T09:00:00"))
+            .andExpect(jsonPath("$.[1].to").value("2024-03-26T10:00:00"))
+    }
+
+
+    @Test
+    fun `test search for mentors by date and interviewType returns empty list when interviewType matches the provided interviewTypeId`() {
+        // Given
+        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+        val id =  entityManager.createQuery("select max(id) from InterviewType",Long::class.java).singleResult
+
+        // Perform GET request and verify response
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("interviewTypeId", (id + 1).toString())
+                .param("date", "2024-03-26")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").isArray)
+            .andExpect(jsonPath("$").isEmpty)
+    }
+
+    @Test
+    fun `test search for mentors by date and interviewType returns empty list when no mentor is available on the provided date`() {
+        // Given
+        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
+
+        // Perform GET request and verify response
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("interviewTypeId", id.toString())
+                .param("date", "2024-03-28")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").isArray)
+            .andExpect(jsonPath("$").isEmpty)
+    }
+
+    @Test
+    fun `test search for mentors by date and interviewType returns bad request when interviewTypeId not provided`() {
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("date", "2024-03-28")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("interviewTypeId"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Required request parameter 'interviewTypeId' for method parameter type long is not present"))
+    }
+
+    @Test
+    fun `test search for mentors by date and interviewType returns bad request when date not provided`() {
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("interviewTypeId", 5L.toString())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("date"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Required request parameter 'date' for method parameter type LocalDate is not present"))
+    }
+
+    private fun saveFakeMentorsWithInterviewTypeAndTimeSlots(){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = "secret"
+            type = AccountTypeEnum.MENTOR
+            status = AccountStatus.ACTIVATED
+        }
+        val systemDesign = InterviewType().apply {
+            this.name = "System Design"
+        }
+        john.addInterviewType(systemDesign)
+        john.addInterviewType(InterviewType().apply {
+            this.name = "Backend Engineering"
+        })
+        accountRepository.save(john)
+
+        val jane = Account().apply {
+            firstName = "Jane"
+            lastName = "Smith"
+            email = "janesmith@gmail.com"
+            password = "secret"
+            type = AccountTypeEnum.MENTOR
+            status = AccountStatus.ACTIVATED
+        }
+        jane.addInterviewType(systemDesign)
+        accountRepository.save(jane)
+
+        val bob = Account().apply {
+            firstName = "Bob"
+            lastName = "Martin"
+            email = "bob@gmail.com"
+            password = "secret"
+            type = AccountTypeEnum.MENTOR
+            status = AccountStatus.ACTIVATED
+        }
+        bob.addInterviewType(InterviewType().apply {
+            name = "Kotlin Dev"
+        })
+        accountRepository.save(bob)
+
+        MentorTimeSlot().apply {
+            account = john
+            date = LocalDate.parse("2024-03-26")
+            fromTime = LocalDateTime.parse("2024-03-26T16:00:00")
+            toTime = LocalDateTime.parse("2024-03-26T17:00:00")
+            status = MentorTimeSlotEnum.AVAILABLE
+        }.also {
+            entityManager.persist(it)
+        }
+
+        MentorTimeSlot().apply {
+            account = john
+            date = LocalDate.parse("2024-03-26")
+            fromTime = LocalDateTime.parse("2024-03-26T13:00:00")
+            toTime = LocalDateTime.parse("2024-03-26T14:00:00")
+            status = MentorTimeSlotEnum.AVAILABLE
+        }.also {
+            entityManager.persist(it)
+        }
+
+        MentorTimeSlot().apply {
+            account = john
+            date = LocalDate.parse("2024-03-26")
+            fromTime = LocalDateTime.parse("2024-03-26T09:00:00")
+            toTime = LocalDateTime.parse("2024-03-26T10:00:00")
+            status = MentorTimeSlotEnum.DRAFT
+        }.also {
+            entityManager.persist(it)
+        }
+
+        MentorTimeSlot().apply {
+            account = jane
+            date = LocalDate.parse("2024-03-26")
+            fromTime = LocalDateTime.parse("2024-03-26T09:00:00")
+            toTime = LocalDateTime.parse("2024-03-26T10:00:00")
+            status = MentorTimeSlotEnum.AVAILABLE
+        }.also {
+            entityManager.persist(it)
+        }
+
+        MentorTimeSlot().apply {
+            account = jane
+            date = LocalDate.parse("2024-03-26")
+            fromTime = LocalDateTime.parse("2024-03-26T20:00:00")
+            toTime = LocalDateTime.parse("2024-03-26T21:00:00")
+            status = MentorTimeSlotEnum.AVAILABLE
+        }.also {
+            entityManager.persist(it)
+        }
+
+        MentorTimeSlot().apply {
+            account = bob
+            date = LocalDate.parse("2024-03-27")
+            fromTime = LocalDateTime.parse("2024-03-27T07:00:00")
+            toTime = LocalDateTime.parse("2024-03-27T08:00:00")
+            status = MentorTimeSlotEnum.AVAILABLE
+        }.also {
+            entityManager.persist(it)
+        }
+
     }
 }
