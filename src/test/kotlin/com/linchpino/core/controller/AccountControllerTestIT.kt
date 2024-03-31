@@ -6,7 +6,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
@@ -25,8 +25,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -137,7 +136,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
-                .param("date", "2024-03-26")
+                .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
@@ -146,12 +145,12 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
             .andExpect(jsonPath("$.[0].mentorFirstName").value("John"))
             .andExpect(jsonPath("$.[0].mentorLastName").value("Doe"))
-            .andExpect(jsonPath("$.[0].from").value("2024-03-26T13:00:00"))
-            .andExpect(jsonPath("$.[0].to").value("2024-03-26T14:00:00"))
+            .andExpect(jsonPath("$.[0].from").value("2024-03-26T13:00:00Z"))
+            .andExpect(jsonPath("$.[0].to").value("2024-03-26T14:00:00Z"))
             .andExpect(jsonPath("$.[1].mentorFirstName").value("Jane"))
             .andExpect(jsonPath("$.[1].mentorLastName").value("Smith"))
-            .andExpect(jsonPath("$.[1].from").value("2024-03-26T09:00:00"))
-            .andExpect(jsonPath("$.[1].to").value("2024-03-26T10:00:00"))
+            .andExpect(jsonPath("$.[1].from").value("2024-03-26T09:00:00Z"))
+            .andExpect(jsonPath("$.[1].to").value("2024-03-26T10:00:00Z"))
     }
 
 
@@ -164,7 +163,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/accounts/mentors/search")
                 .param("interviewTypeId", (-1).toString())
-                .param("date", "2024-03-26")
+                .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
@@ -183,7 +182,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
-                .param("date", "2024-03-28")
+                .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
@@ -197,7 +196,7 @@ class AccountControllerTestIT {
 
         mockMvc.perform(
             MockMvcRequestBuilders.get("/api/accounts/mentors/search")
-                .param("date", "2024-03-28")
+                .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(MockMvcResultMatchers.status().isBadRequest)
@@ -221,7 +220,7 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("date"))
-            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Required request parameter 'date' for method parameter type LocalDate is not present"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Required request parameter 'date' for method parameter type ZonedDateTime is not present"))
     }
 
     private fun saveFakeMentorsWithInterviewTypeAndTimeSlots(){
@@ -231,7 +230,7 @@ class AccountControllerTestIT {
             email = "johndoe@gmail.com"
             password = "secret"
             type = AccountTypeEnum.MENTOR
-            status = AccountStatus.ACTIVATED
+            status = AccountStatusEnum.ACTIVATED
         }
         val systemDesign = InterviewType().apply {
             this.name = "System Design"
@@ -248,7 +247,7 @@ class AccountControllerTestIT {
             email = "janesmith@gmail.com"
             password = "secret"
             type = AccountTypeEnum.MENTOR
-            status = AccountStatus.ACTIVATED
+            status = AccountStatusEnum.ACTIVATED
         }
         jane.addInterviewType(systemDesign)
         accountRepository.save(jane)
@@ -259,7 +258,7 @@ class AccountControllerTestIT {
             email = "bob@gmail.com"
             password = "secret"
             type = AccountTypeEnum.MENTOR
-            status = AccountStatus.ACTIVATED
+            status = AccountStatusEnum.ACTIVATED
         }
         bob.addInterviewType(InterviewType().apply {
             name = "Kotlin Dev"
@@ -268,9 +267,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = john
-            date = LocalDate.parse("2024-03-26")
-            fromTime = LocalDateTime.parse("2024-03-26T16:00:00")
-            toTime = LocalDateTime.parse("2024-03-26T17:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-26T16:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-26T17:00:00+00:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }.also {
             entityManager.persist(it)
@@ -278,9 +276,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = john
-            date = LocalDate.parse("2024-03-26")
-            fromTime = LocalDateTime.parse("2024-03-26T13:00:00")
-            toTime = LocalDateTime.parse("2024-03-26T14:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-26T13:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-26T14:00:00+00:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }.also {
             entityManager.persist(it)
@@ -288,9 +285,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = john
-            date = LocalDate.parse("2024-03-26")
-            fromTime = LocalDateTime.parse("2024-03-26T09:00:00")
-            toTime = LocalDateTime.parse("2024-03-26T10:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-26T09:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-26T10:00:00+00:00")
             status = MentorTimeSlotEnum.DRAFT
         }.also {
             entityManager.persist(it)
@@ -298,9 +294,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = jane
-            date = LocalDate.parse("2024-03-26")
-            fromTime = LocalDateTime.parse("2024-03-26T09:00:00")
-            toTime = LocalDateTime.parse("2024-03-26T10:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-26T09:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-26T10:00:00+00:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }.also {
             entityManager.persist(it)
@@ -308,9 +303,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = jane
-            date = LocalDate.parse("2024-03-26")
-            fromTime = LocalDateTime.parse("2024-03-26T20:00:00")
-            toTime = LocalDateTime.parse("2024-03-26T21:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-26T20:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-26T21:00:00+00:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }.also {
             entityManager.persist(it)
@@ -318,9 +312,8 @@ class AccountControllerTestIT {
 
         MentorTimeSlot().apply {
             account = bob
-            date = LocalDate.parse("2024-03-27")
-            fromTime = LocalDateTime.parse("2024-03-27T07:00:00")
-            toTime = LocalDateTime.parse("2024-03-27T08:00:00")
+            fromTime = ZonedDateTime.parse("2024-03-27T07:00:00+00:00")
+            toTime = ZonedDateTime.parse("2024-03-27T08:00:00+00:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }.also {
             entityManager.persist(it)

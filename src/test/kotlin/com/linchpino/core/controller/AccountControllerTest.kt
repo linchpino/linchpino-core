@@ -17,8 +17,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {
@@ -55,12 +54,13 @@ class AccountControllerTest {
     fun `test search mentors by interviewTypeId and date`(){
         // Given
         val interviewTypeId = 5L
-        val date = LocalDate.parse("2024-03-29")
+        val date = ZonedDateTime.parse("2024-03-29T12:30:45+00:00")
+
         val expectedResponse = listOf(
-            MentorWithClosestTimeSlot(interviewTypeId,"John","Doe",3,LocalDateTime.parse("2024-03-29T13:00:00"),LocalDateTime.parse("2024-03-29T14:00:00"))
+            MentorWithClosestTimeSlot(interviewTypeId,"John","Doe",3,ZonedDateTime.parse("2024-03-29T13:00:00+00:00"),ZonedDateTime.parse("2024-03-29T14:00:00+00:00"))
         )
         val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
-        val dateCaptor:ArgumentCaptor<LocalDate> = ArgumentCaptor.forClass(LocalDate::class.java)
+        val dateCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         `when`(accountService.findMentorsWithClosestTimeSlotsBy(dateCaptor.captureNonNullable(), idCaptor.capture())).thenReturn(expectedResponse)
 
         // When

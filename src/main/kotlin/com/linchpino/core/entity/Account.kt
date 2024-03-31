@@ -1,12 +1,13 @@
 package com.linchpino.core.entity
 
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.converters.AccountStatusEnumConverter
+import com.linchpino.core.enums.converters.AccountTypeEnumConverter
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
@@ -28,13 +29,13 @@ class Account : AbstractEntity() {
     @Column(name = "password")
     lateinit var password: String //encrypt password!
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AccountTypeEnumConverter::class)
     @Column(name = "TYPE")
     var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")
-    var status: AccountStatus = AccountStatus.DEACTIVATED
+    var status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED
 
     @ManyToMany(
         cascade = [CascadeType.PERSIST, CascadeType.MERGE]

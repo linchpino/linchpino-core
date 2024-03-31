@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
+import java.time.ZonedDateTime
 
 @Service
 @Slf4j
@@ -29,6 +29,6 @@ class AccountService(
     }
 
 
-    fun findMentorsWithClosestTimeSlotsBy(date: LocalDate, interviewTypeId: Long) =
+    fun findMentorsWithClosestTimeSlotsBy(date: ZonedDateTime, interviewTypeId: Long) =
         repository.closestMentorTimeSlots(date, interviewTypeId)
 }

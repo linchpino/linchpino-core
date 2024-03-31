@@ -1,11 +1,11 @@
 package com.linchpino.core.dto
 
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class CreateAccountRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
@@ -21,7 +21,7 @@ data class CreateAccountResult(
     val lastName: String,
     val email: String,
     val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
-    val status: AccountStatus = AccountStatus.DEACTIVATED,
+    val status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED,
 )
 
 data class MentorWithClosestTimeSlot(
@@ -29,6 +29,6 @@ data class MentorWithClosestTimeSlot(
     val mentorFirstName: String,
     val mentorLastName: String,
     val timeSlotId: Long,
-    val from: LocalDateTime,
-    val to: LocalDateTime
+    val from: ZonedDateTime,
+    val to: ZonedDateTime
 )

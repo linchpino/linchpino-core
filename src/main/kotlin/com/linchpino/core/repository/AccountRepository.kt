@@ -5,7 +5,7 @@ import com.linchpino.core.entity.Account
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
+import java.time.ZonedDateTime
 
 @Repository
 interface AccountRepository : JpaRepository<Account, Long>{
@@ -27,23 +27,23 @@ interface AccountRepository : JpaRepository<Account, Long>{
     JOIN
         MentorTimeSlot mts ON mts.account.id = a.id
     WHERE
-        a.type = 'MENTOR'
-        AND mts.date = :dateParam
+        a.type = 2
+        AND cast(mts.fromTime as localdate) = cast(:dateParam as localdate )
         AND it.id = :interviewTypeId
         AND mts.fromTime = (
             SELECT
-                MIN(mts2.fromTime)
+                MIN(mentorTimeSlot.fromTime)
             FROM
-                MentorTimeSlot mts2
+                MentorTimeSlot mentorTimeSlot
             WHERE
-                mts2.account.id = a.id
-                AND mts2.date = :dateParam
-                AND mts2.status = 'AVAILABLE'
+                mentorTimeSlot.account.id = a.id
+                AND cast(mentorTimeSlot.fromTime as localdate) = cast(:dateParam as localdate)
+                AND mentorTimeSlot.status = 1
         )
     """
     )
     fun closestMentorTimeSlots(
-        dateParam: LocalDate,
+        dateParam: ZonedDateTime,
         interviewTypeId: Long,
     ): List<MentorWithClosestTimeSlot>
 
