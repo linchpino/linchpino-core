@@ -15,3 +15,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
