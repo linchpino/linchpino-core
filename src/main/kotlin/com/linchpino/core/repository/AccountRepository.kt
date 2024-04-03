@@ -47,4 +47,5 @@ interface AccountRepository : JpaRepository<Account, Long>{
         interviewTypeId: Long,
     ): List<MentorWithClosestTimeSlot>
 
+    fun findByEmail(email:String):Account?
 }

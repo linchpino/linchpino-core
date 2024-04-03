@@ -17,3 +17,12 @@ spring:
         jdbc:
           time_zone: UTC
         format_sql: true
+rsa:
+  private-key: ${PRIVATE_KEY:classpath:certs/private.pem}
+  public-key: ${PUBLIC_KEY:classpath:certs/public.pem}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: trace
