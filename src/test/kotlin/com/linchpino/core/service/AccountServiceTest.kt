@@ -1,21 +1,26 @@
 package com.linchpino.core.service
 
+import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {
@@ -71,6 +76,22 @@ class AccountServiceTest {
         assertEquals("john.doe@example.com", savedAccount.email)
         assertEquals("encodedPassword", savedAccount.password)
         assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
-        assertEquals(AccountStatus.DEACTIVATED, savedAccount.status)
+        assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
+    }
+
+    @Test
+    fun `test find mentors with closest time slots calls repository with correct arguments`(){
+        // Given
+        val date = ZonedDateTime.parse("2024-03-27T00:00:00+00:00")
+        val interviewTypeId = 5L
+        val dateCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        // When
+        accountService.findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
+
+        // Then
+        verify(repository, times(1)).closestMentorTimeSlots(dateCaptor.captureNonNullable(),idCaptor.capture())
+        assertThat(dateCaptor.value).isEqualTo(date)
+        assertThat(idCaptor.value).isEqualTo(5L)
     }
 }

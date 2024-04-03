@@ -1,6 +1,6 @@
 package com.linchpino.core.service
 
-import com.linchpino.core.NonNullableArgumentCaptor
+import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.repository.JobPositionRepository
@@ -11,7 +11,9 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -40,7 +42,7 @@ class JobPositionServiceTest {
         `when`(
             jobPositionRepository.search(
                 nameCaptor.capture(),
-                NonNullableArgumentCaptor.capture(pageableCaptor)
+                pageableCaptor.captureNonNullable()
             )
         ).thenReturn(page)
 
@@ -74,7 +76,7 @@ class JobPositionServiceTest {
         // Then
         verify(jobPositionRepository, times(1)).findInterviewsByJobPositionId(
             idCaptor.capture(),
-            NonNullableArgumentCaptor.capture(pageableCaptor)
+            pageableCaptor.captureNonNullable()
         )
         assertThat(idCaptor.value).isEqualTo(jobPositionId)
         assertThat(result.content.size).isEqualTo(1)
@@ -99,7 +101,7 @@ class JobPositionServiceTest {
         // Then
         verify(jobPositionRepository, times(1)).findInterviewsByJobPositionId(
             idCaptor.capture(),
-            NonNullableArgumentCaptor.capture(pageableCaptor)
+            pageableCaptor.captureNonNullable()
         )
         assertThat(idCaptor.value).isEqualTo(jobPositionId)
         assertThat(result.content.size).isEqualTo(0)

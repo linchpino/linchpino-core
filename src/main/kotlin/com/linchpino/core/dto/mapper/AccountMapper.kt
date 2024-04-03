@@ -20,6 +20,6 @@ interface AccountMapper {
         @JvmStatic
         @Named("mapFromInt")
         fun mapFromInt(type: Int) =
-            AccountTypeEnum.entries.firstOrNull { it.typeValue == type } ?: AccountTypeEnum.UNKNOWN
+            AccountTypeEnum.entries.firstOrNull { it.value == type } ?: AccountTypeEnum.UNKNOWN
     }
 }
