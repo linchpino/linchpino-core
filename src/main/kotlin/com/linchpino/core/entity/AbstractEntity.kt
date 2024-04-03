@@ -29,8 +29,8 @@ abstract class AbstractEntity(
     val id: Long? = null,
 
     @CreatedBy
-    @Column(name = "CREATED_BY", nullable = true, updatable = false, columnDefinition = "char(15)", length = 255)
-    var createdBy: String? = null,
+    @Column(name = "CREATED_BY", nullable = true, updatable = false)
+    var createdBy: Long? = null,
 
     @CreationTimestamp
     @Column(name = "CREATED_ON", nullable = false, updatable = false)
@@ -39,8 +39,8 @@ abstract class AbstractEntity(
     var createdOn: ZonedDateTime? = null,
 
     @LastModifiedBy
-    @Column(name = "MODIFIED_BY", nullable = true, columnDefinition = "char(15)", length = 255)
-    var modifiedBy: String? = null,
+    @Column(name = "MODIFIED_BY", nullable = true)
+    var modifiedBy: Long? = null,
 
     @UpdateTimestamp
     @Column(name = "MODIFIED_ON", nullable = true)
