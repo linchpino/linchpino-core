@@ -27,7 +27,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
                 it.anyRequest().permitAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .oauth2ResourceServer {it.jwt { customizer -> customizer.decoder(jwtDecoder()) }}
+            .oauth2ResourceServer { it.jwt { customizer -> customizer.decoder(jwtDecoder()) } }
             .httpBasic(Customizer.withDefaults())
             .build()
     }

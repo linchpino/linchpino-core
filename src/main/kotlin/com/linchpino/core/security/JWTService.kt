@@ -1,5 +1,6 @@
 package com.linchpino.core.security
 
+import com.linchpino.core.dto.TokenResponse
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtEncoder
@@ -11,19 +12,18 @@ import java.time.temporal.ChronoUnit
 @Service
 class JWTService(private val jwtEncoder: JwtEncoder) {
 
-    fun token(authentication:Authentication): TokenResponse {
+    fun token(authentication: Authentication): TokenResponse {
         val now = Instant.now()
         val scope = authentication.authorities.joinToString(separator = " ") { it.authority }
         val claims = JwtClaimsSet.builder()
-            .issuer("self")
+            .issuer("https://linchpino.com")
             .issuedAt(now)
-            .expiresAt(now.plus(60,ChronoUnit.MINUTES))
+            .expiresAt(now.plus(60, ChronoUnit.MINUTES))
             .subject(authentication.name)
-            .claim("scope",scope)
+            .claim("scope", scope)
             .build()
         val token = this.jwtEncoder.encode(JwtEncoderParameters.from(claims))
 
-        return TokenResponse(token.tokenValue,token.expiresAt)
+        return TokenResponse(token.tokenValue, token.expiresAt)
     }
-    data class TokenResponse(val token:String,val expiresAt:Instant?)
 }
