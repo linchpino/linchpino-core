@@ -17,6 +17,18 @@ spring:
         jdbc:
           time_zone: UTC
         format_sql: true
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
 rsa:
   private-key: ${PRIVATE_KEY:classpath:certs/private.pem}
   public-key: ${PUBLIC_KEY:classpath:certs/public.pem}
