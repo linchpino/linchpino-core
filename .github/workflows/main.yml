@@ -1,10 +1,14 @@
 name: deploy development branch to linchpino-core-dev server
 
 on:
-  workflow_run:
-    workflows: [ "SonarCloudMaven" ]
-    types:
-      - completed
+  push:
+    branches:
+      - setup-conditional-workflow-on-branches
+
+  #workflow_run:
+  #  workflows: [ "SonarCloudMaven" ]
+  #  types:
+  #    - completed
 
 env:
   REGISTRY: ghcr.io
