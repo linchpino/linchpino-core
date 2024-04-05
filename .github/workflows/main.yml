@@ -61,5 +61,13 @@ jobs:
           cat ~/.ssh/known_hosts
 
       - name: Connect to linchpino-core on GCP instance
-        run: ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && sudo git pull && docker-compose pull && docker-compose stop ${{ secrets.SERVICE_NAME }} && sleep 2 && docker-compose rm -f ${{ secrets.SERVICE_NAME }} && docker-compose up -d && exit"
-
+        run: | 
+            ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 
+            cd ${{ secrets.WORK_DIR }} 
+            sudo git pull
+            docker-compose pull 
+            docker-compose stop ${{ secrets.SERVICE_NAME }} 
+            sleep 2 
+            docker-compose rm -f ${{ secrets.SERVICE_NAME }} 
+            docker-compose up -d
+            exit
