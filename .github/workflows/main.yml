@@ -25,8 +25,8 @@ jobs:
         run: |
           cd ${{ secrets.WORK_DIR }} 
           sudo git branch
-          echo $GITHUB_HEAD_REF	
-          sudo git checkout $GITHUB_HEAD_REF	
+          echo "$GITHUB_HEAD_REF"	
+          sudo git checkout "$GITHUB_HEAD_REF"	
           sudo git branch 
           sudo git pull 
           docker-compose pull 
