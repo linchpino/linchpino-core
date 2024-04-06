@@ -59,7 +59,6 @@ jobs:
           sudo git fetch --all
           sudo git checkout ${GITHUB_REF##*/}	
           sudo git pull 
-          sudo sed -i "s/linchpino-core:.*/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml 
           docker-compose pull 
           docker-compose down
           sleep 3 
