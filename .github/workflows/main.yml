@@ -51,6 +51,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    needs: Build-and-push-to-GHCR 
     steps:
       - name: Connect to linchpino-core on GCP instance
         run: |
