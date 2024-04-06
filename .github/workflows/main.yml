@@ -60,7 +60,6 @@ jobs:
           sudo git checkout ${GITHUB_REF##*/}	
           sudo git pull 
           docker-compose pull 
-          docker-compose stop ${{ secrets.SERVICE_NAME }} 
-          sleep 2 
-          docker-compose rm -f ${{ secrets.SERVICE_NAME }} 
+          docker-compose down
+          sleep 3 
           docker-compose up -d
