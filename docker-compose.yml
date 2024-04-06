@@ -2,7 +2,7 @@ version: "3.3"
 services:
 
   linchpino-core:
-    image: ghcr.io/linchpino/linchpino-core:setup-conditional-workflow-on-branches
+    image: ghcr.io/linchpino/linchpino-core:${GITHUB_REF##*/}
     container_name: linchpino-core
     restart: unless-stopped
     depends_on:
