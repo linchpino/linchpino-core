@@ -24,7 +24,9 @@ jobs:
       - name: Connect to linchpino-core on GCP instance
         run: |
           cd ${{ secrets.WORK_DIR }} 
+          sudo git branch
           sudo git checkout ${{ github.base_ref }}
+          sudo git branch 
           sudo git pull 
           docker-compose pull 
           docker-compose stop ${{ secrets.SERVICE_NAME }} 
