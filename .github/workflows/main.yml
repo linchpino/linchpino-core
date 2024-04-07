@@ -1,9 +1,7 @@
 name: deploy development branch to linchpino-core-dev server
 
 on:
-  push:
-    branches:
-      - ${{ github.base_ref }}
+  push
 
   #workflow_run:
   #  workflows: [ "SonarCloudMaven" ]
