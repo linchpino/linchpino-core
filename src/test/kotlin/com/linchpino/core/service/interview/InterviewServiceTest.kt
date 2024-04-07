@@ -7,7 +7,7 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.entity.MentorTimeSlot
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
@@ -26,8 +26,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewServiceTest {
@@ -73,9 +72,8 @@ class InterviewServiceTest {
         val mentorTimeSlot = MentorTimeSlot().apply {
             id = 1
             this.account = account
-            date = LocalDate.now()
-            fromTime = LocalDateTime.now()
-            toTime = LocalDateTime.now()
+            fromTime = ZonedDateTime.now()
+            toTime = ZonedDateTime.now()
             status = MentorTimeSlotEnum.AVAILABLE
         }
 
@@ -111,6 +109,6 @@ class InterviewServiceTest {
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
-        assertEquals(AccountStatus.DEACTIVATED, savedInterview.jobSeekerAccount?.status)
+        assertEquals(AccountStatusEnum.DEACTIVATED, savedInterview.jobSeekerAccount?.status)
     }
 }

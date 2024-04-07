@@ -24,8 +24,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -82,9 +81,8 @@ class InterviewControllerTestIT {
 
         val mentorTimeSlot = MentorTimeSlot().apply {
             account = mentorAcc
-            date = LocalDate.now()
-            fromTime = LocalDateTime.now()
-            toTime = LocalDateTime.now()
+            fromTime = ZonedDateTime.now()
+            toTime = ZonedDateTime.now()
             status = MentorTimeSlotEnum.AVAILABLE
         }
         timeSlotRepo.save(mentorTimeSlot)

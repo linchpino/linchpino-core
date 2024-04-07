@@ -26,7 +26,7 @@ abstract class AbstractEntity (
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    val id: Long? = null,
+    var id: Long? = null,
 
 	@CreatedBy
 	@Column(name = "CREATED_BY", nullable = true, updatable = false, columnDefinition = "char(15)", length = 255)

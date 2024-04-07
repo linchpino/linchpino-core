@@ -4,7 +4,7 @@ import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
-import com.linchpino.core.enums.AccountStatus
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewRepository
@@ -41,7 +41,7 @@ class InterviewService(
         return accountRepository.save(Account().apply {
             this.email = email
             type = AccountTypeEnum.JOB_SEEKER
-            status = AccountStatus.DEACTIVATED
+            status = AccountStatusEnum.DEACTIVATED
         })
     }
 
