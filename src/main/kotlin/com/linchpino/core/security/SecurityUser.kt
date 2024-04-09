@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UserDetails
 
 class SecurityUser(val account: Account) : UserDetails {
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
+        // Fetch roles from account and map with SimpleGrantedAuthority
+        // Create Role table which has many2Many relation with account
         return mutableListOf<SimpleGrantedAuthority>()
     }
 
