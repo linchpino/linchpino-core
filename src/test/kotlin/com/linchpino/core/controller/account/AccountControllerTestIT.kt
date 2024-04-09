@@ -1,4 +1,4 @@
-package com.linchpino.core.controller.account
+package com.linchpino.core.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
@@ -153,7 +153,32 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.[1].to").value("2024-03-26T10:00:00Z"))
     }
 
+    @Test
+    fun `test search for mentors by date and interviewType returns only one time slot per matched mentor with timezone applied`() {
+        // Given
+        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
 
+        // Perform GET request and verify response
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+                .param("interviewTypeId", id.toString())
+                .param("date", "2024-03-27T00:00:00+10:00")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").isArray)
+            .andExpect(jsonPath("$").value(hasSize<Int>(2)))
+            .andExpect(jsonPath("$.[0].mentorFirstName").value("John"))
+            .andExpect(jsonPath("$.[0].mentorLastName").value("Doe"))
+            .andExpect(jsonPath("$.[0].from").value("2024-03-26T16:00:00Z"))
+            .andExpect(jsonPath("$.[0].to").value("2024-03-26T17:00:00Z"))
+            .andExpect(jsonPath("$.[1].mentorFirstName").value("Jane"))
+            .andExpect(jsonPath("$.[1].mentorLastName").value("Smith"))
+            .andExpect(jsonPath("$.[1].from").value("2024-03-26T20:00:00Z"))
+            .andExpect(jsonPath("$.[1].to").value("2024-03-26T21:00:00Z"))
+    }
     @Test
     fun `test search for mentors by date and interviewType returns empty list when interviewType matches the provided interviewTypeId`() {
         // Given

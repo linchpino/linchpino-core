@@ -91,9 +91,9 @@ class InterviewControllerTestIT {
     @Test
     fun `test with existed email address result in creating a new interview for job seeker`() {
         val request = CreateInterviewRequest(
-            jobPositionRepo.findAll().first.id!!,
-            interviewTypeRepo.findAll().first.id!!,
-            timeSlotRepo.findAll().first.id!!,
+            jobPositionRepo.findAll().first().id!!,
+            interviewTypeRepo.findAll().first().id!!,
+            timeSlotRepo.findAll().first().id!!,
             mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
             "john.doe@example.com"
         )
@@ -105,18 +105,18 @@ class InterviewControllerTestIT {
             .andExpect(MockMvcResultMatchers.jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.timeSlotId").value(request.timeSlotId))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.mentorAccId").value(request.mentorAccId))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.mentorAccountId").value(request.mentorAccId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.jobSeekerEmail").value("john.doe@example.com"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.interviewId").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.interviewId").isNumber)
     }
 
     @Test
     fun `test with wrong email address results in bad request`() {
         val request = CreateInterviewRequest(
-            jobPositionRepo.findAll().first.id!!,
-            interviewTypeRepo.findAll().first.id!!,
-            timeSlotRepo.findAll().first.id!!,
+            jobPositionRepo.findAll().first().id!!,
+            interviewTypeRepo.findAll().first().id!!,
+            timeSlotRepo.findAll().first().id!!,
             mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
             "zsdvfzsxd"
         )
@@ -129,9 +129,9 @@ class InterviewControllerTestIT {
     @Test
     fun `test with not exist email address result in creating a silent account for job seeker`() {
         val request = CreateInterviewRequest(
-            jobPositionRepo.findAll().first.id!!,
-            interviewTypeRepo.findAll().first.id!!,
-            timeSlotRepo.findAll().first.id!!,
+            jobPositionRepo.findAll().first().id!!,
+            interviewTypeRepo.findAll().first().id!!,
+            timeSlotRepo.findAll().first().id!!,
             mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
             "test@gmail.com"
         )
@@ -143,9 +143,9 @@ class InterviewControllerTestIT {
             .andExpect(MockMvcResultMatchers.jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.timeSlotId").value(request.timeSlotId))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.mentorAccId").value(request.mentorAccId))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.mentorAccountId").value(request.mentorAccId))
             .andExpect(MockMvcResultMatchers.jsonPath("$.jobSeekerEmail").value("test@gmail.com"))
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.interviewId").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.interviewId").isNumber)
     }
 }

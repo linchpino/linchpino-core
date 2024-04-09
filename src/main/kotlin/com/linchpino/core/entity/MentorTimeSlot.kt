@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 @Entity
 @Table(name = "MENTOR_TIME_SLOT")
 class MentorTimeSlot : AbstractEntity() {
-    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = true)
+    @JoinColumn(name = "ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     var account: Account? = null
 
@@ -24,7 +24,7 @@ class MentorTimeSlot : AbstractEntity() {
     @Column(name = "TO_TIME")
     lateinit var toTime: ZonedDateTime
 
-    @Column(name = "STATUS", nullable = false)
     @Convert(converter = MentorTimeSlotEnumConverter::class)
-    var status: MentorTimeSlotEnum = MentorTimeSlotEnum.UNKNOWN
+    @Column(name = "STATUS", nullable = false)
+    lateinit var status : MentorTimeSlotEnum
 }

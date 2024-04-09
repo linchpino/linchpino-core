@@ -21,16 +21,16 @@ import java.time.ZonedDateTime
 @MappedSuperclass
 @DynamicUpdate
 @EntityListeners(AuditingEntityListener::class)
-abstract class AbstractEntity (
+abstract class AbstractEntity(
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     var id: Long? = null,
 
-	@CreatedBy
-	@Column(name = "CREATED_BY", nullable = true, updatable = false, columnDefinition = "char(15)", length = 255)
-	var createdBy: String? = null,
+    @CreatedBy
+    @Column(name = "CREATED_BY", nullable = true, updatable = false)
+    var createdBy: Long? = null,
 
     @CreationTimestamp
     @Column(name = "CREATED_ON", nullable = false, updatable = false)
@@ -38,9 +38,9 @@ abstract class AbstractEntity (
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     var createdOn: ZonedDateTime? = null,
 
-	@LastModifiedBy
-	@Column(name = "MODIFIED_BY", nullable = true, columnDefinition = "char(15)", length = 255)
-	var modifiedBy: String? = null,
+    @LastModifiedBy
+    @Column(name = "MODIFIED_BY", nullable = true)
+    var modifiedBy: Long? = null,
 
     @UpdateTimestamp
     @Column(name = "MODIFIED_ON", nullable = true)

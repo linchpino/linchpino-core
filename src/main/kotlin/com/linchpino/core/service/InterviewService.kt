@@ -46,10 +46,10 @@ class InterviewService(
     }
 
     fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account?): Interview {
-        val position = jobPositionRepository.getReferenceById(createInterviewRequest.jobPositionId)
-        val mentorAcc = accountRepository.getReferenceById(createInterviewRequest.mentorAccId)
-        val typeInterview = interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)
-        val mentorTimeSlot = mentorTimeSlotRepository.getReferenceById(createInterviewRequest.timeSlotId)
+        var position = jobPositionRepository.getReferenceById(createInterviewRequest.jobPositionId)
+        var mentorAcc = accountRepository.getReferenceById(createInterviewRequest.mentorAccId)
+        var typeInterview = interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)
+        var mentorTimeSlot = mentorTimeSlotRepository.getReferenceById(createInterviewRequest.timeSlotId)
 
         return Interview().apply {
             jobPosition = position

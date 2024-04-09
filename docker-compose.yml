@@ -8,9 +8,9 @@ services:
     depends_on:
       - postgres
     ports:
-      - "8082:8080"
+      - "8081:8080"
     command: "mvn spring-boot:run -Dspring-boot.run.jvmArguments='\
-       -DPOSTGRES_USERNAME=$POSTGRES_USERNAME \ 
+       -DPOSTGRES_USERNAME=$POSTGRES_USERNAME \
        -DPOSTGRES_PASSWORD=$POSTGRES_PASSWORD \
        -DPOSTGRES_URL=$POSTGRES_URL'"
 
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "8888:80"
+      - "8082:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD

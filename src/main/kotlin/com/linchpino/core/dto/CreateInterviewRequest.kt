@@ -12,10 +12,10 @@ data class CreateInterviewRequest(
 )
 
 data class CreateInterviewResult(
-    val id: Long?,
+    val interviewId: Long?,
     val jobPositionId: Long?,
     val interviewTypeId: Long?,
     val timeSlotId: Long?,
-    val mentorAccId: Long?,
+    val mentorAccountId: Long?,
     val jobSeekerEmail: String?,
 )
