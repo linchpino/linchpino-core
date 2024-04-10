@@ -13,7 +13,6 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
 
-
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {
@@ -37,9 +36,7 @@ class Account : AbstractEntity() {
     @Column(name = "STATUS")
     var status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED
 
-    @ManyToMany(
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE]
-    )
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinTable(
         name = "account_interview_type",
         joinColumns = [JoinColumn(name = "account_id")],
@@ -56,4 +53,13 @@ class Account : AbstractEntity() {
         interviewTypes.remove(interviewType)
         interviewType.accounts.remove(this)
     }
+
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(
+        name = "account_role",
+        joinColumns = [JoinColumn(name = "account_id")],
+        inverseJoinColumns = [JoinColumn(name = "role_id")]
+    )
+    private val accountRoles = mutableSetOf<Role>()
+
 }
