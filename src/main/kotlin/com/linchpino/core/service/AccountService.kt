@@ -24,6 +24,7 @@ class AccountService(
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val account: Account = mapper.accountDtoToAccount(createAccountRequest)
+        //account.createdOn(LocalDate.now())
         // encrypt password
         account.password = passwordEncoder.encode(account.password)
         repository.save(account)

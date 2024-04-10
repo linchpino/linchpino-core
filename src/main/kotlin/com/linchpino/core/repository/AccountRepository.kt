@@ -10,6 +10,8 @@ import java.time.ZonedDateTime
 @Repository
 interface AccountRepository : JpaRepository<Account, Long>{
 
+    fun findByEmail(email: String): Account?
+
     @Query(
         """
     SELECT NEW com.linchpino.core.dto.MentorWithClosestTimeSlot(
