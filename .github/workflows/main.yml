@@ -9,7 +9,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ github.base_ref }} == 'development'
+    if: ${GITHUB_REF##*/} == 'development'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 18
@@ -26,7 +26,7 @@ jobs:
           
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
-    if: ${{ github.base_ref }} == 'development'
+    if: ${GITHUB_REF##*/} == 'development'
     permissions:
       contents: read
       packages: write
