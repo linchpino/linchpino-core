@@ -1,4 +1,4 @@
-package com.linchpino.core.service
+package com.linchpino.core.service.account
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateAccountRequest
@@ -8,6 +8,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -82,16 +83,20 @@ class AccountServiceTest {
     @Test
     fun `test find mentors with closest time slots calls repository with correct arguments`(){
         // Given
-        val date = ZonedDateTime.parse("2024-03-27T00:00:00+00:00")
+        val date = ZonedDateTime.parse("2024-03-27T00:00:00+03:00")
+        val expectedFrom = ZonedDateTime.parse("2024-03-26T21:00:00+00:00")
+        val expectedTo = ZonedDateTime.parse("2024-03-27T21:00:00+00:00")
         val interviewTypeId = 5L
-        val dateCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
         // When
         accountService.findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
 
         // Then
-        verify(repository, times(1)).closestMentorTimeSlots(dateCaptor.captureNonNullable(),idCaptor.capture())
-        assertThat(dateCaptor.value).isEqualTo(date)
+        verify(repository, times(1)).closestMentorTimeSlots(fromCaptor.captureNonNullable(),toCaptor.captureNonNullable(),idCaptor.capture())
+        assertThat(fromCaptor.value).isEqualTo(expectedFrom)
+        assertThat(toCaptor.value).isEqualTo(expectedTo)
         assertThat(idCaptor.value).isEqualTo(5L)
     }
 }

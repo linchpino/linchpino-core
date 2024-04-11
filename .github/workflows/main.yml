@@ -1,11 +1,11 @@
 name: deploy development branch to linchpino-core-dev server
-
 on:
   workflow_run:
     workflows: [ "SonarCloudMaven" ]
     types:
       - completed
-
+  push:
+ 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -31,8 +31,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ github.base_ref }}
+                
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -43,19 +43,21 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
-    needs: Build-and-push-to-GHCR
+    needs: Build-and-push-to-GHCR 
     steps:
-      - name: 'Install ssh keys'
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-          cat ~/.ssh/known_hosts
-
       - name: Connect to linchpino-core on GCP instance
-        run: ssh -i linchpino-core ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && sudo git pull && docker-compose pull && docker-compose stop ${{ secrets.SERVICE_NAME }} && sleep 2 && docker-compose rm -f ${{ secrets.SERVICE_NAME }} && docker-compose up -d && exit"
-
+        run: |
+          cd ${{ secrets.WORK_DIR }}
+          sudo git fetch --all
+          sudo git stash
+          sudo git checkout ${GITHUB_REF##*/}	
+          sudo git pull 
+          sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
+          docker-compose pull 
+          docker-compose down
+          sleep 3 
+          docker-compose up -d

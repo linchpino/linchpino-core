@@ -26,7 +26,7 @@ class Account : AbstractEntity() {
     lateinit var email: String
 
     @Column(name = "password")
-    lateinit var password: String //encrypt password!
+    lateinit var password: String
 
     @Convert(converter = AccountTypeEnumConverter::class)
     @Column(name = "TYPE")

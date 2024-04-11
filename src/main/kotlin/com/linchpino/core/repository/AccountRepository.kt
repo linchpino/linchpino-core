@@ -28,7 +28,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
         MentorTimeSlot mts ON mts.account.id = a.id
     WHERE
         a.type = 2
-        AND cast(mts.fromTime as localdate) = cast(:dateParam as localdate )
+        AND mts.fromTime BETWEEN :from AND :to
         AND it.id = :interviewTypeId
         AND mts.fromTime = (
             SELECT
@@ -37,15 +37,16 @@ interface AccountRepository : JpaRepository<Account, Long>{
                 MentorTimeSlot mentorTimeSlot
             WHERE
                 mentorTimeSlot.account.id = a.id
-                AND cast(mentorTimeSlot.fromTime as localdate) = cast(:dateParam as localdate)
+                AND mentorTimeSlot.fromTime BETWEEN :from AND :to
                 AND mentorTimeSlot.status = 1
         )
     """
     )
     fun closestMentorTimeSlots(
-        dateParam: ZonedDateTime,
+        from: ZonedDateTime,
+        to: ZonedDateTime,
         interviewTypeId: Long,
     ): List<MentorWithClosestTimeSlot>
 
-    fun findByEmail(email:String):Account?
+    fun findByEmailIgnoreCase(email:String):Account?
 }
