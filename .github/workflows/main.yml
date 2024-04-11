@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy development branch to linchpino-core-dev server
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 jobs:
-  build:
+  sonar-build:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/development'
     steps:
