@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.data.TemporalUnitWithinOffset
 import org.junit.jupiter.api.Test
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -37,7 +38,9 @@ class JWTServiceTest {
 
         // Then
         val decodedToken = jwtDecoder.decode(tokenResponse.token)
-        assertThat(tokenResponse.expiresAt).isAfter(now.plus(1, ChronoUnit.HOURS))
+        assertThat(tokenResponse.expiresAt).isCloseTo(now.plus(1, ChronoUnit.HOURS),
+            TemporalUnitWithinOffset(1,ChronoUnit.SECONDS)
+        )
         assertThat(decodedToken.issuer.host).isEqualTo("linchpino.com")
         assertThat(decodedToken.subject).isEqualTo("john@example.com")
         assertThat(decodedToken.getClaim("scope") as String).isEqualTo("user admin")
