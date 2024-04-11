@@ -1,18 +1,32 @@
-name: deploy development branch to linchpino-core-dev server
+name: Build and Deploy development branch to linchpino-core-dev server
 on:
-  workflow_run:
-    workflows: [ "SonarCloudMaven" ]
-    types:
-      - completed
   push:
- 
+    branches:
+      - '**'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-
 jobs:
+  sonar-build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/development'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven cloud
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=linchpino_linchpino-core -Dsonar.organization=linchpino -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONARCLOUD_TOKEN
+        env:
+          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
+          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/development'
     permissions:
       contents: read
       packages: write
@@ -61,3 +75,4 @@ jobs:
           docker-compose down
           sleep 3 
           docker-compose up -d
+
