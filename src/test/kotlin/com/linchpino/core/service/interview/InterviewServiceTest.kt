@@ -28,7 +28,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.ZonedDateTime
-import java.util.*
 
 @ExtendWith(MockitoExtension::class)
 class InterviewServiceTest {
@@ -96,7 +95,7 @@ class InterviewServiceTest {
 
         val captor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
-        Mockito.`when`(accountRepo.findByEmail("john.doe@example.com")).thenReturn(jobSeekerAccount)
+        Mockito.`when`(accountRepo.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
         Mockito.`when`(accountRepo.getReferenceById(1)).thenReturn(mentorAcc)
         Mockito.`when`(jobPositionRepo.getReferenceById(1)).thenReturn(position)
         Mockito.`when`(interviewTypeRepo.getReferenceById(1)).thenReturn(typeInterview)
@@ -155,7 +154,7 @@ class InterviewServiceTest {
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
-        Mockito.`when`(accountRepo.findByEmail("test@example.com")).thenReturn(null)
+        Mockito.`when`(accountRepo.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
         Mockito.`when`(accountRepo.save(any())).thenReturn(jobSeekerAccount)
         Mockito.`when`(accountRepo.getReferenceById(1)).thenReturn(mentorAcc)
         Mockito.`when`(jobPositionRepo.getReferenceById(1)).thenReturn(position)

@@ -38,7 +38,7 @@ class AuthenticationControllerTestIT {
         // create an account and activate it
         val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
         accountService.createAccount(createAccountRequest)
-        val account = accountRepository.findByEmail("john.doe@example.com")
+        val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")
         account?.status = AccountStatusEnum.ACTIVATED
         accountRepository.save(account!!)
     }
