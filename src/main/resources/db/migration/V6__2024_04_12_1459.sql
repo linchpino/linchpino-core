@@ -1,0 +1,1 @@
+ALTER TABLE account ADD COLUMN external_id VARCHAR(255);

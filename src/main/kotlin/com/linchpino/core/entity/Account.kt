@@ -46,6 +46,9 @@ class Account : AbstractEntity() {
     )
     private val interviewTypes = mutableSetOf<InterviewType>()
 
+    @Column(name = "external_id")
+    var externalId: String? = null
+
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)

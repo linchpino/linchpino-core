@@ -2,6 +2,7 @@ package com.linchpino.core.repository
 
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.AccountTypeEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -49,5 +50,10 @@ interface AccountRepository : JpaRepository<Account, Long>{
         to: ZonedDateTime,
         interviewTypeId: Long,
     ): List<MentorWithClosestTimeSlot>
+
+    @Query("""
+        select a from Account a where a.externalId = :externalId and a.type = :type
+    """)
+    fun findByExternalId(externalId:String,type:AccountTypeEnum):Account?
 
 }

@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
@@ -22,10 +23,13 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,7 +50,7 @@ class AccountControllerTestIT {
         val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
 
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/accounts")
+            post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(createAccountRequest))
         )
@@ -65,7 +69,7 @@ class AccountControllerTestIT {
     fun `test creating account with blank firstName results in bad request`() {
         val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", 1)
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/accounts")
+            post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
@@ -81,7 +85,7 @@ class AccountControllerTestIT {
         val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", 1)
 
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/accounts")
+            post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
@@ -97,7 +101,7 @@ class AccountControllerTestIT {
         val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", 1)
 
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/accounts")
+            post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
@@ -113,7 +117,7 @@ class AccountControllerTestIT {
         val invalidRequest = CreateAccountRequest("", "Doe", "john.doe_example.com", "secret", 1)
 
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/accounts")
+            post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
@@ -246,6 +250,38 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("date"))
             .andExpect(jsonPath("$.validationErrorMap[0].message").value("Required request parameter 'date' for method parameter type ZonedDateTime is not present"))
+    }
+
+
+    @Test
+    fun `test activating job seeker account successfully`(){
+        // Given
+        val externalId = UUID.randomUUID().toString()
+        saveFakeJobSeekerAccount(externalId)
+        val activationRequest = ActivateJobSeekerAccountRequest(externalId,"updated firstname","updated last name","secure password")
+        //
+        mockMvc.perform(
+            put("/api/accounts/jobseeker/activation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(activationRequest))
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$.firstName").value("updated firstname"))
+            .andExpect(jsonPath("$.lastName").value("updated last name"))
+    }
+
+    private fun saveFakeJobSeekerAccount(externalId:String){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = "secret"
+            type = AccountTypeEnum.JOB_SEEKER
+            status = AccountStatusEnum.DEACTIVATED
+            this.externalId = externalId
+        }
+        accountRepository.save(john)
     }
 
     private fun saveFakeMentorsWithInterviewTypeAndTimeSlots(){
