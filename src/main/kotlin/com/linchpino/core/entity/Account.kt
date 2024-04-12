@@ -54,12 +54,4 @@ class Account : AbstractEntity() {
         interviewType.accounts.remove(this)
     }
 
-    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    @JoinTable(
-        name = "account_role",
-        joinColumns = [JoinColumn(name = "account_id")],
-        inverseJoinColumns = [JoinColumn(name = "role_id")]
-    )
-    private val accountRoles = mutableSetOf<Role>()
-
 }

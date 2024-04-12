@@ -1,6 +1,7 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.authentication
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.controller.AuthenticationController
 import com.linchpino.core.dto.TokenResponse
 import com.linchpino.core.security.JWTService
 import org.assertj.core.api.Assertions.assertThat

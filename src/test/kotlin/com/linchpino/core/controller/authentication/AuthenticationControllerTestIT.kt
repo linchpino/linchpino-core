@@ -1,4 +1,4 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.authentication
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
