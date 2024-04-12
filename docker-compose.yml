@@ -2,7 +2,7 @@ version: "3.3"
 services:
 
   linchpino-core:
-    image: ghcr.io/linchpino/linchpino-core:development
+    image: ghcr.io/linchpino/linchpino-core:$CurrentBranch
     container_name: linchpino-core
     restart: unless-stopped
     depends_on:
