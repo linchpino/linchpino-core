@@ -4,6 +4,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.service.AccountService
+import jakarta.transaction.Transactional
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.security.core.userdetails.UserDetails
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
+@Transactional
 class UserService(private val accountRepository: AccountRepository) : UserDetailsService {
 
     override fun loadUserByUsername(username: String): UserDetails =

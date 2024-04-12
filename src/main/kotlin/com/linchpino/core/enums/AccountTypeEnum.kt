@@ -1,7 +1,8 @@
 package com.linchpino.core.enums
 
 enum class AccountTypeEnum(val value: Int) {
-    JOB_SEEKER(1),
-    MENTOR(2),
-    UNKNOWN(3)
+    GUEST(1),
+    JOB_SEEKER(2),
+    MENTOR(3),
+    ADMIN(4)
 }

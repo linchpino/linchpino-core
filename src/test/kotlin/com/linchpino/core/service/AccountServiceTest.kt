@@ -1,4 +1,4 @@
-package com.linchpino.core.service.account
+package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateAccountRequest
@@ -9,7 +9,6 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
-import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

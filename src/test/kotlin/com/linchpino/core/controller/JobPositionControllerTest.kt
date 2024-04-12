@@ -1,4 +1,5 @@
-import com.linchpino.core.controller.JobPositionController
+package com.linchpino.core.controller
+
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.service.JobPositionService

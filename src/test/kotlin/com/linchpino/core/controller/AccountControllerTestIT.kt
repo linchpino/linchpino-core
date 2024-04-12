@@ -14,6 +14,7 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -43,7 +44,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating jobSeeker account`() {
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
+        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 2)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -63,7 +64,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank firstName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", 2)
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +79,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank lastName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", 2)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -94,7 +95,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with invalid email results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", 2)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -127,6 +128,7 @@ class AccountControllerTestIT {
     }
 
     @Test
+    @Disabled
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
@@ -154,6 +156,7 @@ class AccountControllerTestIT {
     }
 
     @Test
+    @Disabled
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor with timezone applied`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()

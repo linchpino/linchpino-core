@@ -60,6 +60,22 @@ class Account : AbstractEntity() {
         joinColumns = [JoinColumn(name = "account_id")],
         inverseJoinColumns = [JoinColumn(name = "role_id")]
     )
-    var roles = mutableSetOf<Role>()
+    private val roles = mutableSetOf<Role>()
 
+    var mutableRoles: MutableList<Role>
+        get() = roles.toMutableList()
+        set(value) {
+            roles.clear()
+            roles.addAll(value)
+        }
+
+    fun addRole(role: Role) {
+        roles.add(role)
+        role.accounts.add(this)
+    }
+
+    fun removeRole(role: Role) {
+        roles.remove(role)
+        role.accounts.remove(this)
+    }
 }

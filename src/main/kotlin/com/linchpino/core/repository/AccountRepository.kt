@@ -12,6 +12,8 @@ import java.time.ZonedDateTime
 @Repository
 interface AccountRepository : JpaRepository<Account, Long>{
 
+    fun findByEmailIgnoreCase(email: String): Account?
+
     @Query(
         """
     SELECT NEW com.linchpino.core.dto.MentorWithClosestTimeSlot(
@@ -52,5 +54,4 @@ interface AccountRepository : JpaRepository<Account, Long>{
         status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
-    fun findByEmailIgnoreCase(email:String):Account?
 }
