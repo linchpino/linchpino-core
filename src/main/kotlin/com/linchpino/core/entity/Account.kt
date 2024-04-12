@@ -30,15 +30,13 @@ class Account : AbstractEntity() {
 
     @Convert(converter = AccountTypeEnumConverter::class)
     @Column(name = "TYPE")
-    var type: AccountTypeEnum = AccountTypeEnum.UNKNOWN
+    var type: AccountTypeEnum = AccountTypeEnum.GUEST
 
     @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")
     var status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED
 
-    @ManyToMany(
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE]
-    )
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinTable(
         name = "account_interview_type",
         joinColumns = [JoinColumn(name = "account_id")],
@@ -55,4 +53,13 @@ class Account : AbstractEntity() {
         interviewTypes.remove(interviewType)
         interviewType.accounts.remove(this)
     }
+
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(
+        name = "account_role",
+        joinColumns = [JoinColumn(name = "account_id")],
+        inverseJoinColumns = [JoinColumn(name = "role_id")]
+    )
+    var roles = mutableSetOf<Role>()
+
 }

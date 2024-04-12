@@ -7,8 +7,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 class SecurityUser(val account: Account) : UserDetails {
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
-        return mutableListOf<SimpleGrantedAuthority>()
+    override fun getAuthorities(): List<GrantedAuthority> {
+        return account.roles.map {
+            SimpleGrantedAuthority("SCOPE_${it.roleName.value}")
+        }
     }
 
     override fun getPassword(): String {
