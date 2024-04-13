@@ -2,6 +2,8 @@ package com.linchpino.core.repository
 
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -27,7 +29,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
     JOIN
         MentorTimeSlot mts ON mts.account.id = a.id
     WHERE
-        a.type = 2
+        a.type = :type
         AND mts.fromTime BETWEEN :from AND :to
         AND it.id = :interviewTypeId
         AND mts.fromTime = (
@@ -38,7 +40,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
             WHERE
                 mentorTimeSlot.account.id = a.id
                 AND mentorTimeSlot.fromTime BETWEEN :from AND :to
-                AND mentorTimeSlot.status = 1
+                AND mentorTimeSlot.status = :status
         )
     """
     )
@@ -46,6 +48,8 @@ interface AccountRepository : JpaRepository<Account, Long>{
         from: ZonedDateTime,
         to: ZonedDateTime,
         interviewTypeId: Long,
+        type:AccountTypeEnum = AccountTypeEnum.MENTOR,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
     fun findByEmailIgnoreCase(email:String):Account?
