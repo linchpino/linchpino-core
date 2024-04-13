@@ -70,8 +70,8 @@ jobs:
           sudo git checkout ${GITHUB_REF##*/}	
           sudo git pull 
           sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
-          docker-compose pull 
-          docker-compose down
-          sleep 3 
+          docker-compose stop linchpino-core
+          sleep 2
+          docker-compose rm -f linchpino-core
           docker-compose up -d
 

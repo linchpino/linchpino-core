@@ -34,7 +34,7 @@ class InterviewService(
     }
 
     private fun isJobSeekerHasAccount(jobSeekerEmail: String): Account? {
-        return accountRepository.findByEmail(jobSeekerEmail) ?: createSilentAccForJobSeeker(jobSeekerEmail)
+        return accountRepository.findByEmailIgnoreCase(jobSeekerEmail) ?: createSilentAccForJobSeeker(jobSeekerEmail)
     }
 
     private fun createSilentAccForJobSeeker(email: String): Account {

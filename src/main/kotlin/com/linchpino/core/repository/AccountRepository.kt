@@ -51,9 +51,10 @@ interface AccountRepository : JpaRepository<Account, Long>{
         interviewTypeId: Long,
     ): List<MentorWithClosestTimeSlot>
 
+    fun findByEmailIgnoreCase(email:String):Account?
     @Query("""
         select a from Account a where a.externalId = :externalId and a.type = :type
     """)
-    fun findByExternalId(externalId:String,type:AccountTypeEnum):Account?
+    fun findByExternalId(externalId:String,type: AccountTypeEnum):Account?
 
 }
