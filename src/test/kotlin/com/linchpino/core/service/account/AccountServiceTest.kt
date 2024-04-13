@@ -7,6 +7,7 @@ import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
@@ -90,13 +91,23 @@ class AccountServiceTest {
         val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        val accountTypeCaptor:ArgumentCaptor<AccountTypeEnum> = ArgumentCaptor.forClass(AccountTypeEnum::class.java)
+        val timeSlotStatusCaptor:ArgumentCaptor<MentorTimeSlotEnum> = ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
         // When
         accountService.findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
 
         // Then
-        verify(repository, times(1)).closestMentorTimeSlots(fromCaptor.captureNonNullable(),toCaptor.captureNonNullable(),idCaptor.capture())
+        verify(repository, times(1)).closestMentorTimeSlots(
+            fromCaptor.captureNonNullable(),
+            toCaptor.captureNonNullable(),
+            idCaptor.capture(),
+            accountTypeCaptor.captureNonNullable(),
+            timeSlotStatusCaptor.captureNonNullable()
+        )
         assertThat(fromCaptor.value).isEqualTo(expectedFrom)
         assertThat(toCaptor.value).isEqualTo(expectedTo)
         assertThat(idCaptor.value).isEqualTo(5L)
+        assertThat(accountTypeCaptor.value).isEqualTo(AccountTypeEnum.MENTOR)
+        assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.AVAILABLE)
     }
 }
