@@ -31,22 +31,28 @@ class InterviewService(
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
     private val accountService: AccountService
+    private val emailService: EmailService,
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
-            ?: accountRepository.findReferenceById(accountService.createAccount(
-                CreateAccountRequest(
-                    firstName = null,
-                    lastName = null,
-                    email = request.jobSeekerEmail,
-                    password = null,
-                    status = AccountStatusEnum.DEACTIVATED,
-                    type = AccountTypeEnum.JOB_SEEKER.value
-                )
-            ).id)
+            ?: accountRepository.findReferenceById(
+                accountService.createAccount(
+                    CreateAccountRequest(
+                        firstName = "",
+                        lastName = "",
+                        email = request.jobSeekerEmail,
+                        password = null,
+                        status = AccountStatusEnum.DEACTIVATED,
+                        type = AccountTypeEnum.JOB_SEEKER.value
+                    )
+                ).id
+            )
+
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
+        emailService.sendEmail(interview)
+
         return interview.toCreateInterviewResult()
     }
 
@@ -64,8 +70,6 @@ class InterviewService(
             jobSeekerAccount = jobSeekerAcc
         }
     }
-
-
 
     @Transactional(readOnly = true)
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {

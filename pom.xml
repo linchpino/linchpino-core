@@ -22,6 +22,7 @@
         <openAPI.version>2.3.0</openAPI.version>
         <postgres.version>42.7.2</postgres.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
     </properties>
 
     <dependencies>
@@ -58,7 +59,6 @@
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
-
         <!-- Database -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -78,7 +78,6 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
-
 
         <!-- Test -->
         <dependency>
@@ -113,6 +112,16 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Email -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf-spring5</artifactId>
+            <version>${thymeleaf.version}</version>
+        </dependency>
 
         <!-- Utility -->
         <dependency>
@@ -123,6 +132,7 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+
         <!-- security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -132,7 +142,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
