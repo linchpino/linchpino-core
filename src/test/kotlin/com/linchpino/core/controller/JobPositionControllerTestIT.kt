@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @Import(PostgresContainerConfig::class)
 @Transactional
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class JobPositionControllerTestIT {
 
 

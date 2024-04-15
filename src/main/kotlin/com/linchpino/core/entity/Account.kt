@@ -62,13 +62,6 @@ class Account : AbstractEntity() {
     )
     private val roles = mutableSetOf<Role>()
 
-    var mutableRoles: MutableList<Role>
-        get() = roles.toMutableList()
-        set(value) {
-            roles.clear()
-            roles.addAll(value)
-        }
-
     fun addRole(role: Role) {
         roles.add(role)
         role.accounts.add(this)
@@ -78,4 +71,6 @@ class Account : AbstractEntity() {
         roles.remove(role)
         role.accounts.remove(this)
     }
+
+    fun roles() = this.roles.toSet()
 }

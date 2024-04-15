@@ -14,7 +14,6 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -28,7 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
@@ -128,7 +127,6 @@ class AccountControllerTestIT {
     }
 
     @Test
-    @Disabled
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
@@ -156,7 +154,6 @@ class AccountControllerTestIT {
     }
 
     @Test
-    @Disabled
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor with timezone applied`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
