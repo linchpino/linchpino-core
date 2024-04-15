@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [ "management.server.port=0" ])
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)

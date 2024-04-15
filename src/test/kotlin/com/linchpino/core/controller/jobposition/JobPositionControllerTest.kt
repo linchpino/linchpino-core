@@ -1,3 +1,5 @@
+package com.linchpino.core.controller.jobposition
+
 import com.linchpino.core.controller.JobPositionController
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.JobPositionSearchResponse

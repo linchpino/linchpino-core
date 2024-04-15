@@ -29,7 +29,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
     JOIN
         MentorTimeSlot mts ON mts.account.id = a.id
     WHERE
-        a.type = 2
+        a.type = :type
         AND mts.fromTime BETWEEN :from AND :to
         AND it.id = :interviewTypeId
         AND mts.fromTime = (
@@ -40,7 +40,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
             WHERE
                 mentorTimeSlot.account.id = a.id
                 AND mentorTimeSlot.fromTime BETWEEN :from AND :to
-                AND mentorTimeSlot.status = 1
+                AND mentorTimeSlot.status = :status
         )
     """
     )

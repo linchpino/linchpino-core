@@ -1,4 +1,4 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.account
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 import java.util.*
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [ "management.server.port=0" ])
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
