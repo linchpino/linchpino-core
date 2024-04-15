@@ -9,6 +9,8 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -54,9 +56,9 @@ class InterviewService(
     }
 
     fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
-        val position = jobPositionRepository.getReferenceById(createInterviewRequest.jobPositionId)
-        val mentorAcc = accountRepository.getReferenceById(createInterviewRequest.mentorAccountId)
-        val typeInterview = interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)
+        val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
+        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
+        val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
         val isTimeSlotBooked = interviewRepository.isTimeSlotBooked(createInterviewRequest.timeSlotId)
         if (isTimeSlotBooked)
             throw LinchpinException(

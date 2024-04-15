@@ -17,7 +17,6 @@ spring:
         jdbc:
           time_zone: UTC
         format_sql: true
-
   mail:
     host: ${MAIL_SERVER_URL:smtp.gmail.com}
     port: 587
