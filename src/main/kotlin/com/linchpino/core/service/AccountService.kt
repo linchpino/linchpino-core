@@ -8,6 +8,7 @@ import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
 import lombok.extern.slf4j.Slf4j
@@ -42,15 +43,18 @@ class AccountService(
         return repository.closestMentorTimeSlots(from, to, interviewTypeId)
     }
 
-    fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest):AccountSummary {
-        val account = repository.findByExternalId(request.externalId,AccountTypeEnum.JOB_SEEKER)?.let {
-            it.firstName = request.firstName
-            it.lastName= request.lastName
-            it.password = passwordEncoder.encode(request.password)
-            it
-        } ?: throw RuntimeException("account not found")
-
-        repository.save(account)
-        return account.toSummary()
+    fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
+        val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)
+            ?: throw RuntimeException("account not found")
+        if (account.status == AccountStatusEnum.ACTIVATED)
+            throw RuntimeException("account is already activated")
+        val updatedAccount = account.apply {
+            firstName = request.firstName
+            lastName = request.lastName
+            password = request.password
+            status = AccountStatusEnum.ACTIVATED
+        }
+        repository.save(updatedAccount)
+        return updatedAccount.toSummary()
     }
 }

@@ -257,7 +257,7 @@ class AccountControllerTestIT {
     fun `test activating job seeker account successfully`(){
         // Given
         val externalId = UUID.randomUUID().toString()
-        saveFakeJobSeekerAccount(externalId)
+        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.DEACTIVATED)
         val activationRequest = ActivateJobSeekerAccountRequest(externalId,"updated firstname","updated last name","secure password")
         //
         mockMvc.perform(
@@ -269,16 +269,49 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
             .andExpect(jsonPath("$.firstName").value("updated firstname"))
             .andExpect(jsonPath("$.lastName").value("updated last name"))
+            .andExpect(jsonPath("$.status").value(AccountStatusEnum.ACTIVATED.name))
     }
 
-    private fun saveFakeJobSeekerAccount(externalId:String){
+    @Test
+    fun `test activating job seeker account throws exception when account is already activated`(){
+        // Given
+        val externalId = UUID.randomUUID().toString()
+        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.ACTIVATED)
+        val activationRequest = ActivateJobSeekerAccountRequest(externalId,"updated firstname","updated last name","secure password")
+        //
+        mockMvc.perform(
+            put("/api/accounts/jobseeker/activation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(activationRequest))
+        )
+            // todo assert against real exception after exception handling configured
+            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+    }
+
+    @Test
+    fun `test activating job seeker account throws exception when account is not found`(){
+        // Given
+        val externalId = UUID.randomUUID().toString()
+        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.DEACTIVATED)
+        val activationRequest = ActivateJobSeekerAccountRequest(externalId+"change","updated firstname","updated last name","secure password")
+        //
+        mockMvc.perform(
+            put("/api/accounts/jobseeker/activation")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(activationRequest))
+        )
+            // todo assert against real exception after exception handling configured
+            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+    }
+
+    private fun saveFakeJobSeekerAccount(externalId:String,accountStatus:AccountStatusEnum){
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
             email = "johndoe@gmail.com"
             password = "secret"
             type = AccountTypeEnum.JOB_SEEKER
-            status = AccountStatusEnum.DEACTIVATED
+            status = accountStatus
             this.externalId = externalId
         }
         accountRepository.save(john)
