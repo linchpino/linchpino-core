@@ -39,6 +39,7 @@ class AccountControllerTestIT {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
     @Autowired
     private lateinit var accountRepository: AccountRepository
 
@@ -47,7 +48,8 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating jobSeeker account`() {
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
+        val createAccountRequest =
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -67,7 +69,8 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank firstName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+        val invalidRequest =
+            CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +85,8 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank lastName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+        val invalidRequest =
+            CreateAccountRequest("John", "", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -98,7 +102,8 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with invalid email results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+        val invalidRequest =
+            CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -114,7 +119,8 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with multiple invalid fields results in bad request`() {
-        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.GUEST.value)
+        val invalidRequest =
+            CreateAccountRequest("", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.GUEST.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -134,7 +140,10 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
-        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
+        val id = entityManager.createQuery(
+            "select id from InterviewType where name = 'System Design'",
+            Long::class.java
+        ).singleResult
 
         // Perform GET request and verify response
         mockMvc.perform(
@@ -161,7 +170,10 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor with timezone applied`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
-        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
+        val id = entityManager.createQuery(
+            "select id from InterviewType where name = 'System Design'",
+            Long::class.java
+        ).singleResult
 
         // Perform GET request and verify response
         mockMvc.perform(
@@ -183,6 +195,7 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.[1].from").value("2024-03-26T20:00:00Z"))
             .andExpect(jsonPath("$.[1].to").value("2024-03-26T21:00:00Z"))
     }
+
     @Test
     fun `test search for mentors by date and interviewType returns empty list when interviewType matches the provided interviewTypeId`() {
         // Given
@@ -205,7 +218,10 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns empty list when no mentor is available on the provided date`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
-        val id =  entityManager.createQuery("select id from InterviewType where name = 'System Design'",Long::class.java).singleResult
+        val id = entityManager.createQuery(
+            "select id from InterviewType where name = 'System Design'",
+            Long::class.java
+        ).singleResult
 
         // Perform GET request and verify response
         mockMvc.perform(
@@ -254,11 +270,12 @@ class AccountControllerTestIT {
 
 
     @Test
-    fun `test activating job seeker account successfully`(){
+    fun `test activating job seeker account successfully`() {
         // Given
         val externalId = UUID.randomUUID().toString()
-        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.DEACTIVATED)
-        val activationRequest = ActivateJobSeekerAccountRequest(externalId,"updated firstname","updated last name","secure password")
+        saveFakeJobSeekerAccount(externalId, AccountStatusEnum.DEACTIVATED)
+        val activationRequest =
+            ActivateJobSeekerAccountRequest(externalId, "updated firstname", "updated last name", "secure password")
         //
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
@@ -273,11 +290,12 @@ class AccountControllerTestIT {
     }
 
     @Test
-    fun `test activating job seeker account throws exception when account is already activated`(){
+    fun `test activating job seeker account throws exception when account is already activated`() {
         // Given
         val externalId = UUID.randomUUID().toString()
-        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.ACTIVATED)
-        val activationRequest = ActivateJobSeekerAccountRequest(externalId,"updated firstname","updated last name","secure password")
+        saveFakeJobSeekerAccount(externalId, AccountStatusEnum.ACTIVATED)
+        val activationRequest =
+            ActivateJobSeekerAccountRequest(externalId, "updated firstname", "updated last name", "secure password")
         //
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
@@ -289,11 +307,16 @@ class AccountControllerTestIT {
     }
 
     @Test
-    fun `test activating job seeker account throws exception when account is not found`(){
+    fun `test activating job seeker account throws exception when account is not found`() {
         // Given
         val externalId = UUID.randomUUID().toString()
-        saveFakeJobSeekerAccount(externalId,AccountStatusEnum.DEACTIVATED)
-        val activationRequest = ActivateJobSeekerAccountRequest(externalId+"change","updated firstname","updated last name","secure password")
+        saveFakeJobSeekerAccount(externalId, AccountStatusEnum.DEACTIVATED)
+        val activationRequest = ActivateJobSeekerAccountRequest(
+            externalId + "change",
+            "updated firstname",
+            "updated last name",
+            "secure password"
+        )
         //
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
@@ -304,7 +327,7 @@ class AccountControllerTestIT {
             .andExpect(MockMvcResultMatchers.status().isInternalServerError)
     }
 
-    private fun saveFakeJobSeekerAccount(externalId:String,accountStatus:AccountStatusEnum){
+    private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -317,7 +340,7 @@ class AccountControllerTestIT {
         accountRepository.save(john)
     }
 
-    private fun saveFakeMentorsWithInterviewTypeAndTimeSlots(){
+    private fun saveFakeMentorsWithInterviewTypeAndTimeSlots() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"

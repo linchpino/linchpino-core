@@ -83,19 +83,20 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test find mentors with closest time slots calls repository with correct arguments`(){
+    fun `test find mentors with closest time slots calls repository with correct arguments`() {
         // Given
         val date = ZonedDateTime.parse("2024-03-27T00:00:00+03:00")
         val expectedFrom = ZonedDateTime.parse("2024-03-26T21:00:00+00:00")
         val expectedTo = ZonedDateTime.parse("2024-03-27T21:00:00+00:00")
         val interviewTypeId = 5L
-        val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
-        val accountTypeCaptor:ArgumentCaptor<AccountTypeEnum> = ArgumentCaptor.forClass(AccountTypeEnum::class.java)
-        val timeSlotStatusCaptor:ArgumentCaptor<MentorTimeSlotEnum> = ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        val fromCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val toCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        val accountTypeCaptor: ArgumentCaptor<AccountTypeEnum> = ArgumentCaptor.forClass(AccountTypeEnum::class.java)
+        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
         // When
-        accountService.findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
+        accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
 
         // Then
         verify(repository, times(1)).closestMentorTimeSlots(
@@ -113,7 +114,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test activate job seeker account`(){
+    fun `test activate job seeker account`() {
         val request = ActivateJobSeekerAccountRequest(
             "externalId",
             "Jane",
@@ -128,7 +129,7 @@ class AccountServiceTest {
             status = AccountStatusEnum.DEACTIVATED
         }
 
-        `when`(repository.findByExternalId(request.externalId,AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
         val result = accountService.activeJobSeekerAccount(request)
 
         verify(repository, times(1)).save(account)
@@ -139,7 +140,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test activate job seeker account throws account not found exception when externalId is not valid`(){
+    fun `test activate job seeker account throws account not found exception when externalId is not valid`() {
         val request = ActivateJobSeekerAccountRequest(
             "externalId",
             "Jane",
@@ -147,7 +148,7 @@ class AccountServiceTest {
             "secret"
         )
 
-        `when`(repository.findByExternalId(request.externalId,AccountTypeEnum.JOB_SEEKER)).thenReturn(null)
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(null)
 
         val exception = Assertions.assertThrows(RuntimeException::class.java) {
             accountService.activeJobSeekerAccount(request)
@@ -157,7 +158,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test activate job seeker account throws account already activated exception when account is activated`(){
+    fun `test activate job seeker account throws account already activated exception when account is activated`() {
         val request = ActivateJobSeekerAccountRequest(
             "externalId",
             "Jane",
@@ -172,7 +173,7 @@ class AccountServiceTest {
             status = AccountStatusEnum.ACTIVATED
         }
 
-        `when`(repository.findByExternalId(request.externalId,AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
 
         val exception = Assertions.assertThrows(RuntimeException::class.java) {
             accountService.activeJobSeekerAccount(request)
