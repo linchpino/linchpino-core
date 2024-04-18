@@ -1,10 +1,9 @@
-package com.linchpino.core.service.jobposition
+package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.service.JobPositionService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

@@ -6,8 +6,11 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.TokenResponse
+import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
+import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.security.SecurityConfig
 import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitWithinOffset
@@ -26,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
@@ -41,17 +44,28 @@ class AuthenticationControllerTestIT {
     @Autowired
     private lateinit var accountRepository: AccountRepository
 
+    @Autowired
+    private lateinit var securityConfig: SecurityConfig
+
+
     @BeforeEach
     fun init() {
         // create an account and activate it
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
+        val createAccountRequest = CreateAccountRequest(
+            "John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.GUEST.value
+        )
         accountService.createAccount(createAccountRequest)
         val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")
         account?.status = AccountStatusEnum.ACTIVATED
         accountRepository.save(account!!)
+        val firstRole = Role().apply { roleName = AccountTypeEnum.JOB_SEEKER }
+        val secondRole = Role().apply { roleName = AccountTypeEnum.MENTOR }
+        account.addRole(firstRole)
+        account.addRole(secondRole)
 
-        val createAccountRequestInactive =
-            CreateAccountRequest("Jane", "Smith", "jane.smith@example.com", "password123", 1)
+        val createAccountRequestInactive = CreateAccountRequest(
+            "Jane", "Smith", "jane.smith@example.com", "password123", AccountTypeEnum.GUEST.value
+        )
         accountService.createAccount(createAccountRequestInactive)
         val inactiveAccount = accountRepository.findByEmailIgnoreCase("jane.smith@example.com")
         inactiveAccount?.status = AccountStatusEnum.DEACTIVATED
@@ -82,14 +96,36 @@ class AuthenticationControllerTestIT {
     }
 
     @Test
-    fun `test login ignores case for username`() {
-
-        mockMvc.perform(
+    fun `test login with two roles and generates token for user`() {
+        val responseBody = mockMvc.perform(
             post("/login")
-                .with(httpBasic("JoHn.Doe@Example.COM", "password123"))
+                .with(httpBasic("john.doe@example.com", "password123"))
         )
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.token").isNotEmpty)
+            .andExpect(jsonPath("$.expiresAt").isNotEmpty)
+            .andReturn()
+
+        val mapper = jacksonObjectMapper().apply {
+            registerModules(JavaTimeModule())
+        }
+
+        val tokenResponse: TokenResponse = mapper.readValue(responseBody.response.contentAsString)
+        assertThat(tokenResponse.expiresAt).isCloseTo(
+            Instant.now().plus(60, ChronoUnit.MINUTES), TemporalUnitWithinOffset(10, ChronoUnit.SECONDS)
+        )
+        val decoder = securityConfig.jwtDecoder().decode(tokenResponse.token)
+        val roles = decoder.getClaim("scope") as String
+        assertThat(roles.split(" ")[0]).isEqualTo("JOB_SEEKER")
+        assertThat(roles.split(" ")[1]).isEqualTo("MENTOR")
+    }
+
+    @Test
+    fun `test login ignores case for username`() {
+
+        mockMvc.perform(
+            post("/login").with(httpBasic("JoHn.Doe@Example.COM", "password123"))
+        ).andExpect(status().isOk()).andExpect(jsonPath("$.token").isNotEmpty)
             .andExpect(jsonPath("$.expiresAt").isNotEmpty)
     }
 
@@ -98,29 +134,23 @@ class AuthenticationControllerTestIT {
     fun `test login with wrong username returns unauthorized response code`() {
 
         mockMvc.perform(
-            post("/login")
-                .with(httpBasic("wrongEmail", "password123"))
-        )
-            .andExpect(status().isUnauthorized)
+            post("/login").with(httpBasic("wrongEmail", "password123"))
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `test login with wrong password returns unauthorized response code`() {
 
         mockMvc.perform(
-            post("/login")
-                .with(httpBasic("john.doe@example.com", "wrongPassword"))
-        )
-            .andExpect(status().isUnauthorized)
+            post("/login").with(httpBasic("john.doe@example.com", "wrongPassword"))
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `test login with returns unauthorized response code when account is inactive`() {
 
         mockMvc.perform(
-            post("/login")
-                .with(httpBasic("jane.smith@example.com", "password123"))
-        )
-            .andExpect(status().isUnauthorized)
+            post("/login").with(httpBasic("jane.smith@example.com", "password123"))
+        ).andExpect(status().isUnauthorized)
     }
 }

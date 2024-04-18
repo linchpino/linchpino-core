@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
@@ -43,7 +43,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating jobSeeker account`() {
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
+        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -63,7 +63,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank firstName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with blank lastName results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("John", "", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -94,7 +94,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with invalid email results in bad request`() {
-        val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")
@@ -110,7 +110,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test creating account with multiple invalid fields results in bad request`() {
-        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe_example.com", "secret", 1)
+        val invalidRequest = CreateAccountRequest("", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.GUEST.value)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/accounts")

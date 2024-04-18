@@ -1,6 +1,5 @@
-package com.linchpino.core.controller.interview
+package com.linchpino.core.controller
 
-import com.linchpino.core.controller.InterviewController
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.service.InterviewService
