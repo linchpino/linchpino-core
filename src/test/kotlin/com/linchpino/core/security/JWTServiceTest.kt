@@ -1,5 +1,6 @@
 package com.linchpino.core.security
 
+import com.linchpino.core.enums.AccountTypeEnum
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
@@ -29,8 +30,8 @@ class JWTServiceTest {
         val now = Instant.now()
         val authentication = UsernamePasswordAuthenticationToken(
             "john@example.com", "secret", mutableListOf(
-                SimpleGrantedAuthority("user"),
-                SimpleGrantedAuthority("admin")
+                SimpleGrantedAuthority(AccountTypeEnum.MENTOR.name),
+                SimpleGrantedAuthority(AccountTypeEnum.JOB_SEEKER.name)
             )
         )
         // When
@@ -43,7 +44,7 @@ class JWTServiceTest {
         )
         assertThat(decodedToken.issuer.host).isEqualTo("linchpino.com")
         assertThat(decodedToken.subject).isEqualTo("john@example.com")
-        assertThat(decodedToken.getClaim("scope") as String).isEqualTo("user admin")
+        assertThat(decodedToken.getClaim("scope") as String).isEqualTo("MENTOR JOB_SEEKER")
     }
 
     private fun generateKeyPair(): RSAKeys {

@@ -1,4 +1,4 @@
-package com.linchpino.core.service.interview
+package com.linchpino.core.service
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
@@ -15,7 +15,6 @@ import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
-import com.linchpino.core.service.InterviewService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

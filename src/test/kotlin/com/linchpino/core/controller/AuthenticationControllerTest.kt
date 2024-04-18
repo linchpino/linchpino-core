@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.TokenResponse
+import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.JWTService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -33,8 +34,8 @@ class AuthenticationControllerTest {
         // Given
         val authentication = UsernamePasswordAuthenticationToken(
             "john@example.com", "secret", mutableListOf(
-                SimpleGrantedAuthority("user"),
-                SimpleGrantedAuthority("admin")
+                SimpleGrantedAuthority(AccountTypeEnum.MENTOR.name),
+                SimpleGrantedAuthority(AccountTypeEnum.JOB_SEEKER.name)
             )
         )
         val authCaptor: ArgumentCaptor<Authentication> = ArgumentCaptor.forClass(Authentication::class.java)

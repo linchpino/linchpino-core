@@ -21,7 +21,7 @@ data class CreateAccountResult(
     val firstName: String,
     val lastName: String,
     val email: String,
-    val type: AccountTypeEnum = AccountTypeEnum.UNKNOWN,
+    val type: AccountTypeEnum = AccountTypeEnum.GUEST,
     val status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED,
 )
 

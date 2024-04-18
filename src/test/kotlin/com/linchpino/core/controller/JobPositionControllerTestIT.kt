@@ -1,4 +1,4 @@
-package com.linchpino.core.controller.jobposition
+package com.linchpino.core.controller
 
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.entity.InterviewType
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 @AutoConfigureMockMvc
 @Import(PostgresContainerConfig::class)
 @Transactional
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = [ "management.server.port=0" ])
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class JobPositionControllerTestIT {
 
 
