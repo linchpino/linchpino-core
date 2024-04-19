@@ -9,8 +9,6 @@ env:
 jobs:
   Sonar-Build:
     runs-on: ubuntu-latest
-    outputs:
-      output1: ${{ steps.sonar-build-status.outputs.coverage }}
     steps:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
