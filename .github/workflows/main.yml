@@ -18,15 +18,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-      - name: Build and analyze by SONAR
+      - name: Build with Maven cloud
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=linchpino_linchpino-core -Dsonar.organization=linchpino -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONARCLOUD_TOKEN
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar  \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN \
-          -Dsonar.organization=linchpino \
-          -Dsonar.projectKey=linchpino_linchpino-core
         
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
