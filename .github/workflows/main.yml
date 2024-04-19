@@ -23,7 +23,7 @@ jobs:
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=linchpino_linchpino-core \
           -Dsonar.organization=linchpino \
-          -Dsonar.host.url=https://sonarcloud.io 
+          -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN \
           -Dsonar.coverage.jacoco.xmlReportPaths=./jacoco.xml
           pwd
