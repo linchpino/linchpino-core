@@ -28,8 +28,8 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN
           echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT 
-          echo $covergae
-          echo $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
+          echo "the value of coverage is =" $covergae
+          echo "command: " $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
