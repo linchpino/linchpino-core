@@ -24,9 +24,8 @@ jobs:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
-        run: | 
-          echo ${{ steps.sonar-build-status.outcome }}
-          exit 1
+        if: steps.sonar-build-status.outcome == 'success'
+        run: exit 1
         
         
   Build-and-push-to-GHCR:
