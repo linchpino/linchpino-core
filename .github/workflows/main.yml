@@ -9,6 +9,8 @@ env:
 jobs:
   Sonar-Build:
     runs-on: ubuntu-latest
+    outputs:
+      coverage-output: ${{ steps.sonar-build-status.outputs.coverage }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -25,16 +27,14 @@ jobs:
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN 
-          pwd
-          ls -la target/site/jacoco
-          grep -i total target/site/jacoco/index.html | wc -l
-          grep -o -i -P '.{0,400}total.{0,400}' target/site/jacoco/index.html
-        env:
+          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT 
+          env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
-        if: steps.sonar-build-status.outcome == 'success'
-        run: exit 1
+        run: | 
+          echo $steps.sonar-build-status.outcome
+          echo $steps.sonar-build-status.outputs.coverage-output
         
         
   Build-and-push-to-GHCR:
