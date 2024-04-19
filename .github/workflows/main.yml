@@ -27,7 +27,6 @@ jobs:
           -Dsonar.login=$SONARCLOUD_TOKEN 
           pwd
           ls -la target/site/jacoco
-          grep -i total target/site/jacoco/index.html
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
