@@ -35,7 +35,7 @@ jobs:
         run: | 
           echo $steps.sonar-build-status.outcome
           echo $steps.sonar-build-status.outputs.coverage-output
-        
+          exit 1
         
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
