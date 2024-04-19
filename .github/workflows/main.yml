@@ -29,7 +29,7 @@ jobs:
           -Dsonar.login=$SONARCLOUD_TOKEN
           coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2) 
           echo $coverage >> $GITHUB_OUTPUT 
-          echo "the value of coverage is =" $covergae
+          echo "the value of coverage is =" $coverge
           echo "command: " $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
