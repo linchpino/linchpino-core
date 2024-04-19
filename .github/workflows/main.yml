@@ -28,7 +28,7 @@ jobs:
           pwd
           ls -la target/site/jacoco
           grep -i total target/site/jacoco/index.html | wc -l
-          grep -o -i -P '.{0,3}total.{0,200}' target/site/jacoco/index.html
+          grep -o -i -P '.{0,400}total.{0,400}' target/site/jacoco/index.html
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
