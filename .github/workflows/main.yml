@@ -25,7 +25,7 @@ jobs:
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
         run: | 
-          echo steps.sonar-build-status.outcome
+          echo ${{ steps.sonar-build-status.outcome }}
           exit 1
         
         
