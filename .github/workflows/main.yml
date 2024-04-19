@@ -24,11 +24,10 @@ jobs:
           -Dsonar.projectKey=linchpino_linchpino-core \
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN \
-          -Dsonar.coverage.jacoco.xmlReportPaths=./jacoco.xml
+          -Dsonar.login=$SONARCLOUD_TOKEN 
           pwd
           ls -la
-          cat jacoco.xml
+          cat target/site/jacoco/jacoco.xml/jacoco.xml
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
