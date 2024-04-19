@@ -7,9 +7,8 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 jobs:
-  sonar-build:
+  Sonar-Build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/development'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -29,6 +28,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    needs: Sonar-Build 
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
