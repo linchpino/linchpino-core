@@ -9,6 +9,8 @@ env:
 jobs:
   Sonar-Build:
     runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.sonar-build-status.outputs.coverage }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -25,19 +27,19 @@ jobs:
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN
-          $output=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
-          echo $output
-          Write-Output "::set-output name=coverage::$output"
+          $coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
+          echo $coverage
+          echo $coverage >> "$GITHUB_OUTPUT"
           echo "command: " $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
-          echo "coverage value:" $coverage
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
+        env:
+          OUTPUT1: ${{needs.job1.outputs.output1}}
         run: | 
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
-
           exit 1
         
   Build-and-push-to-GHCR:
