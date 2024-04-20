@@ -26,6 +26,7 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN
           $output=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
+          echo $output
           Write-Output "::set-output name=coverage::$output"
           echo "command: " $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
           echo "coverage value:" $coverage
