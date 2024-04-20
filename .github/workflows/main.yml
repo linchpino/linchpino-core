@@ -27,16 +27,15 @@ jobs:
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
-          echo $coverage
-          echo "command: " $(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)
+          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT          
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
-        run: | 
+        run: |
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
+          if: steps.sonar-build-status.outcome == 'success' $$ steps.sonar-build-status.outputs.coverage-output < 91
           exit 1
         
   Build-and-push-to-GHCR:
