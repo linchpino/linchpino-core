@@ -35,7 +35,7 @@ jobs:
         run: |
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
-          if: steps.sonar-build-status.outcome == 'success' $$ steps.sonar-build-status.outputs.coverage-output < 91
+          if: steps.sonar-build-status.outcome == 'success' &&  steps.sonar-build-status.outputs.coverage < 91
           exit 1
         
   Build-and-push-to-GHCR:
