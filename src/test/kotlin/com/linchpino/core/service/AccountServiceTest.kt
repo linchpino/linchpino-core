@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -130,6 +131,7 @@ class AccountServiceTest {
         }
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
+        `when`(passwordEncoder.encode(request.password)).thenReturn("encodePassword")
         val result = accountService.activeJobSeekerAccount(request)
 
         verify(repository, times(1)).save(account)
