@@ -1,9 +1,13 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.account
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.controller.AccountController
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
@@ -51,26 +55,73 @@ class AccountControllerTest {
     }
 
     @Test
-    fun `test search mentors by interviewTypeId and date`(){
+    fun `test search mentors by interviewTypeId and date`() {
         // Given
         val interviewTypeId = 5L
         val date = ZonedDateTime.parse("2024-03-29T12:30:45+00:00")
 
         val expectedResponse = listOf(
-            MentorWithClosestTimeSlot(interviewTypeId,"John","Doe",3,ZonedDateTime.parse("2024-03-29T13:00:00+00:00"),ZonedDateTime.parse("2024-03-29T14:00:00+00:00"))
+            MentorWithClosestTimeSlot(
+                interviewTypeId,
+                "John",
+                "Doe",
+                3,
+                ZonedDateTime.parse("2024-03-29T13:00:00+00:00"),
+                ZonedDateTime.parse("2024-03-29T14:00:00+00:00")
+            )
         )
-        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
-        val dateCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        `when`(accountService.findMentorsWithClosestTimeSlotsBy(dateCaptor.captureNonNullable(), idCaptor.capture())).thenReturn(expectedResponse)
+        val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        val dateCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        `when`(
+            accountService.findMentorsWithClosestTimeSlotsBy(
+                dateCaptor.captureNonNullable(),
+                idCaptor.capture()
+            )
+        ).thenReturn(expectedResponse)
 
         // When
-        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId,date)
+        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId, date)
 
         // Then
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expectedResponse)
         assertThat(dateCaptor.value).isEqualTo(date)
         assertThat(idCaptor.value).isEqualTo(interviewTypeId)
-        verify(accountService, times(1)).findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
+        verify(accountService, times(1)).findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
+    }
+
+    @Test
+    fun `test activate job seeker account`() {
+        // Given
+        val request = ActivateJobSeekerAccountRequest(
+            "externalId",
+            "John",
+            "Doe",
+            "secret"
+        )
+
+        val expectedResponse = AccountSummary(
+            1,
+            "John",
+            "Doe",
+            "john.doe@example.com",
+            AccountTypeEnum.JOB_SEEKER,
+            AccountStatusEnum.ACTIVATED,
+            "externalId"
+        )
+
+
+        val requestCaptor: ArgumentCaptor<ActivateJobSeekerAccountRequest> =
+            ArgumentCaptor.forClass(ActivateJobSeekerAccountRequest::class.java)
+        `when`(accountService.activeJobSeekerAccount(requestCaptor.captureNonNullable())).thenReturn(expectedResponse)
+
+        // When
+        val result = accountController.activateJobSeekerAccount(request)
+
+        // Then
+        assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(result.body).isEqualTo(expectedResponse)
+        assertThat(requestCaptor.value).isEqualTo(request)
+        verify(accountService, times(1)).activeJobSeekerAccount(request)
     }
 }

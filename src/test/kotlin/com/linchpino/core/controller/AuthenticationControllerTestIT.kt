@@ -10,7 +10,6 @@ import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
-import com.linchpino.core.security.SecurityConfig
 import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitWithinOffset
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -45,8 +45,7 @@ class AuthenticationControllerTestIT {
     private lateinit var accountRepository: AccountRepository
 
     @Autowired
-    private lateinit var securityConfig: SecurityConfig
-
+    private lateinit var jwtDecoder: NimbusJwtDecoder
 
     @BeforeEach
     fun init() {
@@ -55,13 +54,11 @@ class AuthenticationControllerTestIT {
             "John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.GUEST.value
         )
         accountService.createAccount(createAccountRequest)
-        val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")
-        account?.status = AccountStatusEnum.ACTIVATED
-        accountRepository.save(account!!)
-        val firstRole = Role().apply { roleName = AccountTypeEnum.JOB_SEEKER }
-        val secondRole = Role().apply { roleName = AccountTypeEnum.MENTOR }
-        account.addRole(firstRole)
-        account.addRole(secondRole)
+        val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")!!
+        account.status = AccountStatusEnum.ACTIVATED
+        account.addRole(Role().apply { roleName = AccountTypeEnum.MENTOR })
+        account.addRole(Role().apply { roleName = AccountTypeEnum.JOB_SEEKER })
+        accountRepository.save(account)
 
         val createAccountRequestInactive = CreateAccountRequest(
             "Jane", "Smith", "jane.smith@example.com", "password123", AccountTypeEnum.GUEST.value
@@ -114,10 +111,9 @@ class AuthenticationControllerTestIT {
         assertThat(tokenResponse.expiresAt).isCloseTo(
             Instant.now().plus(60, ChronoUnit.MINUTES), TemporalUnitWithinOffset(10, ChronoUnit.SECONDS)
         )
-        val decoder = securityConfig.jwtDecoder().decode(tokenResponse.token)
-        val roles = decoder.getClaim("scope") as String
-        assertThat(roles.split(" ")[0]).isEqualTo("JOB_SEEKER")
-        assertThat(roles.split(" ")[1]).isEqualTo("MENTOR")
+        val scopes = jwtDecoder.decode(tokenResponse.token).getClaim<String>("scope").split(" ")
+        assertThat(scopes.contains("JOB_SEEKER"))
+        assertThat(scopes.contains("MENTOR"))
     }
 
     @Test

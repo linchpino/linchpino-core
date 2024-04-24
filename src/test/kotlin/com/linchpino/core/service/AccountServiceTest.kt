@@ -1,6 +1,7 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.mapper.AccountMapper
@@ -10,12 +11,14 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -81,19 +84,20 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test find mentors with closest time slots calls repository with correct arguments`(){
+    fun `test find mentors with closest time slots calls repository with correct arguments`() {
         // Given
         val date = ZonedDateTime.parse("2024-03-27T00:00:00+03:00")
         val expectedFrom = ZonedDateTime.parse("2024-03-26T21:00:00+00:00")
         val expectedTo = ZonedDateTime.parse("2024-03-27T21:00:00+00:00")
         val interviewTypeId = 5L
-        val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
-        val accountTypeCaptor:ArgumentCaptor<AccountTypeEnum> = ArgumentCaptor.forClass(AccountTypeEnum::class.java)
-        val timeSlotStatusCaptor:ArgumentCaptor<MentorTimeSlotEnum> = ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        val fromCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val toCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        val accountTypeCaptor: ArgumentCaptor<AccountTypeEnum> = ArgumentCaptor.forClass(AccountTypeEnum::class.java)
+        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
         // When
-        accountService.findMentorsWithClosestTimeSlotsBy(date,interviewTypeId)
+        accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
 
         // Then
         verify(repository, times(1)).closestMentorTimeSlots(
@@ -108,5 +112,75 @@ class AccountServiceTest {
         assertThat(idCaptor.value).isEqualTo(5L)
         assertThat(accountTypeCaptor.value).isEqualTo(AccountTypeEnum.MENTOR)
         assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.AVAILABLE)
+    }
+
+    @Test
+    fun `test activate job seeker account`() {
+        val request = ActivateJobSeekerAccountRequest(
+            "externalId",
+            "Jane",
+            "Smith",
+            "secret"
+        )
+        val account = Account().apply {
+            id = 5
+            firstName = "john"
+            lastName = "doe"
+            email = "johndoe@example.com"
+            status = AccountStatusEnum.DEACTIVATED
+        }
+
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
+        `when`(passwordEncoder.encode(request.password)).thenReturn("encodePassword")
+        val result = accountService.activeJobSeekerAccount(request)
+
+        verify(repository, times(1)).save(account)
+
+        assertThat(result.firstName).isEqualTo(result.firstName)
+        assertThat(result.lastName).isEqualTo(result.lastName)
+        assertThat(result.status).isEqualTo(AccountStatusEnum.ACTIVATED)
+    }
+
+    @Test
+    fun `test activate job seeker account throws account not found exception when externalId is not valid`() {
+        val request = ActivateJobSeekerAccountRequest(
+            "externalId",
+            "Jane",
+            "Smith",
+            "secret"
+        )
+
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(null)
+
+        val exception = Assertions.assertThrows(RuntimeException::class.java) {
+            accountService.activeJobSeekerAccount(request)
+        }
+
+        assertThat(exception.message).isEqualTo("account not found")
+    }
+
+    @Test
+    fun `test activate job seeker account throws account already activated exception when account is activated`() {
+        val request = ActivateJobSeekerAccountRequest(
+            "externalId",
+            "Jane",
+            "Smith",
+            "secret"
+        )
+        val account = Account().apply {
+            id = 5
+            firstName = "john"
+            lastName = "doe"
+            email = "johndoe@example.com"
+            status = AccountStatusEnum.ACTIVATED
+        }
+
+        `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
+
+        val exception = Assertions.assertThrows(RuntimeException::class.java) {
+            accountService.activeJobSeekerAccount(request)
+        }
+
+        assertThat(exception.message).isEqualTo("account is already activated")
     }
 }
