@@ -3,6 +3,8 @@ package com.linchpino.core.controller
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.service.AccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -74,5 +76,19 @@ class AccountController(private val accountService: AccountService) {
     ): ResponseEntity<List<MentorWithClosestTimeSlot>> {
         val result = accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
         return ResponseEntity.ok(result)
+    }
+
+    @Operation(summary = "Register a new mentor")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "Mentor registered successfully"),
+            ApiResponse(responseCode = "400", description = "Invalid request body")
+        ]
+    )
+    @PostMapping("/mentors",consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun registerMentor(@Valid @RequestBody request: RegisterMentorRequest): ResponseEntity<RegisterMentorResult> {
+        val result = accountService.registerMentor(request)
+        return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 }

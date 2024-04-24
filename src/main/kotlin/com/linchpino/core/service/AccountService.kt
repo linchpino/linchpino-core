@@ -3,9 +3,16 @@ package com.linchpino.core.service
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.mapper.AccountMapper
+import com.linchpino.core.dto.toAccount
+import com.linchpino.core.dto.toRegisterMentorResult
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Role
+import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewTypeRepository
 import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -19,7 +26,8 @@ import java.time.ZonedDateTime
 class AccountService(
     private val repository: AccountRepository,
     private val mapper: AccountMapper,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val interviewTypeRepository: InterviewTypeRepository
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -36,5 +44,14 @@ class AccountService(
         val from = date.withZoneSameInstant(ZoneOffset.UTC)
         val to = from.plusHours(24)
         return repository.closestMentorTimeSlots(from,to, interviewTypeId)
+    }
+
+    fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
+        val account = request.toAccount()
+        interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs).forEach { account.addInterviewType(it) }
+        account.password = passwordEncoder.encode(request.password)
+        account.addRole(Role().apply { roleName = AccountTypeEnum.MENTOR })
+        repository.save(account)
+        return account.toRegisterMentorResult()
     }
 }
