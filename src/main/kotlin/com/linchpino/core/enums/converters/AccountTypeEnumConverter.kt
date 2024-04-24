@@ -4,7 +4,7 @@ import com.linchpino.core.enums.AccountTypeEnum
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 
-@Converter(autoApply = true)
+@Converter()
 class AccountTypeEnumConverter : AttributeConverter<AccountTypeEnum, Int> {
 
     override fun convertToDatabaseColumn(attribute: AccountTypeEnum): Int =
