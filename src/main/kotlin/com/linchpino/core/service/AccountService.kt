@@ -51,7 +51,7 @@ class AccountService(
         val updatedAccount = account.apply {
             firstName = request.firstName
             lastName = request.lastName
-            password = request.password
+            password = passwordEncoder.encode(request.password)
             status = AccountStatusEnum.ACTIVATED
         }
         repository.save(updatedAccount)
