@@ -59,7 +59,6 @@ data class RegisterMentorRequest(
     @field:NotBlank(message = "lastname is required") val lastName: String,
     @field:Email(message = "email is not valid") val email: String,
     @field:NotBlank(message = "password is required") val password: String,
-    @field:NotNull(message = "type is required") val type: Int,
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise:String,
     val linkedInUrl:String
@@ -79,7 +78,7 @@ fun RegisterMentorRequest.toAccount(): Account {
 
 fun Account.toRegisterMentorResult():RegisterMentorResult{
     return RegisterMentorResult(
-        this.id!!,
+        this.id,
         this.firstName,
         this.lastName,
         this.email,
@@ -90,7 +89,7 @@ fun Account.toRegisterMentorResult():RegisterMentorResult{
 }
 
 data class RegisterMentorResult(
-    val id: Long,
+    val id: Long?,
     val firstName: String,
     val lastName: String,
     val email: String,

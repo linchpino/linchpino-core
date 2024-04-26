@@ -4,12 +4,16 @@ import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewTypeRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -37,6 +42,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
+
+    @Mock
+    private lateinit var interviewTypeRepository: InterviewTypeRepository
 
     @InjectMocks
     private lateinit var accountService: AccountService
@@ -182,5 +190,41 @@ class AccountServiceTest {
         }
 
         assertThat(exception.message).isEqualTo("account is already activated")
+    }
+
+    @Test
+    fun `test register mentor`() {
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe"
+        )
+
+        val i1 = InterviewType().apply {
+            id = 1
+            name = "i1"
+        }
+        val i2 = InterviewType().apply {
+            id = 2
+            name = "i2"
+        }
+
+        `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1,i2))
+        `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
+
+        val result = accountService.registerMentor(request)
+
+        verify(repository, times(1)).save(any())
+        assertThat(result.firstName).isEqualTo(request.firstName)
+        assertThat(result.lastName).isEqualTo(request.lastName)
+        assertThat(result.email).isEqualTo(request.email)
+        assertThat(result.detailsOfExpertise).isEqualTo(request.detailsOfExpertise)
+        assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
+        assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
+        assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
     }
 }
