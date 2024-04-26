@@ -54,4 +54,10 @@ interface AccountRepository : JpaRepository<Account, Long>{
         status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
+    @Query("""
+        select a from Account a where a.externalId = :externalId and a.type = :type
+    """)
+    fun findByExternalId(externalId:String,type: AccountTypeEnum):Account?
+
 }
+

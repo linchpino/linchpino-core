@@ -44,6 +44,9 @@ class Account : AbstractEntity() {
     )
     private val interviewTypes = mutableSetOf<InterviewType>()
 
+    @Column(name = "external_id")
+    var externalId: String? = null
+
     @Column(name = "expertise", columnDefinition = "TEXT")
     var detailsOfExpertise:String? = null
     @Column(name = "linkedin_url")

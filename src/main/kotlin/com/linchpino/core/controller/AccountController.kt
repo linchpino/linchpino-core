@@ -1,5 +1,7 @@
 package com.linchpino.core.controller
 
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
@@ -10,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
@@ -18,6 +22,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -75,6 +80,21 @@ class AccountController(private val accountService: AccountService) {
         @RequestParam(value = "date", required = true) date: ZonedDateTime
     ): ResponseEntity<List<MentorWithClosestTimeSlot>> {
         val result = accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
+        return ResponseEntity.ok(result)
+    }
+
+    @Operation(summary = "Activate Job Seeker Account", description = "Activates a job seeker account")
+    @ApiResponse(
+        responseCode = "200", description = "Successfully activated job seeker account",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = AccountSummary::class))]
+    )
+    @PutMapping(
+        "/jobseeker/activation",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun activateJobSeekerAccount(@Valid @RequestBody request: ActivateJobSeekerAccountRequest): ResponseEntity<AccountSummary> {
+        val result = accountService.activeJobSeekerAccount(request)
         return ResponseEntity.ok(result)
     }
 

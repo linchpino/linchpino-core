@@ -1,4 +1,4 @@
-package com.linchpino.core.controller
+package com.linchpino.core.controller.interview
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
