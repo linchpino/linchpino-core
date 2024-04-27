@@ -9,6 +9,8 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
@@ -18,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -152,11 +153,10 @@ class AccountServiceTest {
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(null)
 
-        val exception = Assertions.assertThrows(RuntimeException::class.java) {
+        val exception = Assertions.assertThrows(LinchpinException::class.java) {
             accountService.activeJobSeekerAccount(request)
         }
-
-        assertThat(exception.message).isEqualTo("account not found")
+        assertThat(exception.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
     }
 
     @Test
@@ -177,10 +177,10 @@ class AccountServiceTest {
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
 
-        val exception = Assertions.assertThrows(RuntimeException::class.java) {
+        val exception = Assertions.assertThrows(LinchpinException::class.java) {
             accountService.activeJobSeekerAccount(request)
         }
 
-        assertThat(exception.message).isEqualTo("account is already activated")
+        assertThat(exception.errorCode).isEqualTo(ErrorCode.ACCOUNT_IS_ACTIVATED)
     }
 }

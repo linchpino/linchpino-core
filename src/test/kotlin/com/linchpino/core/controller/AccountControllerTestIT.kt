@@ -303,7 +303,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 
     @Test
@@ -324,7 +324,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {

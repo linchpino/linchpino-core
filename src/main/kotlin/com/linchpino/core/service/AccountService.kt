@@ -10,6 +10,8 @@ import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -45,9 +47,9 @@ class AccountService(
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
         val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)
-            ?: throw RuntimeException("account not found")
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND,"no account found by externalId: ${request.externalId}")
         if (account.status == AccountStatusEnum.ACTIVATED)
-            throw RuntimeException("account is already activated")
+            throw LinchpinException(ErrorCode.ACCOUNT_IS_ACTIVATED,"account is already activated")
         val updatedAccount = account.apply {
             firstName = request.firstName
             lastName = request.lastName
