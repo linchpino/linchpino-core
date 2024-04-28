@@ -67,7 +67,9 @@ class AccountService(
 
     fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
         val account = request.toAccount()
-        interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs).forEach { account.addInterviewType(it) }
+        val interviewTypes = interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)
+        if (interviewTypes.isEmpty()) throw RuntimeException("invalid interviewTypes")
+        interviewTypes.forEach { account.addInterviewType(it) }
         account.password = passwordEncoder.encode(request.password)
         account.addRole(Role().apply { roleName = AccountTypeEnum.MENTOR })
         repository.save(account)

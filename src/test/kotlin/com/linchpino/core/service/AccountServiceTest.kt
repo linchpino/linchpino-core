@@ -5,7 +5,6 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
@@ -23,7 +22,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.any
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -212,13 +210,13 @@ class AccountServiceTest {
             id = 2
             name = "i2"
         }
-
+        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1,i2))
         `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
 
         val result = accountService.registerMentor(request)
 
-        verify(repository, times(1)).save(any())
+        verify(repository, times(1)).save(accountCaptor.captureNonNullable())
         assertThat(result.firstName).isEqualTo(request.firstName)
         assertThat(result.lastName).isEqualTo(request.lastName)
         assertThat(result.email).isEqualTo(request.email)
@@ -226,5 +224,7 @@ class AccountServiceTest {
         assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
         assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
+        val savedAccount = accountCaptor.value
+        assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
     }
 }

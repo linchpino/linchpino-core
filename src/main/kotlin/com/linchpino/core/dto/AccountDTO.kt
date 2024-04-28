@@ -5,7 +5,10 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
+import org.hibernate.validator.constraints.URL
 import java.time.ZonedDateTime
 
 data class CreateAccountRequest(
@@ -59,9 +62,9 @@ data class RegisterMentorRequest(
     @field:NotBlank(message = "lastname is required") val lastName: String,
     @field:Email(message = "email is not valid") val email: String,
     @field:NotBlank(message = "password is required") val password: String,
-    val interviewTypeIDs: List<Long>,
-    val detailsOfExpertise:String,
-    val linkedInUrl:String
+    @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
+    val detailsOfExpertise:String?,
+    @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?
 )
 
 fun RegisterMentorRequest.toAccount(): Account {
