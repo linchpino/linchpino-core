@@ -56,10 +56,14 @@ class AuthenticationControllerTestIT {
         accountService.createAccount(createAccountRequest)
         val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")!!
         account.status = AccountStatusEnum.ACTIVATED
-        account.addRole(Role().apply { id = 1
-            title = AccountTypeEnum.MENTOR })
-        account.addRole(Role().apply {id = 2
-            title = AccountTypeEnum.JOB_SEEKER })
+        account.addRole(Role().apply {
+            id = 1
+            title = AccountTypeEnum.MENTOR
+        })
+        account.addRole(Role().apply {
+            id = 2
+            title = AccountTypeEnum.JOB_SEEKER
+        })
         accountRepository.save(account)
 
         val createAccountRequestInactive = CreateAccountRequest(
