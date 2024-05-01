@@ -1,6 +1,7 @@
 spring:
   application:
     name: linchpino-service
+    mode: DEV
 
   datasource:
     driverClassName: org.postgresql.Driver
