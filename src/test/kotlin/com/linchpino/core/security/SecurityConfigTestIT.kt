@@ -32,7 +32,6 @@ class SecurityConfigTestIT {
             get("/api/jobposition/search?name=Engineer")
                 .header("Origin", "http://blah.blah")
         )
-            .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andExpect(
                 header().string(
