@@ -84,4 +84,3 @@ jobs:
           sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
           docker-compose stop linchpino-core && docker-compose rm -f linchpino-core
           docker-compose up -d
-
