@@ -52,7 +52,6 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "spring.application", name = ["mode"], havingValue = "DEV")
     fun corsConfigurationSource(): CorsConfigurationSource = CorsConfiguration()
         .apply {
             applyPermitDefaultValues()

@@ -3,11 +3,13 @@ package com.linchpino.core.security
 import com.linchpino.core.PostgresContainerConfig
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -23,10 +25,14 @@ class SecurityConfigTestIT {
     private lateinit var mockMvc: MockMvc
 
     @Test
-    @Throws(Exception::class)
-    fun testCors() {
+    fun `test CORS with fake origin header`() {
+
         this.mockMvc
-        mockMvc.perform(get("/api/jobposition/search?name=Engineer"))
+        mockMvc.perform(
+            get("/api/jobposition/search?name=Engineer")
+                .header("Origin", "http://blah.blah")
+        )
+            .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andExpect(
                 header().string(
