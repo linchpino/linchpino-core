@@ -30,7 +30,7 @@ class SecurityConfigTestIT {
             .andExpect(status().isOk)
             .andExpect(
                 header().string(
-                    "Origins",
+                    "Access-Control-Allow-Origin",
                     "*"
                 )
             )
