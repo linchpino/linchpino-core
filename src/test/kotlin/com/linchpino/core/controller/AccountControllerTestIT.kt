@@ -5,7 +5,6 @@ import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
@@ -309,7 +308,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
     }
 
     @Test
@@ -330,7 +329,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     @Test

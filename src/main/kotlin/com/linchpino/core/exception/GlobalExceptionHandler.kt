@@ -2,6 +2,7 @@ package com.linchpino.core.exception
 
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.FieldError
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.Instant
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(private val messageSource: MessageSource) {
 
     private val log = LoggerFactory.getLogger(this.javaClass)
 
@@ -80,5 +81,21 @@ class GlobalExceptionHandler {
                     request.servletPath
                 )
             )
+    }
+
+
+    @ExceptionHandler(LinchpinException::class)
+    fun handleLinchpinException(exception: LinchpinException, request: HttpServletRequest): ResponseEntity<*> {
+        val message = messageSource.getMessage(exception.errorCode.name, exception.params, request.locale)
+        log.error("Linchpin exception: {} -> ", message, exception)
+        return ResponseEntity.status(exception.errorCode.status).body<Any>(
+            ErrorResponse(
+                Instant.now(),
+                exception.errorCode.status.value(),
+                message,
+                listOf(),
+                request.servletPath
+            )
+        )
     }
 }
