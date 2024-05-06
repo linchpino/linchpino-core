@@ -5,4 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface InterviewTypeRepository : JpaRepository<InterviewType, Long>
+interface InterviewTypeRepository : JpaRepository<InterviewType, Long> {
+
+    fun findAllByIdIn(ids:List<Long>):List<InterviewType>
+}
