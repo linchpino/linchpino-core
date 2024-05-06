@@ -2,13 +2,7 @@ package com.linchpino.core.controller.account
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.controller.AccountController
-import com.linchpino.core.dto.AccountSummary
-import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
-import com.linchpino.core.dto.CreateAccountRequest
-import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.dto.MentorWithClosestTimeSlot
-import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.*
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
@@ -18,9 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import java.time.ZonedDateTime
