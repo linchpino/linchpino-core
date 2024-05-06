@@ -47,6 +47,10 @@ class Account : AbstractEntity() {
     @Column(name = "external_id")
     var externalId: String? = null
 
+    @Column(name = "expertise", columnDefinition = "TEXT")
+    var detailsOfExpertise:String? = null
+    @Column(name = "linkedin_url")
+    var linkedInUrl:String? = null
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)
@@ -76,4 +80,8 @@ class Account : AbstractEntity() {
     }
 
     fun roles() = this.roles.toSet()
+
+    fun interviewTypes() = this.interviewTypes.toSet()
+
+    fun interviewTypeIDs() = this.interviewTypes.map { it.id!! }.toList()
 }

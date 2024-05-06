@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
@@ -11,6 +13,7 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewTypeRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
@@ -42,6 +45,9 @@ class AccountControllerTestIT {
 
     @Autowired
     private lateinit var accountRepository: AccountRepository
+
+    @Autowired
+    private lateinit var interviewTypeRepository: InterviewTypeRepository
 
     @PersistenceContext
     lateinit var entityManager: EntityManager
@@ -325,6 +331,90 @@ class AccountControllerTestIT {
         )
             // todo assert against real exception after exception handling configured
             .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+    }
+
+    @Test
+    fun `test register new mentor`() {
+        // Given
+        val it1 = InterviewType().apply { name = "type1" }
+        val it2 = InterviewType().apply { name = "type2" }
+        val interviewTypes = interviewTypeRepository.saveAll(listOf(it1,it2))
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "https://www.linkedin.com/in/johndoe"
+        )
+        //
+        mockMvc.perform(
+            post("/api/accounts/mentors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(jsonPath("$.id").isNumber)
+            .andExpect(jsonPath("$.firstName").value("John"))
+            .andExpect(jsonPath("$.lastName").value("Doe"))
+            .andExpect(jsonPath("$.email").value("john@example.com"))
+            .andExpect(jsonPath("$.interviewTypeIDs").isArray)
+            .andExpect(jsonPath("$.detailsOfExpertise").value("Some expertise"))
+            .andExpect(jsonPath("$.linkedInUrl").value("https://www.linkedin.com/in/johndoe"))
+    }
+
+    @Test
+    fun `test register new mentor throws exception when no interviewTypeIDs found in database`() {
+        // Given
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "https://www.linkedin.com/in/johndoe"
+        )
+        //
+        mockMvc.perform(
+            post("/api/accounts/mentors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.error").value("Internal Server Error"))
+    }
+
+    @Test
+    fun `test register mentor with invalid request data`() {
+        val invalidRequest = RegisterMentorRequest(
+            firstName = "", // Empty first name
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "https://linkedin.com/johndoe"
+        )
+
+        mockMvc.perform(
+            post("/api/accounts/mentors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(invalidRequest))
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("firstName")))
+            .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("firstname is required")))
+            .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("linkedInUrl")))
+            .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("Invalid LinkedIn URL")))
+            .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("interviewTypeIDs")))
+            .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("interviewTypeIDs are required")))
+
     }
 
     private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {

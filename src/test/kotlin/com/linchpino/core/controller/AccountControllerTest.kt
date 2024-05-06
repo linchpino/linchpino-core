@@ -7,6 +7,8 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
@@ -123,5 +125,43 @@ class AccountControllerTest {
         assertThat(result.body).isEqualTo(expectedResponse)
         assertThat(requestCaptor.value).isEqualTo(request)
         verify(accountService, times(1)).activeJobSeekerAccount(request)
+    }
+
+    @Test
+    fun `test register new mentor`() {
+        // Given
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe"
+        )
+
+        val expectedResponse = RegisterMentorResult(
+            id = 1L,
+            firstName = request.firstName,
+            lastName = request.lastName,
+            email = request.email,
+            interviewTypeIDs = request.interviewTypeIDs,
+            detailsOfExpertise = request.detailsOfExpertise,
+            linkedInUrl = request.linkedInUrl
+        )
+
+
+        val requestCaptor: ArgumentCaptor<RegisterMentorRequest> =
+            ArgumentCaptor.forClass(RegisterMentorRequest::class.java)
+        `when`(accountService.registerMentor(requestCaptor.captureNonNullable())).thenReturn(expectedResponse)
+
+        // When
+        val result = accountController.registerMentor(request)
+
+        // Then
+        assertThat(result.statusCode).isEqualTo(HttpStatus.CREATED)
+        assertThat(result.body).isEqualTo(expectedResponse)
+        assertThat(requestCaptor.value).isEqualTo(request)
+        verify(accountService, times(1)).registerMentor(request)
     }
 }
