@@ -71,7 +71,7 @@ class AccountService(
         if (interviewTypes.isEmpty()) throw RuntimeException("invalid interviewTypes")
         interviewTypes.forEach { account.addInterviewType(it) }
         account.password = passwordEncoder.encode(request.password)
-        account.addRole(Role().apply { roleName = AccountTypeEnum.MENTOR })
+        account.addRole(Role().apply { title = AccountTypeEnum.MENTOR })
         repository.save(account)
         return account.toRegisterMentorResult()
     }
