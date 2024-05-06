@@ -3,22 +3,39 @@ package com.linchpino.core.security
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.RequestEntity
+import org.springframework.security.authentication.AuthenticationManagerResolver
+import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider
+import org.springframework.security.oauth2.server.resource.authentication.OpaqueTokenAuthenticationProvider
+import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector
+import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestTemplate
+import java.net.URI
 
 @Configuration
 class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity,opaqueTokenIntrospector: OpaqueTokenIntrospector): SecurityFilterChain {
         return http
             .csrf { it.disable() }
             .cors { it.disable() }
@@ -27,9 +44,33 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
                 it.anyRequest().permitAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .oauth2ResourceServer { it.jwt { customizer -> customizer.decoder(jwtDecoder()) } }
+            .oauth2ResourceServer {
+                it.authenticationManagerResolver(tokenAuthenticationManagerResolver(opaqueTokenIntrospector))
+            }
             .httpBasic(Customizer.withDefaults())
             .build()
+    }
+
+
+    private fun tokenAuthenticationManagerResolver(opaqueTokenIntrospector: OpaqueTokenIntrospector): AuthenticationManagerResolver<HttpServletRequest> {
+
+        return AuthenticationManagerResolver { request ->
+            val bearerToken = request.getHeader("Authorization").replace("Bearer ", "")
+            if (isJwtFormat(bearerToken)) {
+                ProviderManager(JwtAuthenticationProvider(jwtDecoder()))
+            } else {
+                ProviderManager(OpaqueTokenAuthenticationProvider(opaqueTokenIntrospector))
+            }
+        }
+    }
+
+    private fun isJwtFormat(token: String): Boolean {
+        return try {
+            jwtDecoder().decode(token)
+            true
+        }catch (ex: JwtException){
+            false
+        }
     }
 
     @Bean
@@ -43,4 +84,25 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
         val jwk = RSAKey.Builder(rsaKeys.publicKey).privateKey(rsaKeys.privateKey).build()
         return NimbusJwtEncoder(ImmutableJWKSet(JWKSet(jwk)))
     }
+
+    @Bean
+    fun opaqueTokenIntrospector(
+        @Value("\${linkedin.clientId}") clientId:String,
+        @Value("\${linkedin.secret}") clientSecret:String,
+    ): OpaqueTokenIntrospector {
+        val restTemplate = RestTemplate()
+        val introspectUri = "https://www.linkedin.com/oauth/v2/introspectToken"
+        val opaqueTokenIntrospector = SpringOpaqueTokenIntrospector(introspectUri, restTemplate)
+        opaqueTokenIntrospector.setRequestEntityConverter { token: String? ->
+            val headers = HttpHeaders()
+            headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+            val body: MultiValueMap<String, String> = LinkedMultiValueMap()
+            body.add("client_id", clientId)
+            body.add("client_secret", clientSecret)
+            body.add("token", token)
+            RequestEntity<Any?>(body, headers, HttpMethod.POST, URI.create(introspectUri))
+        }
+        return opaqueTokenIntrospector
+    }
+
 }

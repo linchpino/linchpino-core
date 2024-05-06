@@ -64,3 +64,29 @@ configuration.
 - Ensure to set the environment variables accordingly before running the Linchpino Service application.
 - Modify the default values of the environment variables as per your environment and requirements.
 - Refer to the Spring Boot documentation for more information on configuring applications using environment variables.
+
+### Private and Public Key Generation using OpenSSL
+
+OpenSSL is a widely-used open-source toolkit for implementing the Secure Sockets Layer (SSL) and Transport Layer Security (TLS) protocols. It also provides functionalities for generating cryptographic keys, including private and public key pairs.
+
+#### Steps to Generate a Key Pair:
+
+1. **Generate a Private Key:**
+    - Use the following command to generate a private key:
+      ```
+      openssl genpkey -algorithm RSA -out private_key.pem -aes256
+      ```
+      This command generates a private key using the RSA algorithm and encrypts it with AES256 encryption. Replace `private_key.pem` with the desired name for your private key file.
+
+2. **Generate a Corresponding Public Key:**
+    - Once you have generated the private key, you can generate the corresponding public key using the following command:
+      ```
+      openssl rsa -pubout -in private_key.pem -out public_key.pem
+      ```
+      This command extracts the public key from the private key file and saves it to a new file named `public_key.pem`.
+3. **Provide public and private keys path:**
+    - There are two variables in application.yml PRIVATE_KEY, and PUBLIC_KEY. provide the path to keys as the value for these variables. ex: PUBLIC_KEY=file:/path/to/your/public_key.pem
+
+
+### Social login variables:
+Inorder to be able to use LinkedIn login, an Oauth application must be registered on LinkedIn website and LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET must be provided.
