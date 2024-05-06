@@ -4,14 +4,7 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.converters.AccountStatusEnumConverter
 import com.linchpino.core.enums.converters.AccountTypeEnumConverter
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Convert
-import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @Table(name = "ACCOUNT")
 @Entity
@@ -47,6 +40,10 @@ class Account : AbstractEntity() {
     @Column(name = "external_id")
     var externalId: String? = null
 
+    @Column(name = "expertise", columnDefinition = "TEXT")
+    var detailsOfExpertise:String? = null
+    @Column(name = "linkedin_url")
+    var linkedInUrl:String? = null
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)
@@ -76,4 +73,8 @@ class Account : AbstractEntity() {
     }
 
     fun roles() = this.roles.toSet()
+
+    fun interviewTypes() = this.interviewTypes.toSet()
+
+    fun interviewTypeIDs() = this.interviewTypes.map { it.id!! }.toList()
 }

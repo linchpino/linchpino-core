@@ -1,18 +1,15 @@
 package com.linchpino.core.service
 
-import com.linchpino.core.dto.AccountSummary
-import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
-import com.linchpino.core.dto.CreateAccountRequest
-import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.*
 import com.linchpino.core.dto.mapper.AccountMapper
-import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.RoleRepository
 import lombok.extern.slf4j.Slf4j
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -26,7 +23,9 @@ import java.time.ZonedDateTime
 class AccountService(
     private val repository: AccountRepository,
     private val mapper: AccountMapper,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val interviewTypeRepository: InterviewTypeRepository,
+    private val roleRepository: RoleRepository
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -58,5 +57,17 @@ class AccountService(
         }
         repository.save(updatedAccount)
         return updatedAccount.toSummary()
+    }
+
+    fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
+        val account = request.toAccount()
+        val interviewTypes = interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)
+        if (interviewTypes.isEmpty()) throw RuntimeException("invalid interviewTypes")
+        interviewTypes.forEach { account.addInterviewType(it) }
+        account.password = passwordEncoder.encode(request.password)
+        val mentorRole = roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)
+        account.addRole(mentorRole)
+        repository.save(account)
+        return account.toRegisterMentorResult()
     }
 }

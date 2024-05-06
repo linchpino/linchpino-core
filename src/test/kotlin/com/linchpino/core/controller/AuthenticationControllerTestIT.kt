@@ -56,8 +56,14 @@ class AuthenticationControllerTestIT {
         accountService.createAccount(createAccountRequest)
         val account = accountRepository.findByEmailIgnoreCase("john.doe@example.com")!!
         account.status = AccountStatusEnum.ACTIVATED
-        account.addRole(Role().apply { roleName = AccountTypeEnum.MENTOR })
-        account.addRole(Role().apply { roleName = AccountTypeEnum.JOB_SEEKER })
+        account.addRole(Role().apply {
+            id = 1
+            title = AccountTypeEnum.MENTOR
+        })
+        account.addRole(Role().apply {
+            id = 2
+            title = AccountTypeEnum.JOB_SEEKER
+        })
         accountRepository.save(account)
 
         val createAccountRequestInactive = CreateAccountRequest(
@@ -112,8 +118,8 @@ class AuthenticationControllerTestIT {
             Instant.now().plus(60, ChronoUnit.MINUTES), TemporalUnitWithinOffset(10, ChronoUnit.SECONDS)
         )
         val scopes = jwtDecoder.decode(tokenResponse.token).getClaim<String>("scope").split(" ")
-        assertThat(scopes.contains("JOB_SEEKER"))
         assertThat(scopes.contains("MENTOR"))
+        assertThat(scopes.contains("JOB_SEEKER"))
     }
 
     @Test

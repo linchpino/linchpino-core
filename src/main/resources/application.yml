@@ -38,3 +38,7 @@ logging:
     org:
       springframework:
         security: trace
+
+linkedin:
+  clientId: ${LINKEDIN_CLIENT_ID:fake_client_id}
+  secret: ${LINKEDIN_CLIENT_SECRET:fake_client_secret}
