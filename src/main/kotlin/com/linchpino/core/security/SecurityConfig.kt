@@ -38,10 +38,10 @@ import java.net.URI
 class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, opaqueTokenIntrospector: OpaqueTokenIntrospector): SecurityFilterChain {
         return http
             .csrf { it.disable() }
-            .cors { it.disable() }
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
                 it.anyRequest().permitAll()
