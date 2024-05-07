@@ -26,6 +26,9 @@ import org.springframework.security.oauth2.server.resource.authentication.Opaque
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector
 import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
@@ -35,10 +38,10 @@ import java.net.URI
 class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity,opaqueTokenIntrospector: OpaqueTokenIntrospector): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, opaqueTokenIntrospector: OpaqueTokenIntrospector): SecurityFilterChain {
         return http
             .csrf { it.disable() }
-            .cors { it.disable() }
+            .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
                 it.anyRequest().permitAll()
@@ -104,5 +107,19 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
         }
         return opaqueTokenIntrospector
     }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource = CorsConfiguration()
+        .apply {
+            applyPermitDefaultValues()
+            allowedOrigins = listOf("*")
+            allowedMethods = listOf("*")
+            allowedHeaders = listOf("*")
+        }
+        .let { corsConfig ->
+            UrlBasedCorsConfigurationSource().apply {
+                registerCorsConfiguration("/**", corsConfig)
+            }
+        }
 
 }

@@ -14,7 +14,7 @@ class SecurityUser(
 ) : UserDetails {
     override fun getAuthorities(): List<GrantedAuthority> {
         return roles.map {
-            SimpleGrantedAuthority("${it.title.name}")
+            SimpleGrantedAuthority(it.title.name)
         }
     }
 
