@@ -7,18 +7,82 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 jobs:
-  Deploy-to-linchpino-core-server:
-    runs-on: self-hosted
+  Sonar-Build:
+    runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.sonar-build-status.outputs.coverage }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build with Maven cloud
+        id: sonar-build-status
+        run: | 
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          -Dsonar.projectKey=linchpino_linchpino-core \
+          -Dsonar.organization=linchpino \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=$SONARCLOUD_TOKEN
+          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT          
+        env:
+          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
+          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Check on failures
+        if: steps.sonar-build-status.outcome != 'success' ||  steps.sonar-build-status.outputs.coverage < 50
+        run: |
+          echo "outcome":  ${{ steps.sonar-build-status.outcome }}
+          echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
+          exit 1
+        
+  Build-and-push-to-GHCR:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write 
+      packages: write
+    needs: Sonar-Build 
     steps:
-      - name: Connect to linchpino-core on GCP instance
-        run: |
-          cd ${{ secrets.WORK_DIR }}
-          sudo git fetch --all && sudo git checkout ${GITHUB_REF##*/}	&& sudo git checkout ${GITHUB_REF##*/} docker-compose.yml && sudo git checkout ${GITHUB_REF##*/} ./initscripts/init.sql
-          sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_REF##*\/}/" /opt/actions-runner/.env && export POSTGRES_DB=${GITHUB_REF##*/}
-          sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_REF##*\/}/" /opt/actions-runner/.env && export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_REF##*/}
-          sudo sed -i "s/\$currentbranches/${GITHUB_REF##*\/}/g" ./initscripts/init.sql
-          sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
-          docker-compose down && docker-compose up -d
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ github.base_ref }}
+                
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  Deploy-to-linchpino-core-server:
+      runs-on: self-hosted
+      permissions:
+        contents: read
+        packages: write 
+      needs: Build-and-push-to-GHCR 
+      steps:
+        - name: Connect to linchpino-core on GCP instance
+          run: |
+            cd ${{ secrets.WORK_DIR }}
+            sudo git fetch --all && sudo git checkout ${GITHUB_REF##*/}	&& sudo git checkout ${GITHUB_REF##*/} docker-compose.yml && sudo git checkout ${GITHUB_REF##*/} ./initscripts/init.sql
+            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_REF##*\/}/" /opt/actions-runner/.env && export POSTGRES_DB=${GITHUB_REF##*/}
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_REF##*\/}/" /opt/actions-runner/.env && export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_REF##*/}
+            sudo sed -i "s/\$currentbranches/${GITHUB_REF##*\/}/g" ./initscripts/init.sql
+            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
+            docker-compose down && docker-compose up -d
