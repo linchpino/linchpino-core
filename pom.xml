@@ -22,6 +22,10 @@
         <openAPI.version>2.3.0</openAPI.version>
         <postgres.version>42.7.2</postgres.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <sonar.coverage.exclusions>
+            com/linchpino/core/security/SecurityConfig.java,
+            com/linchpino/core/exception/GlobalExceptionHandler.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
