@@ -381,10 +381,10 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.error").value("Internal Server Error"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.error").value("Interview type not found"))
     }
 
     @Test
