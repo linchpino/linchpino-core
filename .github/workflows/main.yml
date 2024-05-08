@@ -81,6 +81,7 @@ jobs:
           run: |
             cd ${{ secrets.WORK_DIR }}
             sudo git fetch --all 
+            echo ${GITHUB_REF##*/}
             sudo git checkout ${GITHUB_REF##*/}	
             sudo git checkout ${GITHUB_REF##*/} --  docker-compose.yml 
             sudo git checkout ${GITHUB_REF##*/} -- ./initscripts/init.sql
