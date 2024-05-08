@@ -142,6 +142,32 @@ class AccountControllerTestIT {
     }
 
     @Test
+    fun `test creating account with duplicate email results in bad request`() {
+        val createAccountRequest =
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
+
+        val createAccountRequestWithDuplicateEmail =
+            CreateAccountRequest("Jane", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.MENTOR.value)
+
+        mockMvc.perform(
+            post("/api/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(createAccountRequest))
+        )
+            .andExpect(MockMvcResultMatchers.status().isCreated)
+
+
+        mockMvc.perform(
+            post("/api/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(createAccountRequestWithDuplicateEmail))
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Unique email violation"))
+            .andExpect(jsonPath("$.status").value(400))
+    }
+
+    @Test
     fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
         // Given
         saveFakeMentorsWithInterviewTypeAndTimeSlots()
@@ -381,10 +407,10 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isInternalServerError)
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.error").value("Internal Server Error"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.error").value("Interview type not found"))
     }
 
     @Test

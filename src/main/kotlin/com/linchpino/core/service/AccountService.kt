@@ -11,6 +11,7 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import lombok.extern.slf4j.Slf4j
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -30,10 +31,12 @@ class AccountService(
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val account: Account = mapper.accountDtoToAccount(createAccountRequest)
-        //account.createdOn(LocalDate.now())
-        // encrypt password
         account.password = passwordEncoder.encode(account.password)
-        repository.save(account)
+        try {
+            repository.save(account)
+        } catch (ex: DataIntegrityViolationException) {
+            throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
+        }
         return mapper.entityToResultDto(account)
     }
 
@@ -46,9 +49,9 @@ class AccountService(
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
         val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)
-            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND,"no account found by externalId: ${request.externalId}")
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "no account found by externalId: ${request.externalId}")
         if (account.status == AccountStatusEnum.ACTIVATED)
-            throw LinchpinException(ErrorCode.ACCOUNT_IS_ACTIVATED,"account is already activated")
+            throw LinchpinException(ErrorCode.ACCOUNT_IS_ACTIVATED, "account is already activated")
         val updatedAccount = account.apply {
             firstName = request.firstName
             lastName = request.lastName
@@ -62,12 +65,16 @@ class AccountService(
     fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
         val account = request.toAccount()
         val interviewTypes = interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)
-        if (interviewTypes.isEmpty()) throw RuntimeException("invalid interviewTypes")
+        if (interviewTypes.isEmpty()) throw LinchpinException(ErrorCode.INTERVIEW_TYPE_NOT_FOUND,"no interview type found with id in: ${request.interviewTypeIDs}")
         interviewTypes.forEach { account.addInterviewType(it) }
         account.password = passwordEncoder.encode(request.password)
         val mentorRole = roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)
         account.addRole(mentorRole)
-        repository.save(account)
+        try {
+            repository.save(account)
+        } catch (ex: DataIntegrityViolationException) {
+            throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
+        }
         return account.toRegisterMentorResult()
     }
 }
