@@ -60,7 +60,7 @@ jobs:
             sudo sed -i "s/\$currentbranches/${GITHUB_REF##*\/}/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
             echo ${GITHUB_REF##*/} 
-            if [${GITHUB_REF##*/} == "development"]; then
+            if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml  
             fi
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
