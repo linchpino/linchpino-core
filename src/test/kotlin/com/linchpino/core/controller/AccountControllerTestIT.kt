@@ -54,7 +54,7 @@ class AccountControllerTestIT {
     @Test
     fun `test creating jobSeeker account`() {
         val createAccountRequest =
-            CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "@1secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -75,7 +75,7 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with blank firstName results in bad request`() {
         val invalidRequest =
-            CreateAccountRequest("", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("", "Doe", "john.doe@example.com", "@1secret", AccountTypeEnum.JOB_SEEKER.value)
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with blank lastName results in bad request`() {
         val invalidRequest =
-            CreateAccountRequest("John", "", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("John", "", "john.doe@example.com", "@1secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -108,7 +108,7 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with invalid email results in bad request`() {
         val invalidRequest =
-            CreateAccountRequest("John", "Doe", "john.doe_example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("John", "Doe", "john.doe_example.com", "@1secret", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -120,6 +120,23 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("email"))
             .andExpect(jsonPath("$.validationErrorMap[0].message").value("email is not valid"))
+    }
+
+    @Test
+    fun `test creating account with a password that does not match password policy results in bad request`() {
+        val invalidRequest =
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+
+        mockMvc.perform(
+            post("/api/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(invalidRequest))
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("password"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Password must be at least 6 character containing alpha-numeric and special characters)"))
     }
 
     @Test
