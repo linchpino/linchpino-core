@@ -96,5 +96,4 @@ jobs:
             sudo sed -i "s/#-/"-"/" docker-compose.yml  
             fi 
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
-
             docker-compose up -d
