@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import java.io.Serializable
 
-inline fun <reified T, ID : Serializable> JpaRepository<T, ID>.getByReference(id: ID): T {
+inline fun <reified T, ID : Serializable> JpaRepository<T, ID>.findReferenceById(id: ID): T {
     return try {
         this.getReferenceById(id)
     } catch (ex: JpaObjectRetrievalFailureException) {
