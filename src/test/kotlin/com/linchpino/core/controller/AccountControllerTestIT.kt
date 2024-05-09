@@ -1,10 +1,9 @@
 package com.linchpino.core.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.linchpino.core.PostgresContainerConfig
-import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
-import com.linchpino.core.dto.CreateAccountRequest
-import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.*
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
@@ -337,7 +336,7 @@ class AccountControllerTestIT {
         // Given
         val it1 = InterviewType().apply { name = "type1" }
         val it2 = InterviewType().apply { name = "type2" }
-        val interviewTypes = interviewTypeRepository.saveAll(listOf(it1,it2))
+        val interviewTypes = interviewTypeRepository.saveAll(listOf(it1, it2))
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -413,6 +412,49 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("Invalid LinkedIn URL")))
             .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("interviewTypeIDs")))
             .andExpect(jsonPath("$.validationErrorMap[*].message", hasItem("interviewTypeIDs are required")))
+
+    }
+
+    @Test
+    fun `test add timeslots for mentor`() {
+        // Given
+        val account = Account().apply {
+            email = "john.doe@example.com"
+        }
+        val id = accountRepository.save(account).id!!
+
+        val timeSlots = listOf(
+            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
+            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+        )
+        val request = AddTimeSlotsRequest(id, timeSlots)
+
+        // Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/timeslots")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isCreated)
+    }
+
+    @Test
+    fun `test add timeslots for mentor fails if there is no mentor with provided id in database`() {
+        // Given
+        val timeSlots = listOf(
+            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
+            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+        )
+        val request = AddTimeSlotsRequest(1000, timeSlots)
+
+        // Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/timeslots")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(jsonPath("$.error").value("Account entity not found"))
 
     }
 
