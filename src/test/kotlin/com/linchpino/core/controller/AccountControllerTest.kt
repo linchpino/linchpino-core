@@ -6,6 +6,7 @@ import com.linchpino.core.dto.*
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.TimeSlotService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -22,6 +23,9 @@ class AccountControllerTest {
 
     @Mock
     private lateinit var accountService: AccountService
+
+    @Mock
+    private lateinit var timeSlotService: TimeSlotService
 
     @InjectMocks
     private lateinit var accountController: AccountController
