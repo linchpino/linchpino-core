@@ -21,7 +21,8 @@ services:
     ports:
       - 5432:5432
     volumes:
-      # - ./PostgresData:/var/lib/postgresql/data
+    #only used for dev branches
+     #- ./PostgresData:/var/lib/postgresql/data
       - ./initscripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
