@@ -6,6 +6,7 @@ import com.linchpino.core.dto.*
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.TimeSlotService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -22,6 +23,9 @@ class AccountControllerTest {
 
     @Mock
     private lateinit var accountService: AccountService
+
+    @Mock
+    private lateinit var timeSlotService: TimeSlotService
 
     @InjectMocks
     private lateinit var accountController: AccountController
@@ -155,5 +159,25 @@ class AccountControllerTest {
         assertThat(result.body).isEqualTo(expectedResponse)
         assertThat(requestCaptor.value).isEqualTo(request)
         verify(accountService, times(1)).registerMentor(request)
+    }
+
+
+    @Test
+    fun `test add timeslots for mentor`(){
+        // Given
+        val timeSlots = listOf(
+            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
+            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+        )
+        val request = AddTimeSlotsRequest(1000, timeSlots)
+        val captor:ArgumentCaptor<AddTimeSlotsRequest> = ArgumentCaptor.forClass(AddTimeSlotsRequest::class.java)
+
+        // When
+        accountController.addTimeSlotsForMentor(request)
+
+        // Then
+        verify(timeSlotService, times(1)).addTimeSlots(captor.captureNonNullable())
+
+        assertThat(captor.value).isEqualTo(request)
     }
 }
