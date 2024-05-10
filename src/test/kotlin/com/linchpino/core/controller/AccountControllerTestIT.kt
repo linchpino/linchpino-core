@@ -7,6 +7,7 @@ import com.linchpino.core.dto.*
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
@@ -444,9 +445,19 @@ class AccountControllerTestIT {
     @Test
     fun `test add timeslots for mentor`() {
         // Given
+        val mentor = Role().apply {
+            id = 99
+            title = AccountTypeEnum.MENTOR
+        }
+
+        entityManager.persist(mentor)
+
         val account = Account().apply {
             email = "john.doe@example.com"
         }
+
+        account.addRole(mentor)
+
         val id = accountRepository.save(account).id!!
 
         val timeSlots = listOf(
@@ -482,6 +493,38 @@ class AccountControllerTestIT {
             .andExpect(MockMvcResultMatchers.status().isNotFound)
             .andExpect(jsonPath("$.error").value("Account entity not found"))
 
+    }
+
+    @Test
+    fun `test add timeslots for mentor fails if provided account id does not have MENTOR role`() {
+        val jobSeeker = Role().apply {
+            id = 100
+            title = AccountTypeEnum.JOB_SEEKER
+        }
+        entityManager.persist(jobSeeker)
+
+        val account = Account().apply {
+            email = "john.doe@example.com"
+        }
+
+        account.addRole(jobSeeker)
+
+        val id = accountRepository.save(account).id!!
+
+        val timeSlots = listOf(
+            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
+            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+        )
+        val request = AddTimeSlotsRequest(id, timeSlots)
+
+        // Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/timeslots")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Account role is invalid"))
     }
 
     private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {

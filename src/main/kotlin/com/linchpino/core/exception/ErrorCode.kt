@@ -9,5 +9,6 @@ enum class ErrorCode(val status: HttpStatus) {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST),
     INTERVIEW_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND),
     INVALID_TIMESLOT(HttpStatus.BAD_REQUEST),
-    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND)
+    ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND),
+    INVALID_ACCOUNT_ROLE(HttpStatus.BAD_REQUEST)
 }
