@@ -92,5 +92,8 @@ jobs:
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_REF##*/}
             sudo sed -i "s/\$currentbranches/${GITHUB_REF##*\/}/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
+            if [ ${GITHUB_REF##*/} == "development" ]; then
+            sudo sed -i "s/#-/"-"/" docker-compose.yml  
+            fi 
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
             docker-compose up -d
