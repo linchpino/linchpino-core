@@ -17,6 +17,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -69,13 +70,14 @@ class AccountServiceTest {
             "john.doe@example.com",
             AccountTypeEnum.JOB_SEEKER
         )
-
+        val role = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
         val captor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
         // Mock behavior
         `when`(mapper.accountDtoToAccount(createAccountRequest)).thenReturn(account)
         `when`(passwordEncoder.encode(createAccountRequest.password)).thenReturn("encodedPassword")
         `when`(repository.save(account)).thenReturn(account)
+        `when`(roleRepository.findReferenceById(createAccountRequest.type)).thenReturn(role)
         `when`(mapper.entityToResultDto(account)).thenReturn(createAccountResult)
 
         // When
@@ -91,6 +93,7 @@ class AccountServiceTest {
         assertEquals("encodedPassword", savedAccount.password)
         assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
         assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
+        assertThat(savedAccount.roles()).containsExactly(role)
     }
 
     @Test

@@ -161,10 +161,10 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with duplicate email results in bad request`() {
         val createAccountRequest =
-            CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "@password123", AccountTypeEnum.JOB_SEEKER.value)
 
         val createAccountRequestWithDuplicateEmail =
-            CreateAccountRequest("Jane", "Doe", "john.doe@example.com", "password123", AccountTypeEnum.MENTOR.value)
+            CreateAccountRequest("Jane", "Doe", "john.doe@example.com", "@password123", AccountTypeEnum.MENTOR.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -323,7 +323,7 @@ class AccountControllerTestIT {
         val externalId = UUID.randomUUID().toString()
         saveFakeJobSeekerAccount(externalId, AccountStatusEnum.DEACTIVATED)
         val activationRequest =
-            ActivateJobSeekerAccountRequest(externalId, "updated firstname", "updated last name", "secure password")
+            ActivateJobSeekerAccountRequest(externalId, "updated firstname", "updated last name", "1@secret")
         //
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
@@ -363,7 +363,7 @@ class AccountControllerTestIT {
             externalId + "change",
             "updated firstname",
             "updated last name",
-            "secure password"
+            "@secret1"
         )
         //
         mockMvc.perform(
@@ -385,7 +385,7 @@ class AccountControllerTestIT {
             firstName = "John",
             lastName = "Doe",
             email = "john@example.com",
-            password = "password",
+            password = "@secret1",
             interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe"
@@ -413,7 +413,7 @@ class AccountControllerTestIT {
             firstName = "John",
             lastName = "Doe",
             email = "john@example.com",
-            password = "password",
+            password = "@secret1",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe"
@@ -462,12 +462,7 @@ class AccountControllerTestIT {
     @Test
     fun `test add timeslots for mentor`() {
         // Given
-        val mentor = Role().apply {
-            id = 99
-            title = AccountTypeEnum.MENTOR
-        }
-
-        entityManager.persist(mentor)
+        val mentor = entityManager.find(Role::class.java,AccountTypeEnum.MENTOR.value)
 
         val account = Account().apply {
             email = "john.doe@example.com"
@@ -514,11 +509,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test add timeslots for mentor fails if provided account id does not have MENTOR role`() {
-        val jobSeeker = Role().apply {
-            id = 100
-            title = AccountTypeEnum.JOB_SEEKER
-        }
-        entityManager.persist(jobSeeker)
+        val jobSeeker =  entityManager.find(Role::class.java,AccountTypeEnum.JOB_SEEKER.value)
 
         val account = Account().apply {
             email = "john.doe@example.com"

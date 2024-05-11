@@ -37,7 +37,7 @@ data class ActivateJobSeekerAccountRequest(
     @field:NotBlank(message = "external id is required")val externalId: String,
     @field:NotBlank(message = "firstname is required") val firstName: String,
     @field:NotBlank(message = "lastname is required") val lastName: String,
-    @field:PasswordPolicy(message = "password is required") val password: String
+    @field:PasswordPolicy val password: String
 )
 
 
@@ -57,7 +57,7 @@ data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
     @field:NotBlank(message = "lastname is required") val lastName: String,
     @field:Email(message = "email is not valid") val email: String,
-    @field:PasswordPolicy(message = "password is required") val password: String,
+    @field:PasswordPolicy val password: String,
     @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
     val detailsOfExpertise:String?,
     @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?

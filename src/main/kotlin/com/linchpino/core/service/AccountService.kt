@@ -10,6 +10,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import lombok.extern.slf4j.Slf4j
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -32,6 +33,7 @@ class AccountService(
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val account: Account = mapper.accountDtoToAccount(createAccountRequest)
         account.password = passwordEncoder.encode(account.password)
+        account.addRole(roleRepository.findReferenceById(createAccountRequest.type))
         try {
             repository.save(account)
         } catch (ex: DataIntegrityViolationException) {

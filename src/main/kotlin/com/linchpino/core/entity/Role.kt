@@ -13,6 +13,10 @@ class Role {
     @Column(name = "TITLE")
     @Enumerated(EnumType.STRING)
     var title: AccountTypeEnum = AccountTypeEnum.GUEST
+        set(title) {
+            field = title
+            id = title.value
+        }
 
     @ManyToMany(mappedBy = "roles")
     val accounts = mutableSetOf<Account>()
