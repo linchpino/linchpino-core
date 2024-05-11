@@ -541,7 +541,7 @@ class AccountControllerTestIT {
             lastName = "Doe"
             email = "johndoe@gmail.com"
             password = "secret"
-            type = AccountTypeEnum.JOB_SEEKER
+//            type = AccountTypeEnum.JOB_SEEKER
             status = accountStatus
             this.externalId = externalId
         }
@@ -554,7 +554,7 @@ class AccountControllerTestIT {
             lastName = "Doe"
             email = "johndoe@gmail.com"
             password = "secret"
-            type = AccountTypeEnum.MENTOR
+//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
         val systemDesign = InterviewType().apply {
@@ -571,7 +571,7 @@ class AccountControllerTestIT {
             lastName = "Smith"
             email = "janesmith@gmail.com"
             password = "secret"
-            type = AccountTypeEnum.MENTOR
+//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
         jane.addInterviewType(systemDesign)
@@ -582,7 +582,7 @@ class AccountControllerTestIT {
             lastName = "Martin"
             email = "bob@gmail.com"
             password = "secret"
-            type = AccountTypeEnum.MENTOR
+//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
         bob.addInterviewType(InterviewType().apply {

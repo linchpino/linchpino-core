@@ -61,7 +61,7 @@ class AccountServiceTest {
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-            type = AccountTypeEnum.JOB_SEEKER
+//            type = AccountTypeEnum.JOB_SEEKER
         }
         val createAccountResult = CreateAccountResult(
             1,
@@ -91,7 +91,7 @@ class AccountServiceTest {
         assertEquals("Doe", savedAccount.lastName)
         assertEquals("john.doe@example.com", savedAccount.email)
         assertEquals("encodedPassword", savedAccount.password)
-        assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
+//        assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
         assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
         assertThat(savedAccount.roles()).containsExactly(role)
     }

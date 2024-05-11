@@ -70,7 +70,7 @@ class AccountService(
         if (interviewTypes.isEmpty()) throw LinchpinException(ErrorCode.INTERVIEW_TYPE_NOT_FOUND,"no interview type found with id in: ${request.interviewTypeIDs}")
         interviewTypes.forEach { account.addInterviewType(it) }
         account.password = passwordEncoder.encode(request.password)
-        val mentorRole = roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)
+        val mentorRole = roleRepository.findReferenceById(AccountTypeEnum.MENTOR.value)
         account.addRole(mentorRole)
         try {
             repository.save(account)

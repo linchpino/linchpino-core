@@ -56,7 +56,7 @@ class InterviewControllerTestIT {
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-            type = AccountTypeEnum.JOB_SEEKER
+//            type = AccountTypeEnum.JOB_SEEKER
         }
         jobSeekerAccRepo.save(jobSeekerAcc)
 
@@ -65,7 +65,7 @@ class InterviewControllerTestIT {
             lastName = "Mentoriii"
             email = "Mentor_1.Mentoriii@example.com"
             password = "password_Mentoriii"
-            type = AccountTypeEnum.MENTOR
+//            type = AccountTypeEnum.MENTOR
         }
         mentorAccRepo.save(mentorAcc)
 
@@ -94,7 +94,8 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+            AccountTypeEnum.MENTOR.value.toLong(),
             "john.doe@example.com"
         )
         mockMvc.perform(
@@ -117,7 +118,8 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+             AccountTypeEnum.MENTOR.value.toLong(),
             "zsdvfzsxd"
         )
         mockMvc.perform(
@@ -132,7 +134,8 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
+            AccountTypeEnum.MENTOR.value.toLong(),
             "test@gmail.com"
         )
         mockMvc.perform(

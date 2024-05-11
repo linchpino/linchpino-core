@@ -51,7 +51,7 @@ data class AccountSummary(
     val externalId:String?
 )
 
-fun Account.toSummary() = AccountSummary(id!!,firstName,lastName,email,type,status,externalId)
+fun Account.toSummary() = AccountSummary(id!!,firstName,lastName,email,roles().map { it.title }.first(),status,externalId)
 
 data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
@@ -69,7 +69,6 @@ fun RegisterMentorRequest.toAccount(): Account {
     account.lastName = this.lastName
     account.status = AccountStatusEnum.ACTIVATED
     account.email = this.email
-    account.type = AccountTypeEnum.MENTOR
     account.linkedInUrl = this.linkedInUrl
     account.detailsOfExpertise = this.detailsOfExpertise
     return account

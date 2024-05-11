@@ -1,9 +1,7 @@
 package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatusEnum
-import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.converters.AccountStatusEnumConverter
-import com.linchpino.core.enums.converters.AccountTypeEnumConverter
 import jakarta.persistence.*
 
 @Table(name = "ACCOUNT")
@@ -20,10 +18,6 @@ class Account : AbstractEntity() {
 
     @Column(name = "password")
     lateinit var password: String
-
-    @Convert(converter = AccountTypeEnumConverter::class)
-    @Column(name = "TYPE")
-    var type: AccountTypeEnum = AccountTypeEnum.GUEST
 
     @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")

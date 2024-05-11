@@ -2,19 +2,12 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
-import com.linchpino.core.entity.Account
-import com.linchpino.core.entity.Interview
-import com.linchpino.core.entity.InterviewType
-import com.linchpino.core.entity.JobPosition
-import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.*
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
-import com.linchpino.core.repository.AccountRepository
-import com.linchpino.core.repository.InterviewRepository
-import com.linchpino.core.repository.InterviewTypeRepository
-import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.MentorTimeSlotRepository
+import com.linchpino.core.repository.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -48,16 +41,18 @@ class InterviewServiceTest {
     @Mock
     private lateinit var timeSlotRepo: MentorTimeSlotRepository
 
+    @Mock
+    private lateinit var roleRepository: RoleRepository
+
     @Test
     fun `test create new interview when account exists`() {
         // Given
         val jobSeekerAccount = Account().apply {
-            id = 1
+            id = 2
             firstName = "John"
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-            type = AccountTypeEnum.JOB_SEEKER
         }
 
         val mentorAcc = Account().apply {
@@ -66,12 +61,11 @@ class InterviewServiceTest {
             lastName = "Mentoriii"
             email = "Mentor.Mentoriii@example.com"
             password = "password_Mentoriii"
-            type = AccountTypeEnum.MENTOR
         }
 
         val mentorTimeSlot = MentorTimeSlot().apply {
             id = 1
-            this.account = account
+            account = mentorAcc
             fromTime = ZonedDateTime.now()
             toTime = ZonedDateTime.now()
             status = MentorTimeSlotEnum.AVAILABLE
@@ -114,27 +108,26 @@ class InterviewServiceTest {
 
     @Test
     fun `test create new interview when account not exists`() {
+        val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
+
         val jobSeekerAccount = Account().apply {
-            id = 1
+            id = 2
             firstName = "test"
             lastName = "test"
             email = "test@example.com"
             password = "password123"
-            type = AccountTypeEnum.JOB_SEEKER
         }
-
         val mentorAcc = Account().apply {
             id = 1
             firstName = "Mentor"
             lastName = "Mentoriii"
             email = "Mentor.Mentoriii@example.com"
             password = "password_Mentoriii"
-            type = AccountTypeEnum.MENTOR
         }
 
         val mentorTimeSlot = MentorTimeSlot().apply {
             id = 1
-            this.account = account
+            account = mentorAcc
             fromTime = ZonedDateTime.now()
             toTime = ZonedDateTime.now()
             status = MentorTimeSlotEnum.AVAILABLE
@@ -159,6 +152,7 @@ class InterviewServiceTest {
         Mockito.`when`(jobPositionRepo.getReferenceById(1)).thenReturn(position)
         Mockito.`when`(interviewTypeRepo.getReferenceById(1)).thenReturn(typeInterview)
         Mockito.`when`(timeSlotRepo.getReferenceById(1)).thenReturn(mentorTimeSlot)
+        Mockito.`when`(roleRepository.getReferenceById(AccountTypeEnum.JOB_SEEKER.value)).thenReturn(jobSeekerRole)
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "test@example.com")
         service.createInterview(createInterviewRequest)
@@ -168,7 +162,7 @@ class InterviewServiceTest {
 
         val newAccount = accountCaptor.value
         assertEquals("test@example.com", newAccount.email)
-        assertEquals(AccountTypeEnum.JOB_SEEKER, newAccount.type)
+        assertThat(newAccount.roles()).containsExactly(jobSeekerRole)
         assertEquals(AccountStatusEnum.DEACTIVATED, newAccount.status)
 
         val interview = interviewCaptor.value
