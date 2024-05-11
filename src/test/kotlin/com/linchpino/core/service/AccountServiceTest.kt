@@ -143,6 +143,8 @@ class AccountServiceTest {
             status = AccountStatusEnum.DEACTIVATED
         }
 
+        account.addRole(Role().apply { title = AccountTypeEnum.JOB_SEEKER })
+
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
         `when`(passwordEncoder.encode(request.password)).thenReturn("encodePassword")
         val result = accountService.activeJobSeekerAccount(request)

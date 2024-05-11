@@ -33,7 +33,7 @@ class AccountService(
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val account: Account = mapper.accountDtoToAccount(createAccountRequest)
         account.password = passwordEncoder.encode(account.password)
-        account.addRole(roleRepository.findReferenceById(createAccountRequest.type))
+        account.addRole(roleRepository.getReferenceById(createAccountRequest.type))
         try {
             repository.save(account)
         } catch (ex: DataIntegrityViolationException) {
