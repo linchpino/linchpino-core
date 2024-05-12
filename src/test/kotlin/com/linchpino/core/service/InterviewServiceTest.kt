@@ -2,11 +2,21 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
-import com.linchpino.core.entity.*
+import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Interview
+import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.JobPosition
+import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
-import com.linchpino.core.repository.*
+import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewRepository
+import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.JobPositionRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
+import com.linchpino.core.repository.RoleRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -3,7 +3,11 @@ package com.linchpino.core.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.CreateInterviewRequest
-import com.linchpino.core.entity.*
+import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.JobPosition
+import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository

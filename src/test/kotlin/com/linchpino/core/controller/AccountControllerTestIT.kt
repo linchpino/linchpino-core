@@ -3,7 +3,11 @@ package com.linchpino.core.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.linchpino.core.PostgresContainerConfig
-import com.linchpino.core.dto.*
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddTimeSlotsRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
