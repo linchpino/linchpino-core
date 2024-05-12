@@ -10,7 +10,6 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
-import lombok.extern.slf4j.Slf4j
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -19,7 +18,6 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @Service
-@Slf4j
 @Transactional
 class AccountService(
     private val repository: AccountRepository,

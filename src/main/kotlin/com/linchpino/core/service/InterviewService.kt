@@ -7,12 +7,10 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.*
-import lombok.extern.slf4j.Slf4j
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Slf4j
 @Transactional
 class InterviewService(
     private val interviewRepository: InterviewRepository,
