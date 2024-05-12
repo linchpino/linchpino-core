@@ -1,18 +1,17 @@
-package com.linchpino.core.controller.interview
+package com.linchpino.core.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.CreateInterviewRequest
-import com.linchpino.core.entity.Account
-import com.linchpino.core.entity.InterviewType
-import com.linchpino.core.entity.JobPosition
-import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.*
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,15 +48,21 @@ class InterviewControllerTestIT {
     @Autowired
     private lateinit var timeSlotRepo: MentorTimeSlotRepository
 
+    @PersistenceContext
+    private lateinit var entityManager: EntityManager
+
     @BeforeEach
     fun init() {
+        val mentorRole = entityManager.find(Role::class.java,AccountTypeEnum.MENTOR.value)
+        val jobSeekerRole = entityManager.find(Role::class.java,AccountTypeEnum.JOB_SEEKER.value)
+
         val jobSeekerAcc = Account().apply {
             firstName = "John"
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-//            type = AccountTypeEnum.JOB_SEEKER
         }
+        jobSeekerAcc.addRole(jobSeekerRole)
         jobSeekerAccRepo.save(jobSeekerAcc)
 
         val mentorAcc = Account().apply {
@@ -65,8 +70,8 @@ class InterviewControllerTestIT {
             lastName = "Mentoriii"
             email = "Mentor_1.Mentoriii@example.com"
             password = "password_Mentoriii"
-//            type = AccountTypeEnum.MENTOR
         }
+        mentorAcc.addRole(mentorRole)
         mentorAccRepo.save(mentorAcc)
 
         val position = JobPosition().apply {
@@ -90,12 +95,12 @@ class InterviewControllerTestIT {
 
     @Test
     fun `test with existed email address result in creating a new interview for job seeker`() {
+        val john = entityManager.createQuery("select a from Account a where a.email = 'john.doe@example.com'",Account::class.java).singleResult
         val request = CreateInterviewRequest(
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
-            AccountTypeEnum.MENTOR.value.toLong(),
+            john.id!!,
             "john.doe@example.com"
         )
         mockMvc.perform(
@@ -118,7 +123,6 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
              AccountTypeEnum.MENTOR.value.toLong(),
             "zsdvfzsxd"
         )
@@ -134,7 +138,6 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-//            mentorAccRepo.findAll().first { it.type == AccountTypeEnum.MENTOR }.id!!,
             AccountTypeEnum.MENTOR.value.toLong(),
             "test@gmail.com"
         )

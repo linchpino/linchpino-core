@@ -15,14 +15,27 @@ data class CreateAccountRequest(
     @field:NotNull(message = "type is required") val type: Int,
 )
 
+fun CreateAccountRequest.toAccount():Account{
+    val account = Account()
+    account.firstName = this.firstName
+    account.lastName = this.lastName
+    account.email = this.email
+    account.password = this.password
+    return account
+}
+
 data class CreateAccountResult(
     val id: Long,
     val firstName: String,
     val lastName: String,
     val email: String,
-    val type: AccountTypeEnum = AccountTypeEnum.GUEST,
+    val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED,
 )
+
+fun Account.toCreateAccountResult(): CreateAccountResult {
+    return CreateAccountResult(id!!, firstName, lastName, email, roles().map { it.title }, status)
+}
 
 data class MentorWithClosestTimeSlot(
     val mentorId: Long,

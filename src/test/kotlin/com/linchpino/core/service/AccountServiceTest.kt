@@ -17,7 +17,6 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
-import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -61,39 +60,40 @@ class AccountServiceTest {
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-//            type = AccountTypeEnum.JOB_SEEKER
         }
+        val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
+        account.addRole(jobSeekerRole)
+
         val createAccountResult = CreateAccountResult(
             1,
             "John",
             "Doe",
             "john.doe@example.com",
-            AccountTypeEnum.JOB_SEEKER
+            listOf(AccountTypeEnum.JOB_SEEKER)
         )
-        val role = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
         val captor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
-        // Mock behavior
-        `when`(mapper.accountDtoToAccount(createAccountRequest)).thenReturn(account)
+        doAnswer {
+            val a:Account = captor.value
+            a.id = 1
+            a
+        }.`when`(repository).save(captor.capture())
         `when`(passwordEncoder.encode(createAccountRequest.password)).thenReturn("encodedPassword")
-        `when`(repository.save(account)).thenReturn(account)
-        `when`(roleRepository.findReferenceById(createAccountRequest.type)).thenReturn(role)
-        `when`(mapper.entityToResultDto(account)).thenReturn(createAccountResult)
+        `when`(roleRepository.getReferenceById(createAccountRequest.type)).thenReturn(jobSeekerRole)
 
         // When
         val result = accountService.createAccount(createAccountRequest)
 
         // Then
         assertEquals(createAccountResult, result)
-        verify(repository, times(1)).save(captor.capture())
         val savedAccount = captor.value
         assertEquals("John", savedAccount.firstName)
         assertEquals("Doe", savedAccount.lastName)
         assertEquals("john.doe@example.com", savedAccount.email)
         assertEquals("encodedPassword", savedAccount.password)
-//        assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
+        assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
         assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
-        assertThat(savedAccount.roles()).containsExactly(role)
+        assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
     }
 
     @Test
@@ -222,9 +222,9 @@ class AccountServiceTest {
             id = AccountTypeEnum.MENTOR.value
             title = AccountTypeEnum.MENTOR
         }
-        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
-        val roleCaptor:ArgumentCaptor<Int> = ArgumentCaptor.forClass(Int::class.java)
-        `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1,i2))
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val roleCaptor: ArgumentCaptor<Int> = ArgumentCaptor.forClass(Int::class.java)
+        `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1, i2))
         `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
         `when`(roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)).thenReturn(mentorRole)
 

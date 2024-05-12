@@ -541,10 +541,11 @@ class AccountControllerTestIT {
             lastName = "Doe"
             email = "johndoe@gmail.com"
             password = "secret"
-//            type = AccountTypeEnum.JOB_SEEKER
             status = accountStatus
             this.externalId = externalId
         }
+        val jobSeekerRole = entityManager.find(Role::class.java,AccountTypeEnum.JOB_SEEKER.value)
+        john.addRole(jobSeekerRole)
         accountRepository.save(john)
     }
 
@@ -554,7 +555,6 @@ class AccountControllerTestIT {
             lastName = "Doe"
             email = "johndoe@gmail.com"
             password = "secret"
-//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
         val systemDesign = InterviewType().apply {
@@ -564,6 +564,8 @@ class AccountControllerTestIT {
         john.addInterviewType(InterviewType().apply {
             this.name = "Backend Engineering"
         })
+        val mentorRole = entityManager.find(Role::class.java,AccountTypeEnum.MENTOR.value)
+        john.addRole(mentorRole)
         accountRepository.save(john)
 
         val jane = Account().apply {
@@ -571,9 +573,9 @@ class AccountControllerTestIT {
             lastName = "Smith"
             email = "janesmith@gmail.com"
             password = "secret"
-//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
+        jane.addRole(mentorRole)
         jane.addInterviewType(systemDesign)
         accountRepository.save(jane)
 
@@ -582,12 +584,12 @@ class AccountControllerTestIT {
             lastName = "Martin"
             email = "bob@gmail.com"
             password = "secret"
-//            type = AccountTypeEnum.MENTOR
             status = AccountStatusEnum.ACTIVATED
         }
         bob.addInterviewType(InterviewType().apply {
             name = "Kotlin Dev"
         })
+        bob.addRole(mentorRole)
         accountRepository.save(bob)
 
         MentorTimeSlot().apply {

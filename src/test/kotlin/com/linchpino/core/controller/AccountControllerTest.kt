@@ -39,7 +39,7 @@ class AccountControllerTest {
             "John",
             "Doe",
             "john.doe@example.com",
-            AccountTypeEnum.JOB_SEEKER
+            listOf(AccountTypeEnum.JOB_SEEKER)
         )
 
         `when`(accountService.createAccount(createAccountRequest)).thenReturn(expectedResponse)

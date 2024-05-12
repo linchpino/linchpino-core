@@ -31,7 +31,7 @@ class AccountService(
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
-        val account: Account = mapper.accountDtoToAccount(createAccountRequest)
+        val account: Account = createAccountRequest.toAccount()
         account.password = passwordEncoder.encode(account.password)
         account.addRole(roleRepository.getReferenceById(createAccountRequest.type))
         try {
@@ -39,7 +39,7 @@ class AccountService(
         } catch (ex: DataIntegrityViolationException) {
             throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
         }
-        return mapper.entityToResultDto(account)
+        return account.toCreateAccountResult()
     }
 
 
