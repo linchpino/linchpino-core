@@ -1,6 +1,16 @@
 package com.linchpino.core.service
 
-import com.linchpino.core.dto.*
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.toAccount
+import com.linchpino.core.dto.toCreateAccountResult
+import com.linchpino.core.dto.toRegisterMentorResult
+import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum

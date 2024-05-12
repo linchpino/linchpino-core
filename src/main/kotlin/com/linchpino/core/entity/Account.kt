@@ -2,7 +2,14 @@ package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.converters.AccountStatusEnumConverter
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.Table
 
 @Table(name = "ACCOUNT")
 @Entity

@@ -6,7 +6,13 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.repository.*
+import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewRepository
+import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.JobPositionRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
+import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
