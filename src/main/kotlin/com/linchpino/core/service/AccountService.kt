@@ -1,7 +1,6 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.dto.*
-import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
@@ -24,7 +23,6 @@ import java.time.ZonedDateTime
 @Transactional
 class AccountService(
     private val repository: AccountRepository,
-    private val mapper: AccountMapper,
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val roleRepository: RoleRepository

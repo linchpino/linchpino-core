@@ -5,7 +5,6 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.Role
@@ -35,9 +34,6 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var repository: AccountRepository
-
-    @Mock
-    private lateinit var mapper: AccountMapper
 
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
