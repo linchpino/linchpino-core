@@ -51,7 +51,7 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        emailService.sendEmail(interview)
+        emailService.sendEmail(savedInterview)
 
         return interview.toCreateInterviewResult()
     }

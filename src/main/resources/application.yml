@@ -59,3 +59,5 @@ linkedin:
 password:
   policyRegex: "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
 
+application:
+  url: "https://linchpino.liara.run"
