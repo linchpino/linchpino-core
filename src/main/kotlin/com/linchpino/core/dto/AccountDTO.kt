@@ -4,11 +4,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.PasswordPolicy
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotEmpty
-import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.*
 import java.time.ZonedDateTime
 
 data class CreateAccountRequest(
@@ -63,12 +59,12 @@ data class AccountSummary(
     val firstName: String,
     val lastName: String,
     val email: String,
-    val type: AccountTypeEnum,
+    val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum,
     val externalId:String?
 )
 
-fun Account.toSummary() = AccountSummary(id!!,firstName,lastName,email,roles().map { it.title }.first(),status,externalId)
+fun Account.toSummary() = AccountSummary(id!!,firstName,lastName,email,roles().map { it.title },status,externalId)
 
 data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
