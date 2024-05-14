@@ -1,10 +1,15 @@
 package com.linchpino.core.entity
 
 import com.linchpino.core.enums.AccountStatusEnum
-import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.converters.AccountStatusEnumConverter
-import com.linchpino.core.enums.converters.AccountTypeEnumConverter
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.Table
 
 @Table(name = "ACCOUNT")
 @Entity
@@ -20,10 +25,6 @@ class Account : AbstractEntity() {
 
     @Column(name = "password")
     lateinit var password: String
-
-    @Convert(converter = AccountTypeEnumConverter::class)
-    @Column(name = "TYPE")
-    var type: AccountTypeEnum = AccountTypeEnum.GUEST
 
     @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")

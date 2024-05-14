@@ -11,12 +11,12 @@ import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
-import lombok.extern.slf4j.Slf4j
+import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Slf4j
 @Transactional
 class InterviewService(
     private val interviewRepository: InterviewRepository,
@@ -24,6 +24,7 @@ class InterviewService(
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
+    private val roleRepository: RoleRepository
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
@@ -33,23 +34,24 @@ class InterviewService(
         return interviewResult(interview)
     }
 
-    private fun isJobSeekerHasAccount(jobSeekerEmail: String): Account? {
+    private fun isJobSeekerHasAccount(jobSeekerEmail: String): Account {
         return accountRepository.findByEmailIgnoreCase(jobSeekerEmail) ?: createSilentAccForJobSeeker(jobSeekerEmail)
     }
 
     private fun createSilentAccForJobSeeker(email: String): Account {
+        val jobSeekerRole = roleRepository.getReferenceById(AccountTypeEnum.JOB_SEEKER.value)
         return accountRepository.save(Account().apply {
             this.email = email
-            type = AccountTypeEnum.JOB_SEEKER
             status = AccountStatusEnum.DEACTIVATED
+            addRole(jobSeekerRole)
         })
     }
 
-    fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account?): Interview {
-        var position = jobPositionRepository.getReferenceById(createInterviewRequest.jobPositionId)
-        var mentorAcc = accountRepository.getReferenceById(createInterviewRequest.mentorAccId)
-        var typeInterview = interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)
-        var mentorTimeSlot = mentorTimeSlotRepository.getReferenceById(createInterviewRequest.timeSlotId)
+    fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
+        val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
+        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
+        val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
+        val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
 
         return Interview().apply {
             jobPosition = position

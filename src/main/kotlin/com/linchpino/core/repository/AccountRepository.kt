@@ -26,12 +26,13 @@ interface AccountRepository : JpaRepository<Account, Long>{
         )
     FROM
         Account a
+    JOIN a.roles role
     JOIN
         a.interviewTypes it
     JOIN
         MentorTimeSlot mts ON mts.account.id = a.id
     WHERE
-        a.type = :type
+        role.title = :type
         AND mts.fromTime BETWEEN :from AND :to
         AND it.id = :interviewTypeId
         AND mts.fromTime = (
@@ -55,7 +56,7 @@ interface AccountRepository : JpaRepository<Account, Long>{
     ): List<MentorWithClosestTimeSlot>
 
     @Query("""
-        select a from Account a where a.externalId = :externalId and a.type = :type
+        select a from Account a join a.roles role where a.externalId = :externalId and role.title = :type
     """)
     fun findByExternalId(externalId:String,type: AccountTypeEnum):Account?
 

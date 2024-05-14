@@ -1,7 +1,16 @@
 package com.linchpino.core.service
 
-import com.linchpino.core.dto.*
-import com.linchpino.core.dto.mapper.AccountMapper
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.toAccount
+import com.linchpino.core.dto.toCreateAccountResult
+import com.linchpino.core.dto.toRegisterMentorResult
+import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
@@ -10,7 +19,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
-import lombok.extern.slf4j.Slf4j
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -19,25 +28,24 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @Service
-@Slf4j
 @Transactional
 class AccountService(
     private val repository: AccountRepository,
-    private val mapper: AccountMapper,
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val roleRepository: RoleRepository
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
-        val account: Account = mapper.accountDtoToAccount(createAccountRequest)
+        val account: Account = createAccountRequest.toAccount()
         account.password = passwordEncoder.encode(account.password)
+        account.addRole(roleRepository.getReferenceById(createAccountRequest.type))
         try {
             repository.save(account)
         } catch (ex: DataIntegrityViolationException) {
             throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
         }
-        return mapper.entityToResultDto(account)
+        return account.toCreateAccountResult()
     }
 
 
@@ -68,7 +76,7 @@ class AccountService(
         if (interviewTypes.isEmpty()) throw LinchpinException(ErrorCode.INTERVIEW_TYPE_NOT_FOUND,"no interview type found with id in: ${request.interviewTypeIDs}")
         interviewTypes.forEach { account.addInterviewType(it) }
         account.password = passwordEncoder.encode(request.password)
-        val mentorRole = roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)
+        val mentorRole = roleRepository.findReferenceById(AccountTypeEnum.MENTOR.value)
         account.addRole(mentorRole)
         try {
             repository.save(account)

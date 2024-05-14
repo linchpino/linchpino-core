@@ -1,7 +1,6 @@
-package com.linchpino.core.controller.account
+package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
-import com.linchpino.core.controller.AccountController
 import com.linchpino.core.dto.*
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
@@ -39,7 +38,7 @@ class AccountControllerTest {
             "John",
             "Doe",
             "john.doe@example.com",
-            AccountTypeEnum.JOB_SEEKER
+            listOf(AccountTypeEnum.JOB_SEEKER)
         )
 
         `when`(accountService.createAccount(createAccountRequest)).thenReturn(expectedResponse)
@@ -103,7 +102,7 @@ class AccountControllerTest {
             "John",
             "Doe",
             "john.doe@example.com",
-            AccountTypeEnum.JOB_SEEKER,
+            listOf(AccountTypeEnum.JOB_SEEKER),
             AccountStatusEnum.ACTIVATED,
             "externalId"
         )
