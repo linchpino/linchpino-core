@@ -86,7 +86,6 @@ jobs:
             cd ${{ secrets.WORK_DIR }}
             sudo git reset --hard
             sudo git fetch --all 
-            echo origin/${GITHUB_REF##*/}
             sudo git checkout origin/${GITHUB_REF##*/}	
             sudo git checkout origin/${GITHUB_REF##*/} --  docker-compose.yml 
             sudo git checkout origin/${GITHUB_REF##*/} -- ./initscripts/init.sql
