@@ -1,8 +1,11 @@
 name: Build and Deploy development branch to linchpino-core-dev server
+
 on:
-  push:
-    branches:
-      - '**'
+  pull_request:
+      branches: [development]
+      types: [opened,reopened,synchronize]
+  workflow_dispatch:
+  
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
