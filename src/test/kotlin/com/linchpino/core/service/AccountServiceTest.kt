@@ -5,7 +5,6 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.mapper.AccountMapper
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.Role
@@ -25,7 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.ZonedDateTime
@@ -35,9 +37,6 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var repository: AccountRepository
-
-    @Mock
-    private lateinit var mapper: AccountMapper
 
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
@@ -60,37 +59,40 @@ class AccountServiceTest {
             lastName = "Doe"
             email = "john.doe@example.com"
             password = "password123"
-            type = AccountTypeEnum.JOB_SEEKER
         }
+        val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
+        account.addRole(jobSeekerRole)
+
         val createAccountResult = CreateAccountResult(
             1,
             "John",
             "Doe",
             "john.doe@example.com",
-            AccountTypeEnum.JOB_SEEKER
+            listOf(AccountTypeEnum.JOB_SEEKER)
         )
-
         val captor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
-        // Mock behavior
-        `when`(mapper.accountDtoToAccount(createAccountRequest)).thenReturn(account)
+        doAnswer {
+            val a:Account = captor.value
+            a.id = 1
+            a
+        }.`when`(repository).save(captor.capture())
         `when`(passwordEncoder.encode(createAccountRequest.password)).thenReturn("encodedPassword")
-        `when`(repository.save(account)).thenReturn(account)
-        `when`(mapper.entityToResultDto(account)).thenReturn(createAccountResult)
+        `when`(roleRepository.getReferenceById(createAccountRequest.type)).thenReturn(jobSeekerRole)
 
         // When
         val result = accountService.createAccount(createAccountRequest)
 
         // Then
         assertEquals(createAccountResult, result)
-        verify(repository, times(1)).save(captor.capture())
         val savedAccount = captor.value
         assertEquals("John", savedAccount.firstName)
         assertEquals("Doe", savedAccount.lastName)
         assertEquals("john.doe@example.com", savedAccount.email)
         assertEquals("encodedPassword", savedAccount.password)
-        assertEquals(AccountTypeEnum.JOB_SEEKER, savedAccount.type)
+        assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
         assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
+        assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
     }
 
     @Test
@@ -139,6 +141,8 @@ class AccountServiceTest {
             email = "johndoe@example.com"
             status = AccountStatusEnum.DEACTIVATED
         }
+
+        account.addRole(Role().apply { title = AccountTypeEnum.JOB_SEEKER })
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
         `when`(passwordEncoder.encode(request.password)).thenReturn("encodePassword")
@@ -217,9 +221,9 @@ class AccountServiceTest {
             id = AccountTypeEnum.MENTOR.value
             title = AccountTypeEnum.MENTOR
         }
-        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
-        val roleCaptor:ArgumentCaptor<Int> = ArgumentCaptor.forClass(Int::class.java)
-        `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1,i2))
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val roleCaptor: ArgumentCaptor<Int> = ArgumentCaptor.forClass(Int::class.java)
+        `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1, i2))
         `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
         `when`(roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)).thenReturn(mentorRole)
 
