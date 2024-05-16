@@ -21,7 +21,7 @@ class EmailService(
         val message = emailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, "UTF-8")
         helper.setTo(to)
-//        helper.setSubject("Confirmation of Interview Schedule on Linchpino")
+        helper.setSubject("Confirmation of Interview Schedule on Linchpino")
         helper.setText(htmlContent, true)
 
         emailSender.send(message)

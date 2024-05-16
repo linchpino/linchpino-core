@@ -19,10 +19,10 @@ spring:
         format_sql: true
 
   mail:
-    host: smtp.linchpino.com
+    host: ${MAIL_SERVER_URL:smtp.linchpino.com}
     port: 587
-    username: no-reply@linchpino.com
-    password: NoreplyLinchP!no
+    username: ${MAIL_ADDRESS:no-reply@linchpino.com}
+    password: ${MAIL_PASSWORD:NoreplyLinchP!no}
     properties:
       mail:
         smtp:
@@ -60,4 +60,4 @@ password:
   policyRegex: "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
 
 application:
-  url: "https://linchpino.liara.run"
+  url:  ${APPLICATION_URL:https://linchpino.liara.run}

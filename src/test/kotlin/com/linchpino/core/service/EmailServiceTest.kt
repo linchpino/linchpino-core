@@ -28,15 +28,8 @@ class EmailServiceTest {
             "interviewId" to "1"
         )
 
-        val htmlTemplate = """<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmation of Interview Schedule on Linchpino</title>
-</head>
-<body>
-<div>
+        val htmlTemplate = """
+<div xmlns:th="http://www.w3.org/1999/xhtml">
     <p>Dear ${model.get("fullName")},</p>
     <p>Thank you for choosing Linchpino to schedule your upcoming interview.</p>
     <p>Your interview is scheduled for ${model.get("date")} at ${model.get("time")} ${model.get("timezone")}.</p>
@@ -53,9 +46,7 @@ class EmailServiceTest {
         mailto:support@linchpino.com.</p>
     <p>Best Regards,</p>
     <p>Linchpino Team</p>
-</div>
-</body>
-</html>"""
+</div>"""
         `when`(templateEngine.process(eq(templateName), any())).thenReturn(htmlTemplate)
 
         val mimeMessage = mock(MimeMessage::class.java)

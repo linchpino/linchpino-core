@@ -30,10 +30,9 @@ class InterviewService(
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
-    private val accountService: AccountService
+    private val accountService: AccountService,
     private val emailService: EmailService,
 ) {
-
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
             ?: accountRepository.findReferenceById(
