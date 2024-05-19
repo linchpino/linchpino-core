@@ -21,7 +21,6 @@
         <kotlin.version>1.9.22</kotlin.version>
         <openAPI.version>2.3.0</openAPI.version>
         <postgres.version>42.7.2</postgres.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
         <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
     </properties>
 
@@ -118,9 +117,8 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf-spring5</artifactId>
-            <version>${thymeleaf.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
         <!-- Utility -->

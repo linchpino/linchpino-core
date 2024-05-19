@@ -8,7 +8,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.mail.javamail.JavaMailSender
-import org.thymeleaf.spring5.SpringTemplateEngine
+import org.thymeleaf.spring6.SpringTemplateEngine
 
 class EmailServiceTest {
     private val emailSender = mock(JavaMailSender::class.java)
