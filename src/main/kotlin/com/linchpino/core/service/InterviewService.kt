@@ -2,6 +2,7 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
+import com.linchpino.core.dto.InterviewListResponse
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
@@ -13,6 +14,12 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -71,5 +78,14 @@ class InterviewService(
             entity.mentorAccount?.id,
             entity.jobSeekerAccount?.email,
         )
+    }
+
+    fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
+        val email = when (authentication) {
+            is JwtAuthenticationToken -> authentication.name
+            is BearerTokenAuthentication -> (authentication.principal as OAuth2IntrospectionAuthenticatedPrincipal).name
+            else -> throw UnsupportedOperationException("Authentication type not supported")
+        }
+        return interviewRepository.findUpcomingInterviews(email, page)
     }
 }

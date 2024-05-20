@@ -2,14 +2,19 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
+import com.linchpino.core.dto.InterviewListResponse
 import com.linchpino.core.service.InterviewService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -30,5 +35,12 @@ class InterviewController(private val service: InterviewService) {
     fun newInterview(@Valid @RequestBody request: CreateInterviewRequest): ResponseEntity<CreateInterviewResult> {
         val result = service.createInterview(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
+    }
+
+
+    @GetMapping("/upcoming")
+    fun upcomingInterviews(authentication:Authentication,page:Pageable): Page<InterviewListResponse> {
+        val result = service.upcomingInterviews(authentication, page)
+        return result
     }
 }
