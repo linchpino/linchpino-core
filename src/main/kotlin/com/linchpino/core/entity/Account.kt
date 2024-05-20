@@ -28,7 +28,7 @@ class Account : AbstractEntity() {
 
     @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")
-    var status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED
+    var status: AccountStatusEnum = AccountStatusEnum.ACTIVATED
 
     @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     @JoinTable(
