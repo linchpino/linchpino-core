@@ -1,4 +1,4 @@
-name: Build and Deploy branch '${{GITHUB_HEAD_REF}}' to linchpino-core-dev server
+name: Build and Deploy branch ${{GITHUB_HEAD_REF}} to linchpino-core-dev server
 
 on:
   pull_request:
