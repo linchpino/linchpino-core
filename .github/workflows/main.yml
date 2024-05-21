@@ -1,15 +1,15 @@
-name: Build and Deploy Current Branches to linchpino-core-dev server
+name: Build and Deploy Current Branch to linchpino-core-dev server
 
 on:
   pull_request:
       branches: [development]
       types: [opened,reopened,synchronize]
   workflow_dispatch:
-  
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  
+
 jobs:
   Sonar-Build:
     runs-on: ubuntu-latest
@@ -25,13 +25,13 @@ jobs:
           cache: maven
       - name: Build with Maven cloud
         id: sonar-build-status
-        run: | 
+        run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=linchpino_linchpino-core \
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT          
+          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -41,13 +41,13 @@ jobs:
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
           exit 1
-        
+
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    needs: Sonar-Build 
+    needs: Sonar-Build
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
@@ -64,7 +64,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ github.base_ref }}
-                
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -78,25 +78,25 @@ jobs:
       runs-on: self-hosted
       permissions:
         contents: read
-        packages: write 
-      needs: Build-and-push-to-GHCR 
+        packages: write
+      needs: Build-and-push-to-GHCR
       steps:
         - name: Connect to linchpino-core on GCP instance
           run: |
             cd ${{ secrets.WORK_DIR }}
             sudo git reset --hard
-            sudo git fetch --all 
-            sudo git checkout origin/${GITHUB_HEAD_REF##*/}	
-            sudo git checkout origin/${GITHUB_HEAD_REF##*/} --  docker-compose.yml 
+            sudo git fetch --all
+            sudo git checkout origin/${GITHUB_HEAD_REF##*/}
+            sudo git checkout origin/${GITHUB_HEAD_REF##*/} --  docker-compose.yml
             sudo git checkout origin/${GITHUB_HEAD_REF##*/} -- ./initscripts/init.sql
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_HEAD_REF##*\/}/" /opt/actions-runner/.env
             export POSTGRES_DB=${GITHUB_HEAD_REF##*/}
-            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_HEAD_REF##*\/}/" /opt/actions-runner/.env 
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_HEAD_REF##*\/}/" /opt/actions-runner/.env
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_HEAD_REF##*/}
             sudo sed -i "s/\$currentbranches/${GITHUB_HEAD_REF##*\/}/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_HEAD_REF##*\/}/" docker-compose.yml
             if [ ${GITHUB_HEAD_REF##*/} == "development" ]; then
-            sudo sed -i "s/#-/"-"/" docker-compose.yml  
-            fi 
+            sudo sed -i "s/#-/"-"/" docker-compose.yml
+            fi
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
             docker-compose up -d
