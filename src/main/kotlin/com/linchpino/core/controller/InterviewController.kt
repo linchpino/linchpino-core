@@ -37,9 +37,16 @@ class InterviewController(private val service: InterviewService) {
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
-
+    @Operation(summary = "Return page of upcoming interviews for authenticated mentor")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Upcoming interviews fetched successfully"),
+            ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            ApiResponse(responseCode = "403", description = "Authenticated user is not MENTOR")
+        ]
+    )
     @GetMapping("/upcoming")
-    fun upcomingInterviews(authentication:Authentication,page:Pageable): Page<InterviewListResponse> {
+    fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
         val result = service.upcomingInterviews(authentication, page)
         return result
     }
