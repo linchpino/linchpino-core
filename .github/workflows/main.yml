@@ -57,16 +57,21 @@ jobs:
             sudo git fetch --all
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
-            echo "pr number :" $PR_NUMBER
-            sudo git checkout origin/${GITHUB_REF##*/}
-            sudo git checkout origin/${GITHUB_REF##*/} --  docker-compose.yml
-            sudo git checkout origin/${GITHUB_REF##*/} -- ./initscripts/init.sql
-            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_REF##*\/}/" /opt/actions-runner/.env
-            export POSTGRES_DB=${GITHUB_REF##*/}
-            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_REF##*\/}/" /opt/actions-runner/.env
-            export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_REF##*/}
-            sudo sed -i "s/\$currentbranches/${GITHUB_REF##*\/}/g" ./initscripts/init.sql
-            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_REF##*\/}/" docker-compose.yml
+            if [ ${GITHUB_REF##*/} == "merge" ]; then
+            currentBranch = pr-PR_NUMBER
+            echo "the current branch is : " $currentBranch
+            else
+            currentBranch = ${GITHUB_REF##*/}
+            echo "the current branch is : " $currentBranch
+            sudo git checkout origin/$currentBranch
+            sudo git checkout origin/$currentBranch --  docker-compose.yml
+            sudo git checkout origin/$currentBranch -- ./initscripts/init.sql
+            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
+            export POSTGRES_DB=$currentBranch
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
+            sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
+            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
