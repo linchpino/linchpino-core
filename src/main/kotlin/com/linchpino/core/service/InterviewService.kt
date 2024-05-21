@@ -80,6 +80,7 @@ class InterviewService(
         )
     }
 
+    @Transactional(readOnly = true)
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
         val email = when (authentication) {
             is JwtAuthenticationToken -> authentication.name

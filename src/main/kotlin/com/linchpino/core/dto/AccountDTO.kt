@@ -30,7 +30,7 @@ data class CreateAccountResult(
     val lastName: String,
     val email: String,
     val type: List<AccountTypeEnum>,
-    val status: AccountStatusEnum = AccountStatusEnum.DEACTIVATED,
+    val status: AccountStatusEnum = AccountStatusEnum.ACTIVATED,
 )
 
 fun Account.toCreateAccountResult(): CreateAccountResult {

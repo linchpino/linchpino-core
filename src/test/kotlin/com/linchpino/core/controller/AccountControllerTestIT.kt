@@ -73,7 +73,7 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.id").exists())
             .andExpect(jsonPath("$.id").isNumber())
             .andExpect(jsonPath("$.type").value("JOB_SEEKER"))
-            .andExpect(jsonPath("$.status").value("DEACTIVATED"))
+            .andExpect(jsonPath("$.status").value(AccountStatusEnum.ACTIVATED.name))
     }
 
     @Test

@@ -91,7 +91,7 @@ class AccountServiceTest {
         assertEquals("john.doe@example.com", savedAccount.email)
         assertEquals("encodedPassword", savedAccount.password)
         assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
-        assertEquals(AccountStatusEnum.DEACTIVATED, savedAccount.status)
+        assertEquals(AccountStatusEnum.ACTIVATED, savedAccount.status)
         assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
     }
 
