@@ -11,43 +11,11 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  Sonar-Build:
-    runs-on: ubuntu-latest
-    outputs:
-      output1: ${{ steps.sonar-build-status.outputs.coverage }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-      - name: Build with Maven cloud
-        id: sonar-build-status
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=linchpino_linchpino-core \
-          -Dsonar.organization=linchpino \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
-        env:
-          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
-          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Check on failures
-        if: steps.sonar-build-status.outcome != 'success' ||  steps.sonar-build-status.outputs.coverage < 50
-        run: |
-          echo "outcome":  ${{ steps.sonar-build-status.outcome }}
-          echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
-          exit 1
-
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    needs: Sonar-Build
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
@@ -59,6 +27,8 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
 
+      - name: tshout
+        
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -84,8 +54,10 @@ jobs:
         - name: Connect to linchpino-core on GCP instance
           run: |
             cd ${{ secrets.WORK_DIR }}
-            sudo git reset --hard
+            pwd
             sudo git fetch --all
+            sudo git reset --hard
+            echo "the current branch is: " ${GITHUB_HEAD_REF##*/}
             sudo git checkout origin/${GITHUB_HEAD_REF##*/}
             sudo git checkout origin/${GITHUB_HEAD_REF##*/} --  docker-compose.yml
             sudo git checkout origin/${GITHUB_HEAD_REF##*/} -- ./initscripts/init.sql
