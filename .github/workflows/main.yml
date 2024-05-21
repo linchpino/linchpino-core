@@ -58,7 +58,7 @@ jobs:
             echo "git fetch"
             sudo git reset --hard
             echo "git reset"
-            echo "the current branch is : " ${GITHUB_HEAD_REF##*/}
+            echo "the current branch is : " ${GITHUB_REF##*/}
             sudo git checkout origin/${GITHUB_HEAD_REF##*/}
             echo "git checkout"
             sudo git checkout origin/${GITHUB_HEAD_REF##*/} --  docker-compose.yml
