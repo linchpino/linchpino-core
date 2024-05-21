@@ -57,7 +57,7 @@ class InterviewService(
 
     fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
-        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
+        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
         val isTimeSlotBooked = interviewRepository.isTimeSlotBooked(createInterviewRequest.timeSlotId)
         if (isTimeSlotBooked)
