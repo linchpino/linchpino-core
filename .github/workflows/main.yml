@@ -63,6 +63,7 @@ jobs:
             else
             currentBranch = ${GITHUB_REF##*/}
             echo "the current branch is : " $currentBranch
+            fi
             sudo git checkout origin/$currentBranch
             sudo git checkout origin/$currentBranch --  docker-compose.yml
             sudo git checkout origin/$currentBranch -- ./initscripts/init.sql
