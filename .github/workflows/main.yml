@@ -59,14 +59,15 @@ jobs:
             echo "GITHUB_REF : "${GITHUB_REF##*/}
             if [ ${GITHUB_REF##*/} == "merge" ]; then
             currentBranch=pr-$PR_NUMBER
+            sudo git checkout origin/development --  docker-compose.yml
             echo "the current branch is : " $currentBranch
             else
             currentBranch=${GITHUB_REF##*/}
             echo "the current branch is : " $currentBranch
-            fi
             sudo git checkout origin/$currentBranch
             sudo git checkout origin/$currentBranch --  docker-compose.yml
             sudo git checkout origin/$currentBranch -- ./initscripts/init.sql
+            fi
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
             export POSTGRES_DB=$currentBranch
             sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
