@@ -19,10 +19,10 @@ spring:
         format_sql: true
 
   mail:
-    host: ${MAIL_SERVER_URL:smtp.linchpino.com}
+    host: ${MAIL_SERVER_URL:smtp.gmail.com}
     port: 587
-    username: ${MAIL_ADDRESS:no-reply@linchpino.com}
-    password: ${MAIL_PASSWORD:NoreplyLinchP!no}
+    username: ${MAIL_USERNAME:no-reply@linchpino.com}
+    password: ${MAIL_PASSWORD:cwwwvdugodzgnily}
     properties:
       mail:
         smtp:
@@ -30,6 +30,8 @@ spring:
           starttls:
             enable: true
             required: true
+          from: no-reply@linchpino.com
+mail.from.name: Linchpino
 
 management:
   server:

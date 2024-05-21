@@ -19,6 +19,9 @@ import com.linchpino.core.security.email
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -33,6 +36,7 @@ class InterviewService(
     private val accountService: AccountService,
     private val emailService: EmailService,
 ) {
+
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
             ?: accountRepository.findReferenceById(
