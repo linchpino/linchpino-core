@@ -50,11 +50,14 @@ jobs:
       needs: Build-and-push-to-GHCR
       steps:
         - name: Connect to linchpino-core on GCP instance
+          env:
+            PR_NUMBER: ${{ github.event.number }}
           run: |
             cd ${{ secrets.WORK_DIR }}
             sudo git fetch --all
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
+            echo "pr number :" $PR_NUMBER
             sudo git checkout origin/${GITHUB_REF##*/}
             sudo git checkout origin/${GITHUB_REF##*/} --  docker-compose.yml
             sudo git checkout origin/${GITHUB_REF##*/} -- ./initscripts/init.sql
