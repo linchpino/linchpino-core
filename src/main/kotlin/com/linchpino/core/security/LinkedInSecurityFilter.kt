@@ -24,13 +24,16 @@ class LinkedInSecurityFilter(
 
     private val securityContextRepository: SecurityContextRepository = RequestAttributeSecurityContextRepository()
 
-    override fun doFilterInternal(
+    public override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
         val authentication = SecurityContextHolder.getContext().authentication
-        if (authentication == null) filterChain.doFilter(request, response)
+        if (authentication == null) {
+            filterChain.doFilter(request, response)
+            return
+        }
         if (authentication is BearerTokenAuthentication) {
             val token = authentication.token.tokenValue
             val r = restClient.get()
