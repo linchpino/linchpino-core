@@ -1,4 +1,4 @@
-run-name: Build and Deploy branch ${{ inputs.deploy_target }} by @${{ github.actor }} to linchpino-core-dev server
+name: Build and Deploy ${{ github.ref_name }} to linchpino-core-dev server
 
 on:
   pull_request:
