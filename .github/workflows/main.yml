@@ -58,10 +58,10 @@ jobs:
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
             if [ ${GITHUB_REF##*/} == "merge" ]; then
-            currentBranch = pr-PR_NUMBER
+            currentBranch=pr-PR_NUMBER
             echo "the current branch is : " $currentBranch
             else
-            currentBranch = ${GITHUB_REF##*/}
+            currentBranch=${GITHUB_REF##*/}
             echo "the current branch is : " $currentBranch
             fi
             sudo git checkout origin/$currentBranch
