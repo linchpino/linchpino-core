@@ -55,12 +55,8 @@ jobs:
             echo "cd ...."
             pwd
             sudo git fetch --all
-            echo "git fetch"
             sudo git reset --hard
-            echo "git reset"
-            echo "ref the current branch is : " ${GITHUB_REF##*/}
             sudo git checkout origin/${GITHUB_REF##*/}
-            echo "git checkout"
             sudo git checkout origin/${GITHUB_REF##*/} --  docker-compose.yml
             sudo git checkout origin/${GITHUB_REF##*/} -- ./initscripts/init.sql
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_REF##*\/}/" /opt/actions-runner/.env
