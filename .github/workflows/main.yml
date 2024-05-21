@@ -84,8 +84,6 @@ jobs:
         - name: Connect to linchpino-core on GCP instance
           run: |
             cd ${{ secrets.WORK_DIR }}
-            echo "cd ...."
-            pwd
             sudo git fetch --all
             sudo git reset --hard
             sudo git checkout origin/${GITHUB_REF##*/}
