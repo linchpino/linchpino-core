@@ -90,3 +90,32 @@ OpenSSL is a widely-used open-source toolkit for implementing the Secure Sockets
 
 ### Social login variables:
 Inorder to be able to use LinkedIn login, an Oauth application must be registered on LinkedIn website and LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET must be provided.
+
+### SonarQube Configuration
+
+To run SonarQube locally, you can use Docker:
+
+```bash
+docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
+```
+Create a sonar-project.properties file in the root of the project and add the following information to it:
+
+```angular2html
+sonar.projectKey=linchpino_linchpino-core
+sonar.projectName=linchpino
+sonar.projectVersion=1.0
+sonar.sources=.
+sonar.sourceEncoding=UTF-8
+sonar.login=admin
+sonar.password=admin
+```
+You can generate Sonar report with the following mvn command:
+```
+mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+    -Dsonar.projectKey=linchpino_linchpino-core \
+    -Dsonar.organization=linchpino \
+    -Dsonar.login=admin \
+    -Dsonar.password=admin
+```
+In order to exclude a package or class from test coverage report add an exclude tag in pom.xml
+for jacoco-maven-plugin configuration

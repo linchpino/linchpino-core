@@ -3,7 +3,7 @@ name: Build and Deploy Current Branch to linchpino-core-dev server
 on:
   pull_request:
       branches: [development]
-      types: [opened,reopened,synchronize]
+      types: [opened,reopened]
   workflow_dispatch:
 
 env:
@@ -63,7 +63,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ github.base_ref }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push
         uses: docker/build-push-action@v3
@@ -82,20 +82,31 @@ jobs:
       needs: Build-and-push-to-GHCR
       steps:
         - name: Connect to linchpino-core on GCP instance
+          env:
+            PR_NUMBER: ${{ github.event.number }}
           run: |
             cd ${{ secrets.WORK_DIR }}
-            sudo git reset --hard
             sudo git fetch --all
-            sudo git checkout origin/${GITHUB_HEAD_REF##*/}
-            sudo git checkout origin/${GITHUB_HEAD_REF##*/} --  docker-compose.yml
-            sudo git checkout origin/${GITHUB_HEAD_REF##*/} -- ./initscripts/init.sql
-            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=${GITHUB_HEAD_REF##*\/}/" /opt/actions-runner/.env
-            export POSTGRES_DB=${GITHUB_HEAD_REF##*/}
-            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/${GITHUB_HEAD_REF##*\/}/" /opt/actions-runner/.env
-            export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/${GITHUB_HEAD_REF##*/}
-            sudo sed -i "s/\$currentbranches/${GITHUB_HEAD_REF##*\/}/g" ./initscripts/init.sql
-            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:${GITHUB_HEAD_REF##*\/}/" docker-compose.yml
-            if [ ${GITHUB_HEAD_REF##*/} == "development" ]; then
+            sudo git reset --hard
+            echo "GITHUB_REF : "${GITHUB_REF##*/}
+            if [ ${GITHUB_REF##*/} == "merge" ]; then
+            currentBranch=pr-$PR_NUMBER
+            sudo git checkout origin/development --  docker-compose.yml
+            echo "the current branch is : " $currentBranch
+            else
+            currentBranch=${GITHUB_REF##*/}
+            echo "the current branch is : " $currentBranch
+            sudo git checkout origin/$currentBranch
+            sudo git checkout origin/$currentBranch --  docker-compose.yml
+            sudo git checkout origin/$currentBranch -- ./initscripts/init.sql
+            fi
+            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
+            export POSTGRES_DB=$currentBranch
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
+            sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
+            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
+            if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
