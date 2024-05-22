@@ -43,18 +43,12 @@ class LinkedInSecurityFilterTest {
     @Mock
     lateinit var filterChain: FilterChain
 
-
-    //    @InjectMocks
-    lateinit var linkedInSecurityFilter: LinkedInSecurityFilter
+    private lateinit var linkedInSecurityFilter: LinkedInSecurityFilter
 
     private lateinit var request: MockHttpServletRequest
+
     private lateinit var response: MockHttpServletResponse
 
-    @Captor
-    lateinit var userInfoUriCaptor: ArgumentCaptor<String>
-
-    @Captor
-    lateinit var headersCaptor: ArgumentCaptor<HttpHeaders>
 
     @BeforeEach
     fun setUp() {
