@@ -14,6 +14,7 @@ import org.springframework.http.RequestEntity
 import org.springframework.security.authentication.AuthenticationManagerResolver
 import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.Customizer
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -26,8 +27,10 @@ import org.springframework.security.oauth2.server.resource.authentication.Opaque
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector
 import org.springframework.security.oauth2.server.resource.introspection.SpringOpaqueTokenIntrospector
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.access.intercept.AuthorizationFilter
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
+import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -35,21 +38,26 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import java.net.URI
 
 @Configuration
+@EnableMethodSecurity
 class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity, opaqueTokenIntrospector: OpaqueTokenIntrospector): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity,
+                            opaqueTokenIntrospector: OpaqueTokenIntrospector,
+                            userService: UserService): SecurityFilterChain {
         return http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
+                it.requestMatchers("/api/interviews/mentors/upcoming").hasAnyAuthority("SCOPE_MENTOR")
                 it.anyRequest().permitAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .oauth2ResourceServer {
                 it.authenticationManagerResolver(tokenAuthenticationManagerResolver(opaqueTokenIntrospector))
             }
+            .addFilterBefore(LinkedInSecurityFilter(restClient(),"https://api.linkedin.com/v2/userinfo",userService),AuthorizationFilter::class.java)
             .httpBasic(Customizer.withDefaults())
             .build()
     }
@@ -121,5 +129,8 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
                 registerCorsConfiguration("/**", corsConfig)
             }
         }
+
+    @Bean
+    fun restClient() = RestClient.create()
 
 }
