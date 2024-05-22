@@ -45,7 +45,7 @@ class InterviewController(private val service: InterviewService) {
             ApiResponse(responseCode = "403", description = "Authenticated user is not MENTOR")
         ]
     )
-    @GetMapping("/upcoming")
+    @GetMapping("/mentors/upcoming")
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
         val result = service.upcomingInterviews(authentication, page)
         return result

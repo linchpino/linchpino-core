@@ -50,7 +50,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
-                it.requestMatchers("/api/interviews/upcoming").hasAnyAuthority("SCOPE_MENTOR")
+                it.requestMatchers("/api/interviews/mentors/upcoming").hasAnyAuthority("SCOPE_MENTOR")
                 it.anyRequest().permitAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

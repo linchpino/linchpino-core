@@ -191,7 +191,7 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/upcoming")
+            get("/api/interviews/mentors/upcoming")
                 .param("page", "0")
                 .param("size", "10")
         )
@@ -212,7 +212,7 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/upcoming")
+            get("/api/interviews/mentors/upcoming")
                 .param("page", "1")
                 .param("size", "10")
         )
@@ -233,7 +233,7 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/upcoming")
+            get("/api/interviews/mentors/upcoming")
                 .param("page", "0")
                 .param("size", "10")
         )
