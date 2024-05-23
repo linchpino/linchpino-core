@@ -9,13 +9,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.repository.AccountRepository
-import com.linchpino.core.repository.InterviewRepository
-import com.linchpino.core.repository.InterviewTypeRepository
-import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.MentorTimeSlotRepository
-import com.linchpino.core.repository.findReferenceById
-import com.linchpino.core.security.email
+import com.linchpino.core.repository.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
@@ -63,6 +57,12 @@ class InterviewService(
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
+        val isTimeSlotAvailable = interviewRepository.isTimeSlotIdExist(createInterviewRequest.timeSlotId)
+        if (!isTimeSlotAvailable)
+            throw LinchpinException(
+                ErrorCode.TIMESLOT_IS_BOOKED,
+                "this time slot is already booked for you: ${createInterviewRequest.timeSlotId}"
+            )
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
 
         return Interview().apply {

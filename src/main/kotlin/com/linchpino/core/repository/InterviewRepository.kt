@@ -11,6 +11,12 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface InterviewRepository : JpaRepository<Interview, Long> {
+    @Query(
+        "SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
+            "FROM Interview i " +
+            "WHERE i.timeSlot.id = :timeSlotId"
+    )
+    fun isTimeSlotIdExist(timeSlotId: Long): Boolean
 
     @Query(
         """
