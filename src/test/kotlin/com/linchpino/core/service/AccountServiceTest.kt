@@ -53,7 +53,7 @@ class AccountServiceTest {
     @Test
     fun `test creating account`() {
         // Given
-        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 1)
+        val createAccountRequest = CreateAccountRequest("John", "Doe", "john.doe@example.com", "password123", 2)
         val account = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -78,7 +78,8 @@ class AccountServiceTest {
             a
         }.`when`(repository).save(captor.capture())
         `when`(passwordEncoder.encode(createAccountRequest.password)).thenReturn("encodedPassword")
-        `when`(roleRepository.getReferenceById(createAccountRequest.type)).thenReturn(jobSeekerRole)
+//        `when`(roleRepository.getReferenceById(createAccountRequest.type)).thenReturn(jobSeekerRole)
+        `when`(roleRepository.findAll()).thenReturn(listOf(jobSeekerRole))
 
         // When
         val result = accountService.createAccount(createAccountRequest)
@@ -222,15 +223,13 @@ class AccountServiceTest {
             title = AccountTypeEnum.MENTOR
         }
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
-        val roleCaptor: ArgumentCaptor<Int> = ArgumentCaptor.forClass(Int::class.java)
         `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1, i2))
         `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
-        `when`(roleRepository.getReferenceById(AccountTypeEnum.MENTOR.value)).thenReturn(mentorRole)
+        `when`(roleRepository.findAll()).thenReturn(listOf(mentorRole))
 
         val result = accountService.registerMentor(request)
 
         verify(repository, times(1)).save(accountCaptor.captureNonNullable())
-        verify(roleRepository, times(1)).getReferenceById(roleCaptor.capture())
         assertThat(result.firstName).isEqualTo(request.firstName)
         assertThat(result.lastName).isEqualTo(request.lastName)
         assertThat(result.email).isEqualTo(request.email)
@@ -240,6 +239,5 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
-        assertThat(roleCaptor.value).isEqualTo(AccountTypeEnum.MENTOR.value)
     }
 }
