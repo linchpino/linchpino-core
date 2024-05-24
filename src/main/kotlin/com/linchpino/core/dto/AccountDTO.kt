@@ -8,18 +8,19 @@ import jakarta.validation.constraints.*
 import java.time.ZonedDateTime
 
 data class CreateAccountRequest(
-    @field:NotBlank(message = "firstname is required") val firstName: String,
-    @field:NotBlank(message = "lastname is required") val lastName: String,
+    @field:NotBlank(message = "firstname is required") val firstName: String?,
+    @field:NotBlank(message = "lastname is required") val lastName: String?,
     @field:Email(message = "email is not valid") val email: String,
-    @field:PasswordPolicy val password: String,
+    @field:PasswordPolicy val password: String?,
     @field:NotNull(message = "type is required") val type: Int,
+    val status: AccountStatusEnum = AccountStatusEnum.ACTIVATED
 )
 
 data class SaveAccountRequest(
-    val firstName: String,
-    val lastName: String,
+    val firstName: String?,
+    val lastName: String?,
     val email: String,
-    val plainTextPassword: String,
+    val plainTextPassword: String?,
     val roles: List<Int> = listOf(),
     val status: AccountStatusEnum = AccountStatusEnum.ACTIVATED,
     val interviewTypeIDs: List<Long> = listOf(),
@@ -42,8 +43,8 @@ data class UpdateAccountRequest(
 
 data class CreateAccountResult(
     val id: Long,
-    val firstName: String,
-    val lastName: String,
+    val firstName: String?,
+    val lastName: String?,
     val email: String,
     val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum = AccountStatusEnum.ACTIVATED,
@@ -72,8 +73,8 @@ data class ActivateJobSeekerAccountRequest(
 
 data class AccountSummary(
     val id: Long,
-    val firstName: String,
-    val lastName: String,
+    val firstName: String?,
+    val lastName: String?,
     val email: String,
     val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum,
@@ -106,8 +107,8 @@ fun Account.toRegisterMentorResult():RegisterMentorResult{
 
 data class RegisterMentorResult(
     val id: Long?,
-    val firstName: String,
-    val lastName: String,
+    val firstName: String?,
+    val lastName: String?,
     val email: String,
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise: String?,

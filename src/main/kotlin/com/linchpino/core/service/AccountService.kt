@@ -43,6 +43,7 @@ class AccountService(
             createAccountRequest.email,
             createAccountRequest.password,
             listOf(createAccountRequest.type),
+            createAccountRequest.status
         )
         return saveAccount(request).toCreateAccountResult()
     }
@@ -103,7 +104,7 @@ class AccountService(
         val account = Account().apply {
             firstName = request.firstName
             lastName = request.lastName
-            password = passwordEncoder.encode(request.plainTextPassword)
+            password = passwordEncoder.encode(request.plainTextPassword?:"")
             email = request.email
             status = request.status
             roles.forEach { addRole(it) }

@@ -1,7 +1,9 @@
 package com.linchpino.core.dto
 
+import com.linchpino.core.entity.Interview
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotNull
+import java.time.ZonedDateTime
 
 data class CreateInterviewRequest(
     @field:NotNull(message = "jobPositionId is required") val jobPositionId: Long,
@@ -18,4 +20,21 @@ data class CreateInterviewResult(
     val timeSlotId: Long?,
     val mentorAccountId: Long?,
     val jobSeekerEmail: String?,
+)
+
+data class InterviewListResponse(
+    val intervieweeId: Long,
+    val intervieweeName: String,
+    val fromTime: ZonedDateTime,
+    val toTime: ZonedDateTime,
+    val interviewType: String,
+)
+
+fun Interview.toCreateInterviewResult(): CreateInterviewResult = CreateInterviewResult(
+    id,
+    jobPosition?.id,
+    interviewType?.id,
+    timeSlot?.id,
+    mentorAccount?.id,
+    jobSeekerAccount?.email,
 )
