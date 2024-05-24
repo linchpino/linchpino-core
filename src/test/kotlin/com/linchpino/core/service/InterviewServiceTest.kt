@@ -76,6 +76,8 @@ class InterviewServiceTest {
             email = "john.doe@example.com"
             password = "password123"
         }
+        val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
+        jobSeekerAcc.addRole(jobSeekerRole)
 
         val mentorAcc = Account().apply {
             id = 1
@@ -84,6 +86,8 @@ class InterviewServiceTest {
             email = "Mentor.Mentoriii@example.com"
             password = "password_Mentoriii"
         }
+        val mentorRole = Role().apply { title = AccountTypeEnum.MENTOR }
+        mentorAcc.addRole(mentorRole)
 
         val mentorTimeSlot = MentorTimeSlot().apply {
             id = 1
@@ -101,6 +105,17 @@ class InterviewServiceTest {
         val typeInterview = InterviewType().apply {
             id = 1
             name = "Test Interview Type"
+        }
+        jobSeekerAcc.addInterviewType(typeInterview)
+        mentorAcc.addInterviewType(typeInterview)
+        position.addInterviewType(typeInterview)
+
+        val interviewReqRes = Interview().apply {
+            jobPosition = position
+            interviewType = typeInterview
+            timeSlot = mentorTimeSlot
+            mentorAccount = mentorAcc
+            jobSeekerAccount = jobSeekerAcc
         }
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
