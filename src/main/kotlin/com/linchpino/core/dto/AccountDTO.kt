@@ -88,14 +88,11 @@ data class RegisterMentorRequest(
     @field:Email(message = "email is not valid") val email: String,
     @field:PasswordPolicy val password: String,
     @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
-    val detailsOfExpertise: String?,
-    @field:Pattern(
-        regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$",
-        message = "Invalid LinkedIn URL"
-    ) val linkedInUrl: String?
+    val detailsOfExpertise:String?,
+    @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?
 )
 
-fun Account.toRegisterMentorResult(): RegisterMentorResult {
+fun Account.toRegisterMentorResult():RegisterMentorResult{
     return RegisterMentorResult(
         this.id,
         this.firstName,
