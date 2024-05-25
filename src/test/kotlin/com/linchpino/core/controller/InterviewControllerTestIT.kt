@@ -241,6 +241,64 @@ class InterviewControllerTestIT {
 
     }
 
+    @Test
+    @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
+    fun `test past interviews returns page of result successfully for authenticated user`() {
+        // Given
+        val interviews = saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/mentors/past")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content.size()").value(1))
+            .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].jobSeekerAccount?.id))
+            .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].jobSeekerAccount?.firstName} ${interviews[0].jobSeekerAccount?.lastName}"))
+            .andExpect(jsonPath("$.content[0].interviewType").value(interviews[0].interviewType?.name))
+
+    }
+
+    @Test
+    @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
+    fun `test past interviews returns empty page if mentor does not have more than one page of interviews`() {
+        // Given
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/mentors/past")
+                .param("page", "1")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content").isEmpty)
+
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "john.smith@example.com",
+        roles = [AccountTypeEnum.GUEST, AccountTypeEnum.ADMIN, AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test past interviews returns 403 if authenticated user is not mentor`() {
+        // Given
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/mentors/past")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isForbidden)
+
+    }
+
 
     private fun saveInterviewData(): List<Interview> {
         // get required data set in before each

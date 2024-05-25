@@ -14,12 +14,10 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
+import com.linchpino.core.security.email
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -82,11 +80,12 @@ class InterviewService(
 
     @Transactional(readOnly = true)
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
-        val email = when (authentication) {
-            is JwtAuthenticationToken -> authentication.name
-            is BearerTokenAuthentication -> (authentication.principal as OAuth2IntrospectionAuthenticatedPrincipal).name
-            else -> throw UnsupportedOperationException("Authentication type not supported")
-        }
-        return interviewRepository.findUpcomingInterviews(email, page)
+        return interviewRepository.findUpcomingInterviews(authentication.email(), page)
     }
+
+    @Transactional(readOnly = true)
+    fun pastInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
+        return interviewRepository.findPastInterviews(authentication.email(), page)
+    }
+
 }

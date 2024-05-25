@@ -28,4 +28,21 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
     """
     )
     fun findUpcomingInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
+
+    @Query(
+        """
+         select NEW com.linchpino.core.dto.InterviewListResponse(
+            i.jobSeekerAccount.id,
+            concat(i.jobSeekerAccount.firstName, ' ', i.jobSeekerAccount.lastName),
+            i.timeSlot.fromTime,
+            i.timeSlot.toTime,
+            i.interviewType.name
+            )
+        from Interview i
+        where i.mentorAccount.email = :email
+        and i.timeSlot.status = :status
+        and i.timeSlot.fromTime <= CURRENT_TIMESTAMP
+    """
+    )
+    fun findPastInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
 }
