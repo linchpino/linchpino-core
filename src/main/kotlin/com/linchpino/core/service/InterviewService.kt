@@ -11,13 +11,15 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
-import com.linchpino.core.repository.*
+import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewRepository
+import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.JobPositionRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -50,7 +52,7 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        emailService.sendEmail(savedInterview)
+        emailService.sendEmail(interview)
 
         return interview.toCreateInterviewResult()
     }

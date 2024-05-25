@@ -77,7 +77,7 @@ class InterviewServiceTest {
             password = "password123"
         }
         val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
-        jobSeekerAcc.addRole(jobSeekerRole)
+        jobSeekerAccount.addRole(jobSeekerRole)
 
         val mentorAcc = Account().apply {
             id = 1
@@ -106,7 +106,7 @@ class InterviewServiceTest {
             id = 1
             name = "Test Interview Type"
         }
-        jobSeekerAcc.addInterviewType(typeInterview)
+        jobSeekerAccount.addInterviewType(typeInterview)
         mentorAcc.addInterviewType(typeInterview)
         position.addInterviewType(typeInterview)
 
@@ -151,7 +151,7 @@ class InterviewServiceTest {
             id = 2
             firstName = "Mentor"
             lastName = "Mentoriii"
-            email = "Mentor.Mentoriii@example.com"
+            email = "John.Smith@example.com"
             password = "password_Mentoriii"
         }
 
@@ -180,23 +180,23 @@ class InterviewServiceTest {
         `when`(accountRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
         `when`(accountRepository.getReferenceById(1)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
-        `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
-        `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
-        `when`(roleRepository.getReferenceById(AccountTypeEnum.JOB_SEEKER.value)).thenReturn(jobSeekerRole) `when` (accountService.createAccount(
+        `when`(jobPositionRepository.getReferenceById(2)).thenReturn(position)
+        `when`(interviewTypeRepository.getReferenceById(2)).thenReturn(typeInterview)
+        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(false)
+        `when`(mentorTimeSlotRepository.getReferenceById(2)).thenReturn(mentorTimeSlot)
+        `when` (accountService.createAccount(
             createAccountRequestCaptor.captureNonNullable()
         )).thenReturn(
             CreateAccountResult(
-                2, null, null, "",
+                1, "", "", "test@example.com",
                 listOf()
             )
         )
-        `when`(interviewRepository.isTimeSlotIdExist(mentorTimeSlot.id!!)).thenReturn(true)
 
         val createInterviewRequest = CreateInterviewRequest(2, 2, 2, 2, "test@example.com")
         service.createInterview(createInterviewRequest)
 
-        verify(interviewRepo, times(1)).save(interviewCaptor.capture())
+        verify(interviewRepository, times(1)).save(interviewCaptor.capture())
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -212,7 +212,6 @@ class InterviewServiceTest {
 
     @Test
     fun `test upcoming interviews`() {
-        // Given
         val expected = PageImpl(
             mutableListOf(
                 InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
@@ -234,10 +233,10 @@ class InterviewServiceTest {
         val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
             ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
         `when`(service.upcomingInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
-        // When
+
         val response = service.upcomingInterviews(authentication, Pageable.unpaged())
 
-        verify(interviewRepo, times(1)).findUpcomingInterviews(
+        verify(interviewRepository, times(1)).findUpcomingInterviews(
             emailCaptor.captureNonNullable(),
             pageCaptor.captureNonNullable(),
             mentorTimeSlotCaptor.captureNonNullable()
