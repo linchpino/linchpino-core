@@ -110,15 +110,9 @@ class InterviewServiceTest {
         mentorAcc.addInterviewType(typeInterview)
         position.addInterviewType(typeInterview)
 
-        val interviewReqRes = Interview().apply {
-            jobPosition = position
-            interviewType = typeInterview
-            timeSlot = mentorTimeSlot
-            mentorAccount = mentorAcc
-            jobSeekerAccount = jobSeekerAcc
-        }
-
-        val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
+        val createInterviewRequest = CreateInterviewRequest(
+            1, 1, 1, 1, "john.doe@example.com"
+        )
         val createInterviewResult = CreateInterviewResult(
             null, 1, 1, 1, 1, "john.doe@example.com"
         )
@@ -129,7 +123,7 @@ class InterviewServiceTest {
         `when`(accountRepository.getReferenceById(1)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(interviewRepository.isTimeSlotIdExist(mentorTimeSlot.id!!)).thenReturn(true)
+        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(false)
         `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
 
         val result = service.createInterview(createInterviewRequest)
@@ -294,7 +288,7 @@ class InterviewServiceTest {
         `when`(accountRepository.getReferenceById(1)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(interviewRepository.isTimeSlotIdExist(mentorTimeSlot.id!!)).thenReturn(false)
+        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(true)
 
         val exception = Assertions.assertThrows(LinchpinException::class.java) {
             service.populateInterviewObject(createInterviewRequest, jobSeekerAccount)

@@ -103,13 +103,20 @@ class InterviewControllerTestIT {
         }
         interviewTypeRepo.save(typeInterview)
 
-        val mentorTimeSlot = MentorTimeSlot().apply {
+        val mentorTimeSlot1 = MentorTimeSlot().apply {
+            account = mentorAcc
+            fromTime = ZonedDateTime.now().plusDays(1)
+            toTime = ZonedDateTime.now().plusDays(1)
+            status = MentorTimeSlotEnum.AVAILABLE
+        }
+        val mentorTimeSlot2 = MentorTimeSlot().apply {
             account = mentorAcc
             fromTime = ZonedDateTime.now()
             toTime = ZonedDateTime.now()
             status = MentorTimeSlotEnum.AVAILABLE
         }
-        timeSlotRepo.save(mentorTimeSlot)
+        timeSlotRepo.save(mentorTimeSlot1)
+        timeSlotRepo.save(mentorTimeSlot2)
     }
 
     @Test
@@ -164,7 +171,7 @@ class InterviewControllerTestIT {
         val request = CreateInterviewRequest(
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
-            timeSlotRepo.findAll().first().id!!,
+            timeSlotRepo.findAll().last().id!!,
             mentorAccount.id!!,
             "test@gmail.com"
         )

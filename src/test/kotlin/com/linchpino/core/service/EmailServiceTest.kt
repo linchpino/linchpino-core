@@ -9,20 +9,22 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.springframework.core.env.Environment
 import org.springframework.mail.javamail.JavaMailSender
 import org.thymeleaf.spring6.SpringTemplateEngine
 
 class EmailServiceTest {
     private val emailSender = mock(JavaMailSender::class.java)
     private val templateEngine = mock(SpringTemplateEngine::class.java)
-    private val emailService = EmailService(emailSender, templateEngine)
+    private val environment = mock(Environment::class.java)
+    private val emailService = EmailService(emailSender, templateEngine, environment)
 
     @Test
     fun `test sendTemplateEmail`() {
         val from = InternetAddress("test@example.com")
         val to = "mahsa.saeedy@gmail.com"
         val subject = "Test Email"
-        val templateName = "email-template"
+        val templateName = "jobseeker-email-template"
         val model = mapOf(
             "fullName" to "Mahsa Saeedi",
             "date" to "2024/05/09",

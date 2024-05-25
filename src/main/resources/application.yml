@@ -30,6 +30,8 @@ spring:
           starttls:
             enable: true
             required: true
+          from: no-reply@linchpino.com
+mail.from.name: Linchpino
 
 management:
   server:
@@ -62,6 +64,3 @@ password:
 
 application:
   url:  ${APPLICATION_URL:https://linchpino.liara.run}
-
-from: no-reply@linchpino.com
-mail.from.name: Linchpino

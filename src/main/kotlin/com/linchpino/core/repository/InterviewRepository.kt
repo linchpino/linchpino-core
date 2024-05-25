@@ -16,7 +16,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
             "FROM Interview i " +
             "WHERE i.timeSlot.id = :timeSlotId"
     )
-    fun isTimeSlotIdExist(timeSlotId: Long): Boolean
+    fun isTimeSlotBooked(timeSlotId: Long): Boolean
 
     @Query(
         """
