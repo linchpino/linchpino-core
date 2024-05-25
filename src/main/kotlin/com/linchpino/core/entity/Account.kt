@@ -15,16 +15,16 @@ import jakarta.persistence.Table
 @Entity
 class Account : AbstractEntity() {
     @Column(name = "FIRST_NAME")
-    lateinit var firstName: String
+    var firstName: String? = null
 
     @Column(name = "LAST_NAME")
-    lateinit var lastName: String
+    var lastName: String? = null
 
     @Column(name = "email")
     lateinit var email: String
 
     @Column(name = "password")
-    lateinit var password: String
+    var password: String? = null
 
     @Convert(converter = AccountStatusEnumConverter::class)
     @Column(name = "STATUS")

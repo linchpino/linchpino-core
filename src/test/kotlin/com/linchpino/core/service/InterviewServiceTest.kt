@@ -1,6 +1,8 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.dto.InterviewListResponse
@@ -19,6 +21,7 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -59,7 +62,10 @@ class InterviewServiceTest {
     private lateinit var timeSlotRepo: MentorTimeSlotRepository
 
     @Mock
-    private lateinit var roleRepository: RoleRepository
+    private lateinit var accountService: AccountService
+
+//    @Mock
+//    private lateinit var roleRepository: RoleRepository
 
     @Test
     fun `test create new interview when account exists`() {
@@ -160,37 +166,42 @@ class InterviewServiceTest {
             name = "Test Interview Type"
         }
 
-        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
+        val createAccountRequestCaptor: ArgumentCaptor<CreateAccountRequest> =
+            ArgumentCaptor.forClass(CreateAccountRequest::class.java)
 
         `when`(accountRepo.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
-        `when`(accountRepo.save(any())).thenReturn(jobSeekerAccount)
         `when`(accountRepo.getReferenceById(1)).thenReturn(mentorAcc)
+        `when`(accountRepo.getReferenceById(2)).thenReturn(jobSeekerAccount)
         `when`(jobPositionRepo.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepo.getReferenceById(1)).thenReturn(typeInterview)
         `when`(timeSlotRepo.getReferenceById(1)).thenReturn(mentorTimeSlot)
-        `when`(roleRepository.getReferenceById(AccountTypeEnum.JOB_SEEKER.value)).thenReturn(jobSeekerRole)
+        `when`(accountService.createAccount(createAccountRequestCaptor.captureNonNullable())).thenReturn(
+            CreateAccountResult(
+                2, null, null, "",
+                listOf()
+            )
+        )
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "test@example.com")
         service.createInterview(createInterviewRequest)
 
         verify(interviewRepo, times(1)).save(interviewCaptor.capture())
-        verify(accountRepo, times(1)).save(accountCaptor.capture())
 
-        val newAccount = accountCaptor.value
-        assertEquals("test@example.com", newAccount.email)
-        assertThat(newAccount.roles()).containsExactly(jobSeekerRole)
-        assertEquals(AccountStatusEnum.DEACTIVATED, newAccount.status)
+        val newAccount = createAccountRequestCaptor.value
+        assertThat(newAccount.email).isEqualTo("test@example.com")
+        assertThat(newAccount.type).isEqualTo(jobSeekerRole.id)
+        assertThat(newAccount.status).isEqualTo(AccountStatusEnum.DEACTIVATED)
 
         val interview = interviewCaptor.value
-        assertEquals(jobSeekerAccount, interview.jobSeekerAccount)
-        assertEquals(mentorAcc, interview.mentorAccount)
-        assertEquals(mentorTimeSlot, interview.timeSlot)
-        assertEquals(position, interview.jobPosition)
+        assertThat(interview.jobSeekerAccount).isEqualTo(jobSeekerAccount)
+        assertThat(interview.mentorAccount).isEqualTo(mentorAcc)
+        assertThat(interview.timeSlot).isEqualTo(mentorTimeSlot)
+        assertThat(interview.jobPosition).isEqualTo(position)
     }
 
     @Test
-    fun `test upcoming interviews`(){
+    fun `test upcoming interviews`() {
         // Given
         val expected = PageImpl(
             mutableListOf(
@@ -208,14 +219,19 @@ class InterviewServiceTest {
             )
         )
         val authentication = JwtAuthenticationToken(jwt)
-        val emailCaptor:ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
-        val pageCaptor:ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
-        val mentorTimeSlotCaptor:ArgumentCaptor<MentorTimeSlotEnum> = ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        val emailCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
         `when`(service.upcomingInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
         // When
         val response = service.upcomingInterviews(authentication, Pageable.unpaged())
 
-        verify(interviewRepo, times(1)).findUpcomingInterviews(emailCaptor.captureNonNullable(), pageCaptor.captureNonNullable(),mentorTimeSlotCaptor.captureNonNullable())
+        verify(interviewRepo, times(1)).findUpcomingInterviews(
+            emailCaptor.captureNonNullable(),
+            pageCaptor.captureNonNullable(),
+            mentorTimeSlotCaptor.captureNonNullable()
+        )
         assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
         assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(response).isEqualTo(expected)

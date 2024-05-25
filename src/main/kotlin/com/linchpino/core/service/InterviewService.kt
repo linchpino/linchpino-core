@@ -1,8 +1,10 @@
 package com.linchpino.core.service
 
+import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.dto.InterviewListResponse
+import com.linchpino.core.dto.toCreateInterviewResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
@@ -12,7 +14,6 @@ import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
-import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -31,27 +32,24 @@ class InterviewService(
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
-    private val roleRepository: RoleRepository
+    private val accountService: AccountService
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
-        val jobSeekerAccount = isJobSeekerHasAccount(request.jobSeekerEmail)
+        val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
+            ?: accountRepository.findReferenceById(accountService.createAccount(
+                CreateAccountRequest(
+                    firstName = null,
+                    lastName = null,
+                    email = request.jobSeekerEmail,
+                    password = null,
+                    status = AccountStatusEnum.DEACTIVATED,
+                    type = AccountTypeEnum.JOB_SEEKER.value
+                )
+            ).id)
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        return interviewResult(interview)
-    }
-
-    private fun isJobSeekerHasAccount(jobSeekerEmail: String): Account {
-        return accountRepository.findByEmailIgnoreCase(jobSeekerEmail) ?: createSilentAccForJobSeeker(jobSeekerEmail)
-    }
-
-    private fun createSilentAccForJobSeeker(email: String): Account {
-        val jobSeekerRole = roleRepository.getReferenceById(AccountTypeEnum.JOB_SEEKER.value)
-        return accountRepository.save(Account().apply {
-            this.email = email
-            status = AccountStatusEnum.DEACTIVATED
-            addRole(jobSeekerRole)
-        })
+        return interview.toCreateInterviewResult()
     }
 
     fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
@@ -69,16 +67,7 @@ class InterviewService(
         }
     }
 
-    private fun interviewResult(entity: Interview): CreateInterviewResult {
-        return CreateInterviewResult(
-            entity.id,
-            entity.jobPosition?.id,
-            entity.interviewType?.id,
-            entity.timeSlot?.id,
-            entity.mentorAccount?.id,
-            entity.jobSeekerAccount?.email,
-        )
-    }
+
 
     @Transactional(readOnly = true)
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {

@@ -7,7 +7,8 @@ import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
-import com.linchpino.core.dto.toAccount
+import com.linchpino.core.dto.SaveAccountRequest
+import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toRegisterMentorResult
 import com.linchpino.core.dto.toSummary
@@ -19,7 +20,6 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
-import com.linchpino.core.repository.findReferenceById
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -37,15 +37,15 @@ class AccountService(
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
-        val account: Account = createAccountRequest.toAccount()
-        account.password = passwordEncoder.encode(account.password)
-        account.addRole(roleRepository.getReferenceById(createAccountRequest.type))
-        try {
-            repository.save(account)
-        } catch (ex: DataIntegrityViolationException) {
-            throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
-        }
-        return account.toCreateAccountResult()
+        val request = SaveAccountRequest(
+            createAccountRequest.firstName,
+            createAccountRequest.lastName,
+            createAccountRequest.email,
+            createAccountRequest.password,
+            listOf(createAccountRequest.type),
+            createAccountRequest.status
+        )
+        return saveAccount(request).toCreateAccountResult()
     }
 
 
@@ -57,32 +57,97 @@ class AccountService(
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
         val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)
-            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "no account found by externalId: ${request.externalId}")
+            ?: throw LinchpinException(
+                ErrorCode.ACCOUNT_NOT_FOUND,
+                "no account found by externalId: ${request.externalId}"
+            )
         if (account.status == AccountStatusEnum.ACTIVATED)
             throw LinchpinException(ErrorCode.ACCOUNT_IS_ACTIVATED, "account is already activated")
-        val updatedAccount = account.apply {
-            firstName = request.firstName
-            lastName = request.lastName
-            password = passwordEncoder.encode(request.password)
-            status = AccountStatusEnum.ACTIVATED
-        }
-        repository.save(updatedAccount)
-        return updatedAccount.toSummary()
+
+        val updateAccountRequest = UpdateAccountRequest(
+            firstName = request.firstName,
+            lastName = request.lastName,
+            email = account.email,
+            plainTextPassword = request.password,
+            roles = listOf(AccountTypeEnum.JOB_SEEKER.value),
+            status = AccountStatusEnum.ACTIVATED,
+            externalId = request.externalId
+        )
+        updateAccount(updateAccountRequest, account)
+        return account.toSummary()
     }
 
     fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
-        val account = request.toAccount()
+        val saveAccountRequest = SaveAccountRequest(
+            request.firstName,
+            request.lastName,
+            request.email,
+            request.password,
+            listOf(AccountTypeEnum.MENTOR.value),
+            AccountStatusEnum.ACTIVATED,
+            request.interviewTypeIDs,
+            request.detailsOfExpertise,
+            request.linkedInUrl
+        )
+        return saveAccount(saveAccountRequest).toRegisterMentorResult()
+    }
+
+    private fun saveAccount(request: SaveAccountRequest): Account {
         val interviewTypes = interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)
-        if (interviewTypes.isEmpty()) throw LinchpinException(ErrorCode.INTERVIEW_TYPE_NOT_FOUND,"no interview type found with id in: ${request.interviewTypeIDs}")
-        interviewTypes.forEach { account.addInterviewType(it) }
-        account.password = passwordEncoder.encode(request.password)
-        val mentorRole = roleRepository.findReferenceById(AccountTypeEnum.MENTOR.value)
-        account.addRole(mentorRole)
+        if (request.interviewTypeIDs.size != interviewTypes.size)
+            throw LinchpinException(
+                ErrorCode.INTERVIEW_TYPE_NOT_FOUND,
+                "no interview type found with id in: ${request.interviewTypeIDs}"
+            )
+        val roles = roleRepository.findAll()
+            .filter { request.roles.contains(it.id) }
+        val account = Account().apply {
+            firstName = request.firstName
+            lastName = request.lastName
+            password = passwordEncoder.encode(request.plainTextPassword?:"")
+            email = request.email
+            status = request.status
+            roles.forEach { addRole(it) }
+            interviewTypes.forEach { addInterviewType(it) }
+            detailsOfExpertise = request.detailsOfExpertise
+            linkedInUrl = request.linkedInUrl
+        }
         try {
             repository.save(account)
         } catch (ex: DataIntegrityViolationException) {
             throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
         }
-        return account.toRegisterMentorResult()
+        return account
+    }
+
+    private fun updateAccount(request: UpdateAccountRequest, account: Account) {
+        val interviewTypes = interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)
+        if (request.interviewTypeIDs.size != interviewTypes.size)
+            throw LinchpinException(
+                ErrorCode.INTERVIEW_TYPE_NOT_FOUND,
+                "no interview type found with id in: ${request.interviewTypeIDs}"
+            )
+        val roles = roleRepository.findAll()
+            .filter { request.roles.contains(it.id) }
+        account.apply {
+            firstName = request.firstName ?: this.firstName
+            lastName = request.lastName ?: this.lastName
+            if (request.plainTextPassword != null) {
+                password = passwordEncoder.encode(request.plainTextPassword)
+            }
+            status = request.status ?: this.status
+            if (roles.isNotEmpty()) {
+                this.roles().forEach { removeRole(it) }
+                roles.forEach { addRole(it) }
+            }
+            if (interviewTypes.isNotEmpty()) {
+                interviewTypes().forEach { removeInterviewType(it) }
+                interviewTypes.forEach { addInterviewType(it) }
+            }
+            detailsOfExpertise = request.detailsOfExpertise ?: this.detailsOfExpertise
+            linkedInUrl = request.linkedInUrl ?: this.linkedInUrl
+            externalId = request.externalId ?: this.externalId
+        }
+        repository.save(account)
     }
 }

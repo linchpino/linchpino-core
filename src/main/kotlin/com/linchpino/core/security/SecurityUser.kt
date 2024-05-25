@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails
 class SecurityUser(
     private val roles: Set<Role>,
     private val email: String,
-    private val password: String,
+    private val password: String?,
     private val status: AccountStatusEnum
 ) : UserDetails {
     override fun getAuthorities(): List<GrantedAuthority> {
@@ -18,7 +18,7 @@ class SecurityUser(
         }
     }
 
-    override fun getPassword(): String {
+    override fun getPassword(): String? {
         return this.password
     }
 
