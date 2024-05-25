@@ -43,7 +43,7 @@ class EmailService(
             InternetAddress(mailFrom, mailFromName),
             interview.jobSeekerAccount!!.email,
             "Confirmation of Interview Schedule on Linchpino",
-            "jobseeker-jobseeker-email-template.html",
+            "jobseeker-email-template.html",
             templateContextData
         )
     }
