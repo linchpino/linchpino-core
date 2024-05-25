@@ -51,10 +51,10 @@ class InterviewController(private val service: InterviewService) {
         return result
     }
 
-    @Operation(summary = "Return page of upcoming interviews for authenticated mentor")
+    @Operation(summary = "Return page of past interviews for authenticated mentor")
     @ApiResponses(
         value = [
-            ApiResponse(responseCode = "200", description = "Upcoming interviews fetched successfully"),
+            ApiResponse(responseCode = "200", description = "Past interviews fetched successfully"),
             ApiResponse(responseCode = "401", description = "User is not authenticated"),
             ApiResponse(responseCode = "403", description = "Authenticated user is not MENTOR")
         ]
