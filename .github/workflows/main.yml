@@ -104,6 +104,7 @@ jobs:
             export POSTGRES_DB=$currentBranch
             sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
+            export OPEN_AI_API_KEY=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
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
             if [ ${GITHUB_REF##*/} == "development" ]; then
