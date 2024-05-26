@@ -10,9 +10,10 @@ services:
     ports:
       - "8081:8080"
     command: "mvn spring-boot:run -Dspring-boot.run.jvmArguments='\
-       -DPOSTGRES_USERNAME=$POSTGRES_USERNAME \ 
+       -DPOSTGRES_USERNAME=$POSTGRES_USERNAME \
        -DPOSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-       -DPOSTGRES_URL=$POSTGRES_URL'"
+       -DPOSTGRES_URL=$POSTGRES_URL \
+       -DOPEN_AI_API_KEY=$OPEN_AI_API_KEY'"
 
   postgres:
     image: postgres
