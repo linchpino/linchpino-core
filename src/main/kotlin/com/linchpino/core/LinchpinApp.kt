@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = ["com.linchpino"])
 @EnableJpaAuditing
 @EnableConfigurationProperties(RSAKeys::class)
 @OpenAPIDefinition(info = Info(title = "Linchpino Core", version = "1.0"))
