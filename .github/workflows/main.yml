@@ -28,7 +28,8 @@ jobs:
         run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=linchpino_linchpino-core \
-          -Dsonar.coverage.exclusions=com/linchpino/core/security/SecurityConfig*,com/linchpino/core/exception/*
+          -Dsonar.coverage.exclusions=com/linchpino/core/security/SecurityConfig*,com/linchpino/core/exception/* \
+          -Dsonar.login=$SONARCLOUD_TOKEN \
           -Dsonar.verbose=true
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
