@@ -4,12 +4,11 @@ import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import jakarta.servlet.FilterChain
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Captor
 import org.mockito.Mock
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
@@ -140,5 +139,13 @@ class LinkedInSecurityFilterTest {
 
         verify(filterChain).doFilter(request, response)
         verify(userService).loadUserByUsername(email)
+    }
+
+    companion object {
+        @JvmStatic
+        @AfterAll
+        fun clearContext() {
+            SecurityContextHolder.clearContext()
+        }
     }
 }
