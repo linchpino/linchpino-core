@@ -328,7 +328,7 @@ class InterviewServiceTest {
         // When
         val response = service.pastInterviews(authentication, Pageable.unpaged())
 
-        verify(interviewRepo, times(1)).findPastInterviews(emailCaptor.captureNonNullable(), pageCaptor.captureNonNullable(),mentorTimeSlotCaptor.captureNonNullable())
+        verify(interviewRepository, times(1)).findPastInterviews(emailCaptor.captureNonNullable(), pageCaptor.captureNonNullable(),mentorTimeSlotCaptor.captureNonNullable())
         assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
         assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(response).isEqualTo(expected)
