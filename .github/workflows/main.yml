@@ -22,6 +22,12 @@ jobs:
         uses: sonarsource/sonarcloud-github-action@v2.2 # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=linchpino_linchpino-core
+            -Dsonar.organization=linchpino
+            -Dsonar.test.exclusions=src/main/kotlin/com/linchpino/core/security/SecurityConfig*,src/main/kotlin/com/linchpino/core/exception/*
+            -Dsonar.verbose=true
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
