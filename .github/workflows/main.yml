@@ -28,8 +28,10 @@ jobs:
         run: |
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=linchpino_linchpino-core \
-          -Dsonar.coverage.exclusions=com/linchpino/core/security/SecurityConfig*,com/linchpino/core/exception/* \
+          -Dsonar.organization=linchpino \
+          -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONARCLOUD_TOKEN \
+          -Dsonar.coverage.exclusions=com/linchpino/core/security/SecurityConfig*,com/linchpino/core/exception/* \
           -Dsonar.verbose=true
           echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
         env:
@@ -41,6 +43,7 @@ jobs:
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
           exit 1
+
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
