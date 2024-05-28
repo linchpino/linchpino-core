@@ -65,6 +65,9 @@ class InterviewServiceTest {
     private lateinit var accountService: AccountService
 
     @Mock
+    private lateinit var timeSlotService: TimeSlotService
+
+    @Mock
     private lateinit var emailService: EmailService
 
     @Test
@@ -129,6 +132,7 @@ class InterviewServiceTest {
         val result = service.createInterview(createInterviewRequest)
 
         verify(interviewRepository, times(1)).save(captor.capture())
+
         assertEquals(createInterviewResult, result)
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
@@ -178,17 +182,19 @@ class InterviewServiceTest {
             ArgumentCaptor.forClass(CreateAccountRequest::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
-        `when`(accountRepository.getReferenceById(1)).thenReturn(jobSeekerAccount)
+        `when`(accountRepository.getReferenceById(2)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(2)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(2)).thenReturn(typeInterview)
         `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(false)
         `when`(mentorTimeSlotRepository.getReferenceById(2)).thenReturn(mentorTimeSlot)
-        `when` (accountService.createAccount(
-            createAccountRequestCaptor.captureNonNullable()
-        )).thenReturn(
+        `when`(
+            accountService.createAccount(
+                createAccountRequestCaptor.captureNonNullable()
+            )
+        ).thenReturn(
             CreateAccountResult(
-                1, "", "", "test@example.com",
+                2, "", "", "test@example.com",
                 listOf()
             )
         )

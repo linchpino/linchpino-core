@@ -20,18 +20,24 @@ class EmailService(
     @Value("\${application.url}")
     var applicationUrl: String? = null
 
-    fun sendEmail(interview: Interview) {
+    fun sendingInterviewEmailToJobSeeker(interview: Interview) {
+        sendEmail(interview)
+    }
+
+    private fun sendEmail(interview: Interview) {
         val fullName = "${interview.jobSeekerAccount!!.firstName} ${interview.jobSeekerAccount!!.lastName}"
+        val finalName = fullName.takeIf { it.isEmpty() } ?: "Jobseeker"
         val date = interview.timeSlot!!.fromTime.toLocalDate()
         val time = interview.timeSlot!!.fromTime.toLocalTime()
         val zone = interview.timeSlot!!.fromTime.getZone()
+        val isJobSeekerAccountActivated = interview.jobSeekerAccount!!.status == AccountStatusEnum.ACTIVATED
 
         val templateContextData = mapOf(
-            "fullName" to fullName,
+            "fullName" to finalName,
             "date" to date,
             "time" to time,
             "timezone" to zone,
-            "isJobSeekerActivated" to (interview.jobSeekerAccount!!.status == AccountStatusEnum.ACTIVATED),
+            "isJobSeekerActivated" to isJobSeekerAccountActivated,
             "applicationUrl" to applicationUrl.toString(),
             "interviewId" to interview.id.toString()
         )
@@ -48,7 +54,7 @@ class EmailService(
         )
     }
 
-    fun sendTemplateEmail(
+    internal fun sendTemplateEmail(
         from: InternetAddress,
         to: String,
         subject: String,

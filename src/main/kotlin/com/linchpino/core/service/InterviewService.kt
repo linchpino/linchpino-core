@@ -32,6 +32,7 @@ class InterviewService(
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
     private val accountService: AccountService,
+    private val timeSlotService: TimeSlotService,
     private val emailService: EmailService,
 ) {
 
@@ -52,12 +53,16 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        emailService.sendEmail(interview)
+        interview.mentorAccount?.let { timeSlotService.updateTimeSlotAfterCreateInterview(it) }
+        emailService.sendingInterviewEmailToJobSeeker(interview)
 
         return interview.toCreateInterviewResult()
     }
 
-    fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
+    internal fun populateInterviewObject(
+        createInterviewRequest: CreateInterviewRequest,
+        jobSeekerAcc: Account
+    ): Interview {
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
@@ -65,7 +70,7 @@ class InterviewService(
         if (isTimeSlotBooked)
             throw LinchpinException(
                 ErrorCode.TIMESLOT_IS_BOOKED,
-                "this time slot is already booked for you: ${createInterviewRequest.timeSlotId}"
+                "this time slot is already booked : ${createInterviewRequest.timeSlotId}"
             )
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
 
