@@ -50,4 +50,18 @@ class InterviewController(private val service: InterviewService) {
         val result = service.upcomingInterviews(authentication, page)
         return result
     }
+
+    @Operation(summary = "Return page of past interviews for authenticated mentor")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Past interviews fetched successfully"),
+            ApiResponse(responseCode = "401", description = "User is not authenticated"),
+            ApiResponse(responseCode = "403", description = "Authenticated user is not MENTOR")
+        ]
+    )
+    @GetMapping("/mentors/past")
+    fun pastInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
+        val result = service.pastInterviews(authentication, page)
+        return result
+    }
 }
