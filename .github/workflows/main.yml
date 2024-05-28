@@ -30,11 +30,10 @@ jobs:
           -Dsonar.projectKey=linchpino_linchpino-core \
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN
-          -Dsonar.test.exclusions=src/main/kotlin/com/linchpino/core/security/SecurityConfig*,src/main/kotlin/com/linchpino/core/exception/*
+          -Dsonar.coverage.exclusions=com/linchpino/core/security/SecurityConfig*,com/linchpino/core/exception/*
           -Dsonar.verbose=true
         env:
-          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Check on failures
         if: steps.sonar-build-status.outcome != 'success' ||  steps.sonar-build-status.outputs.coverage < 50
