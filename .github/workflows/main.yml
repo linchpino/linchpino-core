@@ -27,7 +27,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: Sonar-Build
+    needs: sonarcloud
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
