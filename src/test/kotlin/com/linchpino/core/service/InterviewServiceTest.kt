@@ -236,4 +236,36 @@ class InterviewServiceTest {
         assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(response).isEqualTo(expected)
     }
+
+    @Test
+    fun `test past interviews`(){
+        // Given
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val authentication = JwtAuthenticationToken(jwt)
+        val emailCaptor:ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor:ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor:ArgumentCaptor<MentorTimeSlotEnum> = ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        `when`(service.pastInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
+        // When
+        val response = service.pastInterviews(authentication, Pageable.unpaged())
+
+        verify(interviewRepo, times(1)).findPastInterviews(emailCaptor.captureNonNullable(), pageCaptor.captureNonNullable(),mentorTimeSlotCaptor.captureNonNullable())
+        assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
+        assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(response).isEqualTo(expected)
+    }
 }
