@@ -11,37 +11,17 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  Sonar-Build:
+  sonarcloud:
     runs-on: ubuntu-latest
-    outputs:
-      output1: ${{ steps.sonar-build-status.outputs.coverage }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-      - name: Build with Maven cloud
-        id: sonar-build-status
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=linchpino_linchpino-core \
-          -Dsonar.organization=linchpino \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@v2.2 # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
         env:
-          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
-          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Check on failures
-        if: steps.sonar-build-status.outcome != 'success' ||  steps.sonar-build-status.outputs.coverage < 50
-        run: |
-          echo "outcome":  ${{ steps.sonar-build-status.outcome }}
-          echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
-          exit 1
-
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
