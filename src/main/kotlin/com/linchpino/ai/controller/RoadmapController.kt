@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("ai")
 class RoadmapController(private val roadmapService: RoadmapService) {
     @GetMapping("/roadmap")
-    fun generateHaiku(): ResponseEntity<String> {
+    fun generateRoadmap(): ResponseEntity<String> {
         return ResponseEntity.ok(
             roadmapService.getRoadmap(
                 "Linchpino",
