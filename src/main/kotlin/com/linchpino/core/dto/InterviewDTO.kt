@@ -9,7 +9,7 @@ data class CreateInterviewRequest(
     @field:NotNull(message = "jobPositionId is required") val jobPositionId: Long,
     @field:NotNull(message = "interviewTypeId is required") val interviewTypeId: Long,
     @field:NotNull(message = "timeSlotId is required") val timeSlotId: Long,
-    @field:NotNull(message = "mentorAccId is required") val mentorAccId: Long,
+    @field:NotNull(message = "mentorAccId is required") val mentorAccountId: Long,
     @field:Email(message = "jobSeekerEmail is required") val jobSeekerEmail: String,
 )
 

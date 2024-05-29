@@ -1,0 +1,18 @@
+<div xmlns:th="http://www.w3.org/1999/xhtml">
+    <p>Dear <b th:text="${fullName}"></b>,</p>
+    <p>Thank you for choosing Linchpino to schedule your upcoming interview.</p>
+    <p>Your interview is scheduled for <b th:text="${date + ' at ' + time + ' ' + timezone}"></b>.</p>
+    <p>Please ensure you are ready to join the interview at least 10 minutes before the scheduled time.</p>
+    <p>Here is the link to access your interview:</p>
+    <a th:href="${applicationUrl + '/interview/view/' + interviewId}"><span th:text="${applicationUrl + '/interview/view/' + interviewId}"></span></a>
+    <div th:if="${isJobSeekerIsNotActivated}">
+        <p>We also kindly ask you to activate your account through the following link:</p>
+        <a th:href="${applicationUrl + '/jobseeker-activation/' + jobSeekerExternalId}"><span th:text="${applicationUrl + '/jobseeker-activation/' + jobSeekerExternalId}"></span></a>
+        <p>Registering will allow you to access your previous interview/s, receive updates, and make future interview
+            scheduling easier.</p>
+    </div>
+    <p>If you have any questions or need further assistance, please don't hesitate to reach out to us
+        mailto:support@linchpino.com.</p>
+    <p>Best Regards,</p>
+    <p>Linchpino Team</p>
+</div>

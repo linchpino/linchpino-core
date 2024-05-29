@@ -2,7 +2,9 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.toAvailableMentorTimeSlot
+import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
@@ -14,7 +16,11 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class TimeSlotService(private val accountRepository: AccountRepository, private val repository: MentorTimeSlotRepository) {
+class TimeSlotService(
+    private val accountRepository: AccountRepository,
+    private val repository: MentorTimeSlotRepository,
+    private val mentorTimeSlotRepository: MentorTimeSlotRepository
+) {
 
 
     fun addTimeSlots(request: AddTimeSlotsRequest) {
@@ -26,5 +32,11 @@ class TimeSlotService(private val accountRepository: AccountRepository, private 
         val mentorTimeSlots = request.timeSlots
             .map { it.toAvailableMentorTimeSlot(account) }
         repository.saveAll(mentorTimeSlots)
+    }
+
+    fun updateTimeSlotStatus(timeSlot: MentorTimeSlot, allocated: MentorTimeSlotEnum) {
+
+        timeSlot.status = allocated
+        mentorTimeSlotRepository.save(timeSlot)
     }
 }
