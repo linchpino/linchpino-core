@@ -64,12 +64,6 @@ class InterviewServiceTest {
     @Mock
     private lateinit var accountService: AccountService
 
-    @Mock
-    private lateinit var timeSlotService: TimeSlotService
-
-    @Mock
-    private lateinit var emailService: EmailService
-
     @Test
     fun `test create new interview when account exists`() {
         val jobSeekerAccount = Account().apply {

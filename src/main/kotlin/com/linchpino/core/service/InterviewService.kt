@@ -9,6 +9,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
@@ -54,8 +55,10 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        interview.mentorAccount?.let { timeSlotService.updateTimeSlotAfterCreateInterview(it) }
-        emailService.sendingInterviewEmailToJobSeeker(interview)
+        interview.timeSlot?.let {
+            timeSlotService.updateTimeSlotStatus(it, MentorTimeSlotEnum.ALLOCATED)
+        }
+        emailService.sendingInterviewInvitationEmailToJobSeeker(interview)
 
         return interview.toCreateInterviewResult()
     }

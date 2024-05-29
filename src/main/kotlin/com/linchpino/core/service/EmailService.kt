@@ -20,32 +20,30 @@ class EmailService(
     @Value("\${application.url}")
     var applicationUrl: String? = null
 
-    fun sendingInterviewEmailToJobSeeker(interview: Interview) {
-        sendEmail(interview)
-    }
-
-    private fun sendEmail(interview: Interview) {
+    fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
         val fullName = "${interview.jobSeekerAccount!!.firstName} ${interview.jobSeekerAccount!!.lastName}"
         val finalName = fullName.takeIf { it.isEmpty() } ?: "Jobseeker"
         val date = interview.timeSlot!!.fromTime.toLocalDate()
         val time = interview.timeSlot!!.fromTime.toLocalTime()
         val zone = interview.timeSlot!!.fromTime.getZone()
-        val isJobSeekerAccountActivated = interview.jobSeekerAccount!!.status == AccountStatusEnum.ACTIVATED
+        val isJobSeekerIsNotActivated = interview.jobSeekerAccount!!.status != AccountStatusEnum.ACTIVATED
+        val jobSeekerExternalId = interview.jobSeekerAccount!!.externalId.toString()
 
         val templateContextData = mapOf(
             "fullName" to finalName,
             "date" to date,
             "time" to time,
             "timezone" to zone,
-            "isJobSeekerActivated" to isJobSeekerAccountActivated,
+            "isJobSeekerIsNotActivated" to isJobSeekerIsNotActivated,
             "applicationUrl" to applicationUrl.toString(),
-            "interviewId" to interview.id.toString()
+            "interviewId" to interview.id.toString(),
+            "jobSeekerExternalId" to jobSeekerExternalId
         )
 
         val mailFrom: String? = environment.getProperty("spring.mail.properties.mail.smtp.from")
         val mailFromName: String = environment.getProperty("mail.from.name", "Linchpino")
 
-        sendTemplateEmail(
+        sendEmail(
             InternetAddress(mailFrom, mailFromName),
             interview.jobSeekerAccount!!.email,
             "Confirmation of Interview Schedule on Linchpino",
@@ -54,18 +52,14 @@ class EmailService(
         )
     }
 
-    internal fun sendTemplateEmail(
+    internal fun sendEmail(
         from: InternetAddress,
         to: String,
         subject: String,
         templateName: String,
         model: Map<String, Any>
     ) {
-        val context = Context().apply {
-            setVariables(model)
-        }
-
-        val htmlContent = templateEngine.process(templateName, context)
+        val htmlContent = generateTemplate(model, templateName)
         val message = emailSender.createMimeMessage()
         val helper = MimeMessageHelper(message, true, "UTF-8")
         helper.setTo(to)
@@ -74,5 +68,15 @@ class EmailService(
         helper.setFrom(from)
 
         emailSender.send(message)
+    }
+
+    internal fun generateTemplate(model: Map<String, Any>, templateName: String): String {
+
+        val context = Context().apply {
+            setVariables(model)
+        }
+
+        val htmlContent = templateEngine.process(templateName, context)
+        return htmlContent
     }
 }

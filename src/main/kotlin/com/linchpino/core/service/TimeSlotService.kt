@@ -2,7 +2,6 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.toAvailableMentorTimeSlot
-import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
@@ -35,13 +34,9 @@ class TimeSlotService(
         repository.saveAll(mentorTimeSlots)
     }
 
-    @Transactional(readOnly = true)
-    fun updateTimeSlotAfterCreateInterview(mentorAccount: Account) {
-        val timeSlot = MentorTimeSlot().apply {
-            account = mentorAccount
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        mentorTimeSlotRepository.save(timeSlot)
+    fun updateTimeSlotStatus(timeSlot: MentorTimeSlot, allocated: MentorTimeSlotEnum) {
 
+        timeSlot.status = allocated
+        mentorTimeSlotRepository.save(timeSlot)
     }
 }

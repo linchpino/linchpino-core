@@ -17,7 +17,7 @@ class ThymeleafConfig {
         return templateEngine
     }
 
-    private fun templateResolver(): ITemplateResolver? {
+    private fun templateResolver(): ITemplateResolver {
         val resolver = ClassLoaderTemplateResolver()
         resolver.prefix = "templates/"
         resolver.suffix = ".html"
