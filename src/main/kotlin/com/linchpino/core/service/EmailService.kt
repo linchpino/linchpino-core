@@ -20,6 +20,12 @@ class EmailService(
     @Value("\${application.url}")
     var applicationUrl: String? = null
 
+    @Value("spring.mail.properties.mail.smtp.from")
+    var mailFrom: String? = null
+
+    @Value("mail.from.name")
+    var mailFromName: String? = null
+
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
         val fullName = "${interview.jobSeekerAccount!!.firstName} ${interview.jobSeekerAccount!!.lastName}"
         val finalName = fullName.takeIf { it.isEmpty() } ?: "Jobseeker"
@@ -39,9 +45,6 @@ class EmailService(
             "interviewId" to interview.id.toString(),
             "jobSeekerExternalId" to jobSeekerExternalId
         )
-
-        val mailFrom: String? = environment.getProperty("spring.mail.properties.mail.smtp.from")
-        val mailFromName: String = environment.getProperty("mail.from.name", "Linchpino")
 
         sendEmail(
             InternetAddress(mailFrom, mailFromName),

@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import java.util.*
+import java.util.UUID
 
 @SpringBootTest
 class EmailServiceTestIT {
@@ -33,8 +33,7 @@ class EmailServiceTestIT {
     <p>Please ensure you are ready to join the interview at least 10 minutes before the scheduled time.</p>
     <p>Here is the link to access your interview:</p>
     <a href="${model["applicationUrl"]}/interview/view/${model["interviewId"]}"><span>${model["applicationUrl"]}/interview/view/${model["interviewId"]}</span></a>
-
-    <p>If you have any questions or need further assistance, please don't hesitate to reach out to us
+        <p>If you have any questions or need further assistance, please don't hesitate to reach out to us
         mailto:support@linchpino.com.</p>
     <p>Best Regards,</p>
     <p>Linchpino Team</p>
