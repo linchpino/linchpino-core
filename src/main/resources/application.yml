@@ -20,7 +20,7 @@ spring:
   mail:
     host: ${MAIL_SERVER_URL:smtp.gmail.com}
     port: 587
-    username: ${MAIL_USERNAME:no-reply@linchpino.com}
+    username: ${MAIL_USERNAME:linchpino@linchpino.com}
     password: ${MAIL_PASSWORD:Password}
     properties:
       mail:
