@@ -43,8 +43,8 @@ class InterviewService(
             ?: accountRepository.findReferenceById(
                 accountService.createAccount(
                     CreateAccountRequest(
-                        firstName = "",
-                        lastName = "",
+                        firstName = null,
+                        lastName = null,
                         email = request.jobSeekerEmail,
                         password = null,
                         status = AccountStatusEnum.DEACTIVATED,

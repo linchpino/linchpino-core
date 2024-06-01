@@ -144,7 +144,7 @@ class InterviewServiceTest {
         val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
 
         val jobSeekerAccount = Account().apply {
-            id = 2
+            id = 1
             firstName = "test"
             lastName = "test"
             email = "test@example.com"
@@ -181,7 +181,7 @@ class InterviewServiceTest {
             ArgumentCaptor.forClass(CreateAccountRequest::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
-        `when`(accountRepository.getReferenceById(2)).thenReturn(jobSeekerAccount)
+        `when`(accountRepository.getReferenceById(1)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(2)).thenReturn(typeInterview)
@@ -261,7 +261,7 @@ class InterviewServiceTest {
         }
 
         val mentorAcc = Account().apply {
-            id = 1
+            id = 2
             firstName = "Mentor"
             lastName = "Mentoriii"
             email = "Mentor.Mentoriii@example.com"
@@ -288,7 +288,7 @@ class InterviewServiceTest {
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
 
-        `when`(accountRepository.getReferenceById(1)).thenReturn(mentorAcc)
+        `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
         `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)

@@ -4,7 +4,6 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import jakarta.mail.internet.InternetAddress
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.env.Environment
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
@@ -14,8 +13,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine
 @Service
 class EmailService(
     private val emailSender: JavaMailSender,
-    private val templateEngine: SpringTemplateEngine,
-    private val environment: Environment
+    private val templateEngine: SpringTemplateEngine
 ) {
     @Value("\${application.url}")
     var applicationUrl: String? = null
@@ -27,16 +25,22 @@ class EmailService(
     var mailFromName: String? = null
 
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
-        val fullName = "${interview.jobSeekerAccount!!.firstName} ${interview.jobSeekerAccount!!.lastName}"
-        val finalName = fullName.takeIf { it.isEmpty() } ?: "Jobseeker"
-        val date = interview.timeSlot!!.fromTime.toLocalDate()
-        val time = interview.timeSlot!!.fromTime.toLocalTime()
-        val zone = interview.timeSlot!!.fromTime.getZone()
-        val isJobSeekerIsNotActivated = interview.jobSeekerAccount!!.status != AccountStatusEnum.ACTIVATED
-        val jobSeekerExternalId = interview.jobSeekerAccount!!.externalId.toString()
+        val fullName =
+            if (interview.jobSeekerAccount?.firstName == null || interview.jobSeekerAccount?.lastName == null) {
+
+                "JobSeeker"
+            } else {
+
+                "${interview.jobSeekerAccount?.firstName} ${interview.jobSeekerAccount?.lastName}"
+            }
+        val date = interview.timeSlot?.fromTime?.toLocalDate()
+        val time = interview.timeSlot?.fromTime?.toLocalTime()
+        val zone = interview.timeSlot?.fromTime?.getZone()
+        val isJobSeekerIsNotActivated = interview.jobSeekerAccount?.status != AccountStatusEnum.ACTIVATED
+        val jobSeekerExternalId = interview.jobSeekerAccount?.externalId
 
         val templateContextData = mapOf(
-            "fullName" to finalName,
+            "fullName" to fullName,
             "date" to date,
             "time" to time,
             "timezone" to zone,
@@ -55,12 +59,12 @@ class EmailService(
         )
     }
 
-    internal fun sendEmail(
+    private fun sendEmail(
         from: InternetAddress,
         to: String,
         subject: String,
         templateName: String,
-        model: Map<String, Any>
+        model: Map<String, Any?>
     ) {
         val htmlContent = generateTemplate(model, templateName)
         val message = emailSender.createMimeMessage()
@@ -73,7 +77,7 @@ class EmailService(
         emailSender.send(message)
     }
 
-    internal fun generateTemplate(model: Map<String, Any>, templateName: String): String {
+    fun generateTemplate(model: Map<String, Any?>, templateName: String): String {
 
         val context = Context().apply {
             setVariables(model)
