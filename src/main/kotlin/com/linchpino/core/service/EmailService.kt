@@ -18,10 +18,10 @@ class EmailService(
     @Value("\${application.url}")
     var applicationUrl: String? = null
 
-    @Value("spring.mail.properties.mail.smtp.from")
+    @Value("\${spring.mail.properties.mail.smtp.from}")
     var mailFrom: String? = null
 
-    @Value("mail.from.name")
+    @Value("\${mail.from.name}")
     var mailFromName: String? = null
 
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
