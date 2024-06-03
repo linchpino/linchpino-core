@@ -9,6 +9,9 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
@@ -30,31 +33,49 @@ class InterviewService(
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val timeSlotService: TimeSlotService,
+    private val emailService: EmailService,
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
-            ?: accountRepository.findReferenceById(accountService.createAccount(
-                CreateAccountRequest(
-                    firstName = null,
-                    lastName = null,
-                    email = request.jobSeekerEmail,
-                    password = null,
-                    status = AccountStatusEnum.DEACTIVATED,
-                    type = AccountTypeEnum.JOB_SEEKER.value
-                )
-            ).id)
+            ?: accountRepository.findReferenceById(
+                accountService.createAccount(
+                    CreateAccountRequest(
+                        firstName = null,
+                        lastName = null,
+                        email = request.jobSeekerEmail,
+                        password = null,
+                        status = AccountStatusEnum.DEACTIVATED,
+                        type = AccountTypeEnum.JOB_SEEKER.value
+                    )
+                ).id
+            )
+
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
+        interview.timeSlot?.let {
+            timeSlotService.updateTimeSlotStatus(it, MentorTimeSlotEnum.ALLOCATED)
+        }
+        emailService.sendingInterviewInvitationEmailToJobSeeker(interview)
+
         return interview.toCreateInterviewResult()
     }
 
-    fun populateInterviewObject(createInterviewRequest: CreateInterviewRequest, jobSeekerAcc: Account): Interview {
+    fun populateInterviewObject(
+        createInterviewRequest: CreateInterviewRequest,
+        jobSeekerAcc: Account
+    ): Interview {
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
-        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
+        val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
+        if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
+            throw LinchpinException(
+                ErrorCode.TIMESLOT_IS_BOOKED,
+                "this time slot is already booked : ${createInterviewRequest.timeSlotId}"
+            )
 
         return Interview().apply {
             jobPosition = position
@@ -64,8 +85,6 @@ class InterviewService(
             jobSeekerAccount = jobSeekerAcc
         }
     }
-
-
 
     @Transactional(readOnly = true)
     fun upcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {

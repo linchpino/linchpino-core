@@ -35,7 +35,6 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
                 )
             )
     }
-//    MissingServletRequestParameterException
 
     @ExceptionHandler(MissingServletRequestParameterException::class)
     @ResponseBody

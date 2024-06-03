@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Service
 @Transactional
@@ -104,13 +105,14 @@ class AccountService(
         val account = Account().apply {
             firstName = request.firstName
             lastName = request.lastName
-            password = passwordEncoder.encode(request.plainTextPassword?:"")
+            password = passwordEncoder.encode(request.plainTextPassword ?: "")
             email = request.email
             status = request.status
             roles.forEach { addRole(it) }
             interviewTypes.forEach { addInterviewType(it) }
             detailsOfExpertise = request.detailsOfExpertise
             linkedInUrl = request.linkedInUrl
+            externalId = UUID.randomUUID().toString()
         }
         try {
             repository.save(account)
