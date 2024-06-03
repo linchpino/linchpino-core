@@ -122,6 +122,9 @@ class InterviewServiceTest {
         )
 
         val captor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
+        val timeSlotCaptor: ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
+        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
@@ -132,12 +135,20 @@ class InterviewServiceTest {
         val result = service.createInterview(createInterviewRequest)
 
         verify(interviewRepository, times(1)).save(captor.capture())
+        verify(timeSlotService, times(1)).updateTimeSlotStatus(
+            timeSlotCaptor.captureNonNullable(),
+            timeSlotStatusCaptor.captureNonNullable()
+        )
+        verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
 
         assertEquals(createInterviewResult, result)
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
         assertEquals(AccountStatusEnum.ACTIVATED, savedInterview.jobSeekerAccount?.status)
+
+        assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
     }
 
     @Test
@@ -180,6 +191,9 @@ class InterviewServiceTest {
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
         val createAccountRequestCaptor: ArgumentCaptor<CreateAccountRequest> =
             ArgumentCaptor.forClass(CreateAccountRequest::class.java)
+        val timeSlotCaptor: ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
+        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
 
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
@@ -193,7 +207,9 @@ class InterviewServiceTest {
         `when`(accountRepository.getReferenceById(jobSeekerAccount.id!!)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(createInterviewRequest.mentorAccountId)).thenReturn(mentorAccount)
         `when`(jobPositionRepository.getReferenceById(createInterviewRequest.jobPositionId)).thenReturn(position)
-        `when`(interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)).thenReturn(typeInterview)
+        `when`(interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)).thenReturn(
+            typeInterview
+        )
         `when`(mentorTimeSlotRepository.getReferenceById(createInterviewRequest.timeSlotId)).thenReturn(mentorTimeSlot)
         `when`(
             accountService.createAccount(
@@ -209,6 +225,11 @@ class InterviewServiceTest {
         service.createInterview(createInterviewRequest)
 
         verify(interviewRepository, times(1)).save(interviewCaptor.capture())
+        verify(timeSlotService, times(1)).updateTimeSlotStatus(
+            timeSlotCaptor.captureNonNullable(),
+            timeSlotStatusCaptor.captureNonNullable()
+        )
+        verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.value)
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -220,6 +241,9 @@ class InterviewServiceTest {
         assertThat(interview.mentorAccount).isEqualTo(mentorAccount)
         assertThat(interview.timeSlot).isEqualTo(mentorTimeSlot)
         assertThat(interview.jobPosition).isEqualTo(position)
+
+        assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
     }
 
     @Test
