@@ -27,15 +27,13 @@ class EmailService(
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
         val fullName =
             if (interview.jobSeekerAccount?.firstName == null || interview.jobSeekerAccount?.lastName == null) {
-
                 "JobSeeker"
             } else {
-
                 "${interview.jobSeekerAccount?.firstName} ${interview.jobSeekerAccount?.lastName}"
             }
         val date = interview.timeSlot?.fromTime?.toLocalDate()
         val time = interview.timeSlot?.fromTime?.toLocalTime()
-        val zone = interview.timeSlot?.fromTime?.getZone()
+        val zone = interview.timeSlot?.fromTime?.zone
         val isJobSeekerIsNotActivated = interview.jobSeekerAccount?.status != AccountStatusEnum.ACTIVATED
         val jobSeekerExternalId = interview.jobSeekerAccount?.externalId
 
@@ -83,7 +81,6 @@ class EmailService(
             setVariables(model)
         }
 
-        val htmlContent = templateEngine.process(templateName, context)
-        return htmlContent
+        return templateEngine.process(templateName, context)
     }
 }
