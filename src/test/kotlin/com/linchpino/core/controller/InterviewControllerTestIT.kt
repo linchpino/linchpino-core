@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
+import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
@@ -19,10 +20,12 @@ import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -127,18 +130,19 @@ class InterviewControllerTestIT {
     @Test
     fun `test with existed email address result in creating a new interview for job seeker`() {
 
-        Mockito.doNothing().`when`(mailService.sendingInterviewInvitationEmailToJobSeeker(any()))
+        val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
         val john = entityManager.createQuery(
             "select a from Account a where a.email = 'john.doe@example.com'",
             Account::class.java
         ).singleResult
+
         val request = CreateInterviewRequest(
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            john.id!!,
-            "john.doe@example.com"
+            mentorAccRepo.findAll().first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
+            john.email
         )
         mockMvc.perform(
             MockMvcRequestBuilders.post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
@@ -152,6 +156,18 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.jobSeekerEmail").value("john.doe@example.com"))
             .andExpect(jsonPath("$.interviewId").exists())
             .andExpect(jsonPath("$.interviewId").isNumber)
+
+        verify(
+            mailService,
+            times(1)
+        ).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.captureNonNullable())
+
+        val interview = interviewCaptor.value
+        assertThat(interview.id).isNotNull()
+        assertThat(interview.jobSeekerAccount?.email).isEqualTo("john.doe@example.com")
+        assertThat(interview.mentorAccount?.email).isEqualTo("john.smith@example.com")
+        assertThat(interview.jobPosition?.title).isEqualTo("Test Job")
+        assertThat(interview.interviewType?.name).isEqualTo("Test Interview Type")
     }
 
     @Test
@@ -172,8 +188,7 @@ class InterviewControllerTestIT {
     @Test
     fun `test with not exist email address result in creating a silent account for job seeker`() {
 
-        Mockito.doNothing().`when`(mailService).sendingInterviewInvitationEmailToJobSeeker(any())
-
+        val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
         val mentorAccount = entityManager.createQuery(
             "select a from Account a where email = 'john.smith@example.com'",
             Account::class.java
@@ -199,6 +214,18 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.jobSeekerEmail").value(request.jobSeekerEmail))
             .andExpect(jsonPath("$.interviewId").exists())
             .andExpect(jsonPath("$.interviewId").isNumber)
+
+        verify(
+            mailService,
+            times(1)
+        ).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.captureNonNullable())
+
+        val interview = interviewCaptor.value
+        assertThat(interview.id).isNotNull()
+        assertThat(interview.jobSeekerAccount?.email).isEqualTo(request.jobSeekerEmail)
+        assertThat(interview.mentorAccount?.email).isEqualTo("john.smith@example.com")
+        assertThat(interview.jobPosition?.title).isEqualTo("Test Job")
+        assertThat(interview.interviewType?.name).isEqualTo("Test Interview Type")
     }
 
     @Test
