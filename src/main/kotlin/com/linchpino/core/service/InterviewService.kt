@@ -63,20 +63,19 @@ class InterviewService(
         return interview.toCreateInterviewResult()
     }
 
-    internal fun populateInterviewObject(
+    fun populateInterviewObject(
         createInterviewRequest: CreateInterviewRequest,
         jobSeekerAcc: Account
     ): Interview {
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
-        val isTimeSlotBooked = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId).status == MentorTimeSlotEnum.ALLOCATED
-        if (isTimeSlotBooked)
+        val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
+        if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
             throw LinchpinException(
                 ErrorCode.TIMESLOT_IS_BOOKED,
                 "this time slot is already booked : ${createInterviewRequest.timeSlotId}"
             )
-        val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
 
         return Interview().apply {
             jobPosition = position
