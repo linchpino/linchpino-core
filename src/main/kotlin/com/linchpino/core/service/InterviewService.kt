@@ -43,8 +43,8 @@ class InterviewService(
             ?: accountRepository.findReferenceById(
                 accountService.createAccount(
                     CreateAccountRequest(
-                        firstName = "",
-                        lastName = "",
+                        firstName = null,
+                        lastName = null,
                         email = request.jobSeekerEmail,
                         password = null,
                         status = AccountStatusEnum.DEACTIVATED,
@@ -70,7 +70,7 @@ class InterviewService(
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
-        val isTimeSlotBooked = interviewRepository.isTimeSlotBooked(createInterviewRequest.timeSlotId)
+        val isTimeSlotBooked = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId).status == MentorTimeSlotEnum.ALLOCATED
         if (isTimeSlotBooked)
             throw LinchpinException(
                 ErrorCode.TIMESLOT_IS_BOOKED,

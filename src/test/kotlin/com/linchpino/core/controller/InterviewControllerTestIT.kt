@@ -16,13 +16,17 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -56,6 +60,9 @@ class InterviewControllerTestIT {
 
     @Autowired
     private lateinit var timeSlotRepo: MentorTimeSlotRepository
+
+    @MockBean
+    private lateinit var mailService: EmailService
 
     @PersistenceContext
     private lateinit var entityManager: EntityManager
@@ -119,6 +126,9 @@ class InterviewControllerTestIT {
 
     @Test
     fun `test with existed email address result in creating a new interview for job seeker`() {
+
+        Mockito.doNothing().`when`(mailService.sendingInterviewInvitationEmailToJobSeeker(any()))
+
         val john = entityManager.createQuery(
             "select a from Account a where a.email = 'john.doe@example.com'",
             Account::class.java
@@ -161,6 +171,9 @@ class InterviewControllerTestIT {
 
     @Test
     fun `test with not exist email address result in creating a silent account for job seeker`() {
+
+        Mockito.doNothing().`when`(mailService).sendingInterviewInvitationEmailToJobSeeker(any())
+
         val mentorAccount = entityManager.createQuery(
             "select a from Account a where email = 'john.smith@example.com'",
             Account::class.java
@@ -183,7 +196,7 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(jsonPath("$.timeSlotId").value(request.timeSlotId))
             .andExpect(jsonPath("$.mentorAccountId").value(request.mentorAccountId))
-            .andExpect(jsonPath("$.jobSeekerEmail").value("mahsa.saeedy@gmail.com"))
+            .andExpect(jsonPath("$.jobSeekerEmail").value(request.jobSeekerEmail))
             .andExpect(jsonPath("$.interviewId").exists())
             .andExpect(jsonPath("$.interviewId").isNumber)
     }

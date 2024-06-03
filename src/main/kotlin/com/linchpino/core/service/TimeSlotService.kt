@@ -34,9 +34,9 @@ class TimeSlotService(
         repository.saveAll(mentorTimeSlots)
     }
 
-    fun updateTimeSlotStatus(timeSlot: MentorTimeSlot, allocated: MentorTimeSlotEnum) {
+    fun updateTimeSlotStatus(timeSlot: MentorTimeSlot, mentorTimeSlotEnum: MentorTimeSlotEnum) {
 
-        timeSlot.status = allocated
+        timeSlot.status = mentorTimeSlotEnum
         mentorTimeSlotRepository.save(timeSlot)
     }
 }

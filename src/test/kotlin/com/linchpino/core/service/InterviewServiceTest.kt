@@ -64,6 +64,12 @@ class InterviewServiceTest {
     @Mock
     private lateinit var accountService: AccountService
 
+    @Mock
+    private lateinit var timeSlotService: TimeSlotService
+
+    @Mock
+    private lateinit var emailService: EmailService
+
     @Test
     fun `test create new interview when account exists`() {
         val jobSeekerAccount = Account().apply {
@@ -77,7 +83,7 @@ class InterviewServiceTest {
         jobSeekerAccount.addRole(jobSeekerRole)
 
         val mentorAcc = Account().apply {
-            id = 1
+            id = 2
             firstName = "Mentor"
             lastName = "Mentoriii"
             email = "Mentor.Mentoriii@example.com"
@@ -108,19 +114,18 @@ class InterviewServiceTest {
         position.addInterviewType(typeInterview)
 
         val createInterviewRequest = CreateInterviewRequest(
-            1, 1, 1, 1, "john.doe@example.com"
+            1, 1, 1, 2, "john.doe@example.com"
         )
         val createInterviewResult = CreateInterviewResult(
-            null, 1, 1, 1, 1, "john.doe@example.com"
+            null, 1, 1, 1, 2, "john.doe@example.com"
         )
 
         val captor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
-        `when`(accountRepository.getReferenceById(1)).thenReturn(mentorAcc)
+        `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(false)
         `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
 
         val result = service.createInterview(createInterviewRequest)
@@ -139,7 +144,7 @@ class InterviewServiceTest {
         val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
 
         val jobSeekerAccount = Account().apply {
-            id = 2
+            id = 1
             firstName = "test"
             lastName = "test"
             email = "test@example.com"
@@ -162,7 +167,7 @@ class InterviewServiceTest {
         }
 
         val position = JobPosition().apply {
-            id = 2
+            id = 1
             title = "Test Job"
         }
 
@@ -176,11 +181,10 @@ class InterviewServiceTest {
             ArgumentCaptor.forClass(CreateAccountRequest::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
-        `when`(accountRepository.getReferenceById(2)).thenReturn(jobSeekerAccount)
+        `when`(accountRepository.getReferenceById(1)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
-        `when`(jobPositionRepository.getReferenceById(2)).thenReturn(position)
+        `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(2)).thenReturn(typeInterview)
-        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(false)
         `when`(mentorTimeSlotRepository.getReferenceById(2)).thenReturn(mentorTimeSlot)
         `when`(
             accountService.createAccount(
@@ -193,7 +197,7 @@ class InterviewServiceTest {
             )
         )
 
-        val createInterviewRequest = CreateInterviewRequest(2, 2, 2, 2, "test@example.com")
+        val createInterviewRequest = CreateInterviewRequest(1, 2, 2, 2, "test@example.com")
         service.createInterview(createInterviewRequest)
 
         verify(interviewRepository, times(1)).save(interviewCaptor.capture())
@@ -257,7 +261,7 @@ class InterviewServiceTest {
         }
 
         val mentorAcc = Account().apply {
-            id = 1
+            id = 2
             firstName = "Mentor"
             lastName = "Mentoriii"
             email = "Mentor.Mentoriii@example.com"
@@ -269,7 +273,7 @@ class InterviewServiceTest {
             account = mentorAcc
             fromTime = ZonedDateTime.now()
             toTime = ZonedDateTime.now()
-            status = MentorTimeSlotEnum.AVAILABLE
+            status = MentorTimeSlotEnum.ALLOCATED
         }
 
         val position = JobPosition().apply {
@@ -284,10 +288,10 @@ class InterviewServiceTest {
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
 
-        `when`(accountRepository.getReferenceById(1)).thenReturn(mentorAcc)
+        `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(interviewRepository.isTimeSlotBooked(mentorTimeSlot.id!!)).thenReturn(true)
+        `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
 
         val exception = Assertions.assertThrows(LinchpinException::class.java) {
             service.populateInterviewObject(createInterviewRequest, jobSeekerAccount)
