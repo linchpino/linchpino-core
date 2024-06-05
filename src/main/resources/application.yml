@@ -2,6 +2,10 @@ spring:
   application:
     name: linchpino-service
 
+  ai:
+    openai:
+      api-key: ${OPEN_AI_API_KEY:api-key}
+
   datasource:
     driverClassName: org.postgresql.Driver
     username: ${POSTGRES_USERNAME:postgres}
