@@ -103,4 +103,33 @@ class EmailServiceTest {
         assertThat(templateNameCaptor.value).isEqualTo(templateName)
     }
 
+    @Test
+    fun `test sending welcome email to the registered mentor`() {
+        // Given
+        val account = Account().apply {
+            firstName = "Mahsa"
+            lastName = "Saeedi"
+            email = "mahsa.saeedy@gmail.com"
+        }
+
+        val templateNameCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val contextCaptor: ArgumentCaptor<Context> = ArgumentCaptor.forClass(Context::class.java)
+
+        val mimeMessage = MimeMessage(Session.getInstance(Properties()))
+        `when`(springTemplateEngine.process(any(String::class.java), any(Context::class.java))).thenReturn("something")
+        `when`(javaMailSender.createMimeMessage()).thenReturn(mimeMessage)
+
+        service.sendingWelcomeEmailToMentor(account.firstName!!, account.lastName!!, account.email)
+
+        verify(springTemplateEngine, times(1)).process(templateNameCaptor.capture(), contextCaptor.capture())
+        verify(javaMailSender, times(1)).createMimeMessage()
+        verify(javaMailSender, times(1)).send(mimeMessage)
+
+        assertThat(templateNameCaptor.value).isEqualTo("mentor-email-template.html")
+        assertThat(contextCaptor.value.variableNames).isEqualTo(
+            setOf(
+                "fullName",
+            )
+        )
+    }
 }

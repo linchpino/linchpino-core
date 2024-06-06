@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.UUID
+import java.util.*
 
 @Service
 @Transactional
@@ -34,7 +34,8 @@ class AccountService(
     private val repository: AccountRepository,
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
-    private val roleRepository: RoleRepository
+    private val roleRepository: RoleRepository,
+    private val emailService: EmailService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -48,7 +49,6 @@ class AccountService(
         )
         return saveAccount(request).toCreateAccountResult()
     }
-
 
     fun findMentorsWithClosestTimeSlotsBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestTimeSlot> {
         val from = date.withZoneSameInstant(ZoneOffset.UTC)
@@ -90,7 +90,14 @@ class AccountService(
             request.detailsOfExpertise,
             request.linkedInUrl
         )
-        return saveAccount(saveAccountRequest).toRegisterMentorResult()
+        val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
+        emailService.sendingWelcomeEmailToMentor(
+            registeredMentor.firstName!!,
+            registeredMentor.lastName!!,
+            registeredMentor.email
+        )
+
+        return registeredMentor
     }
 
     private fun saveAccount(request: SaveAccountRequest): Account {

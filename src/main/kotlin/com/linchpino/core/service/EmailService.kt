@@ -24,6 +24,22 @@ class EmailService(
     @Value("\${mail.from.name}")
     var mailFromName: String? = null
 
+    fun sendingWelcomeEmailToMentor(firstName: String, lastName: String, email: String) {
+        val fullName = "$firstName $lastName"
+
+        val templateContextData = mapOf(
+            "fullName" to fullName,
+        )
+
+        sendEmail(
+            InternetAddress(mailFrom, mailFromName),
+            email,
+            "Welcome to Linchpino: Confirmation of Mentor Registration",
+            "mentor-email-template.html",
+            templateContextData
+        )
+    }
+
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
         val fullName =
             if (interview.jobSeekerAccount?.firstName == null || interview.jobSeekerAccount?.lastName == null) {

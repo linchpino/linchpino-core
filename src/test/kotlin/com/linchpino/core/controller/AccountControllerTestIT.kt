@@ -3,12 +3,14 @@ package com.linchpino.core.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.linchpino.core.PostgresContainerConfig
+import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
@@ -17,14 +19,19 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -45,6 +52,9 @@ class AccountControllerTestIT {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
+
+    @MockBean
+    private lateinit var mailService: EmailService
 
     @Autowired
     private lateinit var accountRepository: AccountRepository
@@ -165,7 +175,13 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with duplicate email results in bad request`() {
         val createAccountRequest =
-            CreateAccountRequest("John", "Doe", "john.doe@example.com", "@password123", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest(
+                "John",
+                "Doe",
+                "john.doe@example.com",
+                "@password123",
+                AccountTypeEnum.JOB_SEEKER.value
+            )
 
         val createAccountRequestWithDuplicateEmail =
             CreateAccountRequest("Jane", "Doe", "john.doe@example.com", "@password123", AccountTypeEnum.MENTOR.value)
@@ -394,7 +410,7 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe"
         )
-        //
+
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -408,6 +424,15 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.interviewTypeIDs").isArray)
             .andExpect(jsonPath("$.detailsOfExpertise").value("Some expertise"))
             .andExpect(jsonPath("$.linkedInUrl").value("https://www.linkedin.com/in/johndoe"))
+
+        verify(
+            mailService,
+            times(1)
+        ).sendingWelcomeEmailToMentor(
+            request.firstName,
+            request.lastName,
+            request.email
+        )
     }
 
     @Test
@@ -466,7 +491,7 @@ class AccountControllerTestIT {
     @Test
     fun `test add timeslots for mentor`() {
         // Given
-        val mentor = entityManager.find(Role::class.java,AccountTypeEnum.MENTOR.value)
+        val mentor = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
 
         val account = Account().apply {
             email = "john.doe@example.com"
@@ -477,8 +502,14 @@ class AccountControllerTestIT {
         val id = accountRepository.save(account).id!!
 
         val timeSlots = listOf(
-            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
-            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-09T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            ),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-10T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-10T13:30:45+03:00")
+            ),
         )
         val request = AddTimeSlotsRequest(id, timeSlots)
 
@@ -495,8 +526,14 @@ class AccountControllerTestIT {
     fun `test add timeslots for mentor fails if there is no mentor with provided id in database`() {
         // Given
         val timeSlots = listOf(
-            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
-            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-09T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            ),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-10T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-10T13:30:45+03:00")
+            ),
         )
         val request = AddTimeSlotsRequest(1000, timeSlots)
 
@@ -513,7 +550,7 @@ class AccountControllerTestIT {
 
     @Test
     fun `test add timeslots for mentor fails if provided account id does not have MENTOR role`() {
-        val jobSeeker =  entityManager.find(Role::class.java,AccountTypeEnum.JOB_SEEKER.value)
+        val jobSeeker = entityManager.find(Role::class.java, AccountTypeEnum.JOB_SEEKER.value)
 
         val account = Account().apply {
             email = "john.doe@example.com"
@@ -524,8 +561,14 @@ class AccountControllerTestIT {
         val id = accountRepository.save(account).id!!
 
         val timeSlots = listOf(
-            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
-            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-09T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            ),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-10T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-10T13:30:45+03:00")
+            ),
         )
         val request = AddTimeSlotsRequest(id, timeSlots)
 
@@ -548,7 +591,7 @@ class AccountControllerTestIT {
             status = accountStatus
             this.externalId = externalId
         }
-        val jobSeekerRole = entityManager.find(Role::class.java,AccountTypeEnum.JOB_SEEKER.value)
+        val jobSeekerRole = entityManager.find(Role::class.java, AccountTypeEnum.JOB_SEEKER.value)
         john.addRole(jobSeekerRole)
         accountRepository.save(john)
     }
@@ -568,7 +611,7 @@ class AccountControllerTestIT {
         john.addInterviewType(InterviewType().apply {
             this.name = "Backend Engineering"
         })
-        val mentorRole = entityManager.find(Role::class.java,AccountTypeEnum.MENTOR.value)
+        val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
         john.addRole(mentorRole)
         accountRepository.save(john)
 
