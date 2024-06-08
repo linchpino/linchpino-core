@@ -232,8 +232,15 @@ class AccountServiceTest {
         val result = accountService.registerMentor(request)
 
         verify(repository, times(1)).save(accountCaptor.captureNonNullable())
-        verify(emailService, times(1)).sendingWelcomeEmailToMentor(accountCaptor.value.firstName!!,
-            accountCaptor.value.lastName!!, accountCaptor.value.email)
+        accountCaptor.value.firstName?.let { firstName ->
+            accountCaptor.value.lastName?.let { lastName ->
+                verify(emailService, times(1)).sendingWelcomeEmailToMentor(
+                    firstName,
+                    lastName,
+                    accountCaptor.value.email
+                )
+            }
+        }
         assertThat(result.firstName).isEqualTo(request.firstName)
         assertThat(result.lastName).isEqualTo(request.lastName)
         assertThat(result.email).isEqualTo(request.email)

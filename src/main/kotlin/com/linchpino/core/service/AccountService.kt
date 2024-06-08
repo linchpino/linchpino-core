@@ -91,11 +91,15 @@ class AccountService(
             request.linkedInUrl
         )
         val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
-        emailService.sendingWelcomeEmailToMentor(
-            registeredMentor.firstName!!,
-            registeredMentor.lastName!!,
-            registeredMentor.email
-        )
+        registeredMentor.firstName?.let { firstName ->
+            registeredMentor.lastName?.let { lastName ->
+                emailService.sendingWelcomeEmailToMentor(
+                    firstName,
+                    lastName,
+                    registeredMentor.email
+                )
+            }
+        }
 
         return registeredMentor
     }

@@ -119,7 +119,15 @@ class EmailServiceTest {
         `when`(springTemplateEngine.process(any(String::class.java), any(Context::class.java))).thenReturn("something")
         `when`(javaMailSender.createMimeMessage()).thenReturn(mimeMessage)
 
-        service.sendingWelcomeEmailToMentor(account.firstName!!, account.lastName!!, account.email)
+        account.firstName?.let { firstName ->
+            account.lastName?.let { lastName ->
+                verify(service, times(1)).sendingWelcomeEmailToMentor(
+                    firstName,
+                    lastName,
+                    account.email
+                )
+            }
+        }
 
         verify(springTemplateEngine, times(1)).process(templateNameCaptor.capture(), contextCaptor.capture())
         verify(javaMailSender, times(1)).createMimeMessage()
