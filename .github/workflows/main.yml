@@ -106,7 +106,6 @@ jobs:
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
-            sudo sed -i 's/$MEET_CREDENTIAL_JSON/'"${{ secrets.MEET_CREDENTIAL_JSON }}"'/g' docker-compose.yml
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
