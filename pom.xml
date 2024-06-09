@@ -21,7 +21,7 @@
         <kotlin.version>1.9.22</kotlin.version>
         <openAPI.version>2.3.0</openAPI.version>
         <postgres.version>42.7.2</postgres.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
     </properties>
 
     <dependencies>
@@ -58,7 +58,6 @@
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
-
         <!-- Database -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -78,7 +77,6 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
         </dependency>
-
 
         <!-- Test -->
         <dependency>
@@ -113,6 +111,15 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Email -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
 
         <!-- Utility -->
         <dependency>
@@ -123,6 +130,7 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+
         <!-- security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -131,6 +139,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- AI -->
+        <dependency>
+            <groupId>org.springframework.experimental.ai</groupId>
+            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <version>0.7.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -150,6 +165,24 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
 
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>

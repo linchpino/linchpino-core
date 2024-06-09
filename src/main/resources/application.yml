@@ -2,6 +2,10 @@ spring:
   application:
     name: linchpino-service
 
+  ai:
+    openai:
+      api-key: ${OPEN_AI_API_KEY:api-key}
+
   datasource:
     driverClassName: org.postgresql.Driver
     username: ${POSTGRES_USERNAME:postgres}
@@ -17,6 +21,21 @@ spring:
         jdbc:
           time_zone: UTC
         format_sql: true
+  mail:
+    host: ${MAIL_SERVER_URL:smtp.gmail.com}
+    port: 587
+    username: ${MAIL_USERNAME:linchpino@linchpino.com}
+    password: ${MAIL_PASSWORD:Password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          from: no-reply@linchpino.com
+mail.from.name: Linchpino
+
 management:
   server:
     port: 8081
@@ -45,6 +64,9 @@ linkedin:
 
 password:
   policyRegex: "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
+
+application:
+  url:  ${APPLICATION_URL:https://linchpino.liara.run}
 
 meet:
   credential: ${MEET_CREDENTIAL_PATH:pathtofile}

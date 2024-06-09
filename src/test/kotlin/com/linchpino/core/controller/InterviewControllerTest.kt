@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -24,7 +23,6 @@ import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewControllerTest {
-
     @InjectMocks
     private lateinit var controller: InterviewController
 
@@ -33,7 +31,6 @@ class InterviewControllerTest {
 
     @Test
     fun `test create new interview`() {
-        // Given
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
         val expectedResponse = CreateInterviewResult(
             1,
@@ -46,10 +43,8 @@ class InterviewControllerTest {
 
         `when`(service.createInterview(createInterviewRequest)).thenReturn(expectedResponse)
 
-        // When
         val result = controller.newInterview(createInterviewRequest)
 
-        // Then
         assertThat(result.statusCode).isEqualTo(HttpStatus.CREATED)
         assertThat(result.body).isEqualTo(expectedResponse)
     }

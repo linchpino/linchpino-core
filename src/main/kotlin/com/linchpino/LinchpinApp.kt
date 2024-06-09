@@ -1,4 +1,4 @@
-package com.linchpino.core
+package com.linchpino
 
 import com.linchpino.core.security.RSAKeys
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
