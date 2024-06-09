@@ -12,10 +12,10 @@ import java.util.UUID
 @Import(PostgresContainerConfig::class)
 class EmailServiceTestIT {
     @Autowired
-    private lateinit var emailService  : EmailService
+    private lateinit var emailService: EmailService
 
     @Test
-    fun `test generate template with active account`() {
+    fun `test generate jobseeker's template with active account`() {
         val templateName = "jobseeker-email-template"
         val jobSeekerExternalId = UUID.randomUUID().toString()
         val model = mapOf(
@@ -50,7 +50,7 @@ class EmailServiceTestIT {
     }
 
     @Test
-    fun `test generate template when account deactivate`() {
+    fun `test generate jobseeker's template when account deactivate`() {
         val templateName = "jobseeker-email-template"
         val jobSeekerExternalId = UUID.randomUUID().toString()
         val model = mapOf(
@@ -79,6 +79,63 @@ class EmailServiceTestIT {
     </div>
     <p>If you have any questions or need further assistance, please don't hesitate to reach out to us
         mailto:support@linchpino.com.</p>
+    <p>Best Regards,</p>
+    <p>Linchpino Team</p>
+</div>
+"""
+
+        val generatedTemplate = emailService.generateTemplate(model, templateName)
+
+        assertThat(generatedTemplate.replace("\n", "").replace("\r", ""))
+            .isEqualTo(expectedHtmlContent.replace("\n", "").replace("\r", ""))
+    }
+
+    @Test
+    fun `test generate mentor's template`() {
+        val templateName = "mentor-email-template"
+        val model = mapOf(
+            "fullName" to "Mentor",
+        )
+
+        val expectedHtmlContent = """<div>
+    <p>Dear <b>${model["fullName"]}</b>,</p>
+    <p>Thank you for registering as a mentor on Linchpino! We're glad to have you join our community of mentors
+        dedicated to empowering and guiding individuals towards their goals.</p>
+    <div>
+        <div>Your registration has been successfully processed, and you are now ready to offer your expertise and
+            support
+            to those seeking mentorship.
+            As a mentor on our platform, you have the flexibility to offer your services in three different forms:
+        </div>
+        <ul>
+            <li>
+                <strong>Free of Charge:</strong> You can choose to provide your mentorship services free of charge,
+                offering guidance and support to individuals who may benefit from your knowledge without any financial
+                commitment.
+            </li>
+            <li>
+                <strong>Fixed Price:</strong> Set a fixed price for your mentorship services, allowing mentees to
+                engage
+                with you at a rate that reflects the value of your expertise and time.
+            </li>
+            <li>
+                <strong>Pay What You Want:</strong> Provide the option for mentees to pay as much as they want for
+                your
+                mentorship services, giving them the freedom to contribute an amount that they feel is fair and
+                reflective of the value they receive.
+            </li>
+        </ul>
+    </div>
+    <p>We believe that offering these diverse options will enable you to connect with a wide range of mentees and make
+        a meaningful impact in their lives.</p>
+    <p>Please take a moment to review your mentor profile and ensure that all the information is accurate and up to
+        date.
+        If you have any questions or need assistance, feel free to reach out to our support team at
+        mailto:support@linchpino.com.
+    </p>
+    <p>Once again, thank you for choosing to be a part of our mentorship community. We look forward to seeing the
+        positive impact you will make as a mentor!
+    </p>
     <p>Best Regards,</p>
     <p>Linchpino Team</p>
 </div>
