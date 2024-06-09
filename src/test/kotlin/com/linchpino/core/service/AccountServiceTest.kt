@@ -50,6 +50,9 @@ class AccountServiceTest {
     @InjectMocks
     private lateinit var accountService: AccountService
 
+    @Mock
+    private lateinit var emailService: EmailService
+
     @Test
     fun `test creating account`() {
         // Given
@@ -73,12 +76,11 @@ class AccountServiceTest {
         val captor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
         doAnswer {
-            val a:Account = captor.value
+            val a: Account = captor.value
             a.id = 1
             a
         }.`when`(repository).save(captor.capture())
         `when`(passwordEncoder.encode(createAccountRequest.password)).thenReturn("encodedPassword")
-//        `when`(roleRepository.getReferenceById(createAccountRequest.type)).thenReturn(jobSeekerRole)
         `when`(roleRepository.findAll()).thenReturn(listOf(jobSeekerRole))
 
         // When
@@ -230,6 +232,15 @@ class AccountServiceTest {
         val result = accountService.registerMentor(request)
 
         verify(repository, times(1)).save(accountCaptor.captureNonNullable())
+        accountCaptor.value.firstName?.let { firstName ->
+            accountCaptor.value.lastName?.let { lastName ->
+                verify(emailService, times(1)).sendingWelcomeEmailToMentor(
+                    firstName,
+                    lastName,
+                    accountCaptor.value.email
+                )
+            }
+        }
         assertThat(result.firstName).isEqualTo(request.firstName)
         assertThat(result.lastName).isEqualTo(request.lastName)
         assertThat(result.email).isEqualTo(request.email)

@@ -129,7 +129,6 @@ class InterviewControllerTestIT {
 
     @Test
     fun `test with existed email address result in creating a new interview for job seeker`() {
-
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
         val john = entityManager.createQuery(
@@ -187,8 +186,8 @@ class InterviewControllerTestIT {
 
     @Test
     fun `test with not exist email address result in creating a silent account for job seeker`() {
-
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val mentorAccount = entityManager.createQuery(
             "select a from Account a where email = 'john.smith@example.com'",
             Account::class.java
@@ -491,7 +490,7 @@ class InterviewControllerTestIT {
 
         entityManager.persist(interview1)
         entityManager.persist(interview2)
-        var interviews = listOf(interview1, interview2)
+        val interviews = listOf(interview1, interview2)
 
         // When & Then
         mockMvc.perform(

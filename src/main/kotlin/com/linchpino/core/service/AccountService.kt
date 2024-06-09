@@ -34,7 +34,8 @@ class AccountService(
     private val repository: AccountRepository,
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
-    private val roleRepository: RoleRepository
+    private val roleRepository: RoleRepository,
+    private val emailService: EmailService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -48,7 +49,6 @@ class AccountService(
         )
         return saveAccount(request).toCreateAccountResult()
     }
-
 
     fun findMentorsWithClosestTimeSlotsBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestTimeSlot> {
         val from = date.withZoneSameInstant(ZoneOffset.UTC)
@@ -90,7 +90,18 @@ class AccountService(
             request.detailsOfExpertise,
             request.linkedInUrl
         )
-        return saveAccount(saveAccountRequest).toRegisterMentorResult()
+        val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
+        registeredMentor.firstName?.let { firstName ->
+            registeredMentor.lastName?.let { lastName ->
+                emailService.sendingWelcomeEmailToMentor(
+                    firstName,
+                    lastName,
+                    registeredMentor.email
+                )
+            }
+        }
+
+        return registeredMentor
     }
 
     private fun saveAccount(request: SaveAccountRequest): Account {
