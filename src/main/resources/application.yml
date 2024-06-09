@@ -63,7 +63,7 @@ linkedin:
   secret: ${LINKEDIN_CLIENT_SECRET:fake_client_secret}
 
 password:
-  policyRegex: "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
+  policyRegex: "^[A-Za-z\\d@$!%*?&]{6,}$"
 
 application:
   url:  ${APPLICATION_URL:https://linchpino.liara.run}

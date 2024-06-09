@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -129,7 +129,7 @@ class AccountControllerTestIT {
     @Test
     fun `test creating account with a password that does not match password policy results in bad request`() {
         val invalidRequest =
-            CreateAccountRequest("John", "Doe", "john.doe@example.com", "secret", AccountTypeEnum.JOB_SEEKER.value)
+            CreateAccountRequest("John", "Doe", "john.doe@example.com", "secre", AccountTypeEnum.JOB_SEEKER.value)
 
         mockMvc.perform(
             post("/api/accounts")
@@ -140,7 +140,7 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("password"))
-            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Password must be at least 6 character containing alpha-numeric and special characters)"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("Password must be at least 6 character containing alpha-numeric and special characters"))
     }
 
     @Test

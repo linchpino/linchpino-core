@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
 @MustBeDocumented
 @Constraint(validatedBy = [PasswordValidator::class])
 annotation class PasswordPolicy(
-    val message: String = "Password must be at least 6 character containing alpha-numeric and special characters)",
+    val message: String = "Password must be at least 6 character containing alpha-numeric and special characters",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )
