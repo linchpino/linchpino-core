@@ -7,17 +7,17 @@ import com.google.auth.oauth2.ServiceAccountCredentials
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
+import java.io.ByteArrayInputStream
 import java.io.IOException
 
 @Service
 class SpaceServiceProvider(
     @Value("\${meet.credential}")
-    private val meetCredential: Resource
+    private val meetCredential: String
 ) {
     fun spaceServiceClient(): SpacesServiceClient {
-        val credentials = ServiceAccountCredentials.fromStream(meetCredential.inputStream)
+        val credentials = ServiceAccountCredentials.fromStream(ByteArrayInputStream(meetCredential.toByteArray()))
             .createScoped("https://www.googleapis.com/auth/meetings.space.created")
             .createDelegated("linchpino@linchpino.com")
 

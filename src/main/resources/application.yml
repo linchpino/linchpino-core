@@ -69,5 +69,5 @@ application:
   url:  ${APPLICATION_URL:https://linchpino.liara.run}
 
 meet:
-  credential: ${MEET_CREDENTIAL_PATH:pathtofile}
+  credential: ${MEET_CREDENTIAL_JSON:jsonContent}
 
