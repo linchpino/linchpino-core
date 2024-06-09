@@ -148,6 +148,21 @@
             <version>0.7.1-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-meet</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>1.19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.oauth-client</groupId>
+            <artifactId>google-oauth-client-jetty</artifactId>
+            <version>1.34.1</version>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -253,6 +268,7 @@
                             <excludes>
                                 <exclude>com/linchpino/core/security/SecurityConfig*</exclude>
                                 <exclude>com/linchpino/core/exception/*</exclude>
+                                <exclude>com/linchpino/core/service/SpaceServiceProvider*</exclude>
                             </excludes>
                         </configuration>
                     </execution>

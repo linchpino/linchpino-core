@@ -1,5 +1,6 @@
 package com.linchpino.core.entity
 
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.JoinColumn
@@ -28,4 +29,7 @@ class Interview : AbstractEntity() {
     @JoinColumn(name = "JOB_SEEKER_ACCOUNT_ID", referencedColumnName = "ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     var jobSeekerAccount: Account? = null
+
+    @Column(name = "MEET_CODE")
+    var meetCode:String? = null
 }

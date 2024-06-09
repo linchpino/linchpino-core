@@ -18,6 +18,7 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
+import com.linchpino.core.service.MeetService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -69,6 +70,9 @@ class InterviewControllerTestIT {
 
     @PersistenceContext
     private lateinit var entityManager: EntityManager
+
+    @MockBean
+    private lateinit var meetService: MeetService
 
     @BeforeEach
     fun init() {
@@ -296,6 +300,7 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[1].jobSeekerAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[1].jobSeekerAccount?.firstName} ${interviews[1].jobSeekerAccount?.lastName}"))
             .andExpect(jsonPath("$.content[0].interviewType").value(interviews[1].interviewType?.name))
+
     }
 
     @Test
@@ -364,6 +369,7 @@ class InterviewControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content").isArray)
             .andExpect(jsonPath("$.content").isEmpty)
+
     }
 
     @Test
@@ -610,6 +616,7 @@ class InterviewControllerTestIT {
             toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
             status = MentorTimeSlotEnum.ALLOCATED
         }
+
 
         timeSlotRepo.save(mentorTimeSlot1)
         timeSlotRepo.save(mentorTimeSlot2)

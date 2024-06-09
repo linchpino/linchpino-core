@@ -36,6 +36,7 @@ class InterviewService(
     private val accountService: AccountService,
     private val timeSlotService: TimeSlotService,
     private val emailService: EmailService,
+    private val meetService: MeetService
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
@@ -71,6 +72,7 @@ class InterviewService(
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
+        val googleMeetCode = meetService.createGoogleWorkSpace()
         if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
             throw LinchpinException(
                 ErrorCode.TIMESLOT_IS_BOOKED,
@@ -83,6 +85,7 @@ class InterviewService(
             timeSlot = mentorTimeSlot
             mentorAccount = mentorAcc
             jobSeekerAccount = jobSeekerAcc
+            meetCode = googleMeetCode
         }
     }
 

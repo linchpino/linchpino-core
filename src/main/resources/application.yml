@@ -67,3 +67,10 @@ password:
 
 application:
   url:  ${APPLICATION_URL:https://linchpino.liara.run}
+
+meet:
+    privateKeyId: ${MEET_PRIVATE_KEY_ID:privatekeyid}
+    privateKey: ${MEET_PRIVATE_KEY:privatekey}
+    clientEmail: ${MEET_CLIENT_EMAIL:email}
+    clientId: ${MEET_CLIENT_ID:id}
+

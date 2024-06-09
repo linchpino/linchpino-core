@@ -70,6 +70,8 @@ class InterviewServiceTest {
 
     @Mock
     private lateinit var emailService: EmailService
+    @Mock
+    private lateinit var meetService: MeetService
 
     @Test
     fun `test create new interview when account exists`() {
@@ -131,6 +133,7 @@ class InterviewServiceTest {
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
         `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
+        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
 
         val result = service.createInterview(createInterviewRequest)
 
@@ -142,6 +145,7 @@ class InterviewServiceTest {
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
 
         assertEquals(createInterviewResult, result)
+        verify(meetService, times(1)).createGoogleWorkSpace()
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
@@ -149,6 +153,7 @@ class InterviewServiceTest {
 
         assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
+        assertThat(savedInterview.meetCode).isEqualTo("fake-meet-code")
     }
 
     @Test
@@ -221,9 +226,11 @@ class InterviewServiceTest {
                 listOf()
             )
         )
+        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
 
         service.createInterview(createInterviewRequest)
 
+        verify(meetService, times(1)).createGoogleWorkSpace()
         verify(interviewRepository, times(1)).save(interviewCaptor.capture())
         verify(timeSlotService, times(1)).updateTimeSlotStatus(
             timeSlotCaptor.captureNonNullable(),
@@ -241,6 +248,7 @@ class InterviewServiceTest {
         assertThat(interview.mentorAccount).isEqualTo(mentorAccount)
         assertThat(interview.timeSlot).isEqualTo(mentorTimeSlot)
         assertThat(interview.jobPosition).isEqualTo(position)
+        assertThat(interview.meetCode).isEqualTo("fake-meet-code")
 
         assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
@@ -343,7 +351,7 @@ class InterviewServiceTest {
     }
 
     @Test
-    fun `test past interviews`() {
+    fun `test past interviews`(){
         // Given
         val expected = PageImpl(
             mutableListOf(
