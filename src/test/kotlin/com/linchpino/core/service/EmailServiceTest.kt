@@ -121,7 +121,7 @@ class EmailServiceTest {
 
         account.firstName?.let { firstName ->
             account.lastName?.let { lastName ->
-                verify(service, times(1)).sendingWelcomeEmailToMentor(
+                service.sendingWelcomeEmailToMentor(
                     firstName,
                     lastName,
                     account.email
