@@ -249,30 +249,30 @@
                 </executions>
             </plugin>
             <plugin>
-               <groupId>org.jacoco</groupId>
-               <artifactId>jacoco-maven-plugin</artifactId>
-               <version>0.8.11</version>
-               <executions>
-                   <execution>
-                       <id>prepare-agent</id>
-                       <goals>
-                           <goal>prepare-agent</goal>
-                       </goals>
-                   </execution>
-                   <execution>
-                       <id>report</id>
-                       <goals>
-                           <goal>report</goal>
-                       </goals>
-                       <configuration>
-                           <excludes>
-                               <exclude>com/linchpino/core/security/SecurityConfig*</exclude>
-                               <exclude>com/linchpino/core/exception/*</exclude>
-                               <exclude>com/linchpino/core/service/SpaceServiceProvider*</exclude>
-                           </excludes>
-                       </configuration>
-                   </execution>
-               </executions>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>com/linchpino/core/security/SecurityConfig*</exclude>
+                                <exclude>com/linchpino/core/exception/*</exclude>
+                                <exclude>com/linchpino/core/service/SpaceServiceProvider*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
            </plugin>
            <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
