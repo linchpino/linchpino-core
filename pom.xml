@@ -235,6 +235,7 @@
                            <excludes>
                                <exclude>com/linchpino/core/security/SecurityConfig*</exclude>
                                <exclude>com/linchpino/core/exception/*</exclude>
+                               <exclude>com/linchpino/core/service/SpaceServiceProvider*</exclude>
                            </excludes>
                        </configuration>
                    </execution>

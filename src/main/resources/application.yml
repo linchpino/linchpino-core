@@ -46,3 +46,6 @@ linkedin:
 password:
   policyRegex: "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$"
 
+meet:
+  credential: ${MEET_CREDENTIAL_PATH:pathtofile}
+

@@ -30,7 +30,8 @@ class InterviewService(
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val mentorTimeSlotRepository: MentorTimeSlotRepository,
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val meetService: MeetService
 ) {
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
@@ -55,13 +56,14 @@ class InterviewService(
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
-
+        val googleMeetCode = meetService.createGoogleWorkSpace()
         return Interview().apply {
             jobPosition = position
             interviewType = typeInterview
             timeSlot = mentorTimeSlot
             mentorAccount = mentorAcc
             jobSeekerAccount = jobSeekerAcc
+            meetCode = googleMeetCode
         }
     }
 

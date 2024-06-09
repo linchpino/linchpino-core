@@ -20,14 +20,11 @@ import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
-import com.linchpino.core.repository.RoleRepository
-import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.times
@@ -64,8 +61,8 @@ class InterviewServiceTest {
     @Mock
     private lateinit var accountService: AccountService
 
-//    @Mock
-//    private lateinit var roleRepository: RoleRepository
+    @Mock
+    private lateinit var meetService: MeetService
 
     @Test
     fun `test create new interview when account exists`() {
@@ -116,6 +113,7 @@ class InterviewServiceTest {
         `when`(jobPositionRepo.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepo.getReferenceById(1)).thenReturn(typeInterview)
         `when`(timeSlotRepo.getReferenceById(1)).thenReturn(mentorTimeSlot)
+        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
 
         // When
         val result = service.createInterview(createInterviewRequest)
@@ -123,10 +121,12 @@ class InterviewServiceTest {
         // Then
         assertEquals(createInterviewResult, result)
         verify(interviewRepo, times(1)).save(captor.capture())
+        verify(meetService, times(1)).createGoogleWorkSpace()
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
         assertEquals(AccountStatusEnum.ACTIVATED, savedInterview.jobSeekerAccount?.status)
+        assertThat(savedInterview.meetCode).isEqualTo("fake-meet-code")
     }
 
     @Test
@@ -182,11 +182,13 @@ class InterviewServiceTest {
                 listOf()
             )
         )
+        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
 
         val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "test@example.com")
         service.createInterview(createInterviewRequest)
 
         verify(interviewRepo, times(1)).save(interviewCaptor.capture())
+        verify(meetService, times(1)).createGoogleWorkSpace()
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -198,6 +200,7 @@ class InterviewServiceTest {
         assertThat(interview.mentorAccount).isEqualTo(mentorAcc)
         assertThat(interview.timeSlot).isEqualTo(mentorTimeSlot)
         assertThat(interview.jobPosition).isEqualTo(position)
+        assertThat(interview.meetCode).isEqualTo("fake-meet-code")
     }
 
     @Test
