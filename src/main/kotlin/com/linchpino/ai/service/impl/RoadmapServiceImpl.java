@@ -94,6 +94,8 @@ public class RoadmapServiceImpl implements RoadmapService {
 
     private String callGemini(String prompt) {
         String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
+
+        System.out.println("Gemini api call url is : " + url);
         // Set the headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
