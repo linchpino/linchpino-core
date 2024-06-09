@@ -1,5 +1,7 @@
 package com.linchpino.ai.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.linchpino.ai.service.RoadmapService;
 import org.springframework.ai.client.AiClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Service
 public class RoadmapServiceImpl implements RoadmapService {
@@ -46,12 +50,16 @@ public class RoadmapServiceImpl implements RoadmapService {
                 ]
             }
         }
+        provide me response in json without any other information
         """;
 
     @Value("${spring.ai.gemini.api-key}")
     private String geminiApiKey;
 
     private final AiClient aiClient;
+
+    // Create a new RestTemplate instance
+    RestTemplate restTemplate = new RestTemplate();
 
     public RoadmapServiceImpl(AiClient aiClient) {
         this.aiClient = aiClient;
@@ -105,11 +113,34 @@ public class RoadmapServiceImpl implements RoadmapService {
         // Create the request entity
         HttpEntity<String> requestEntity = new HttpEntity<>(contentsJson.toString(), headers);
 
-        // Create a new RestTemplate instance
-        RestTemplate restTemplate = new RestTemplate();
-
         // Make the POST request
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-        return response.getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonData data;
+        try {
+            data = mapper.readValue(response.getBody(), JsonData.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return data.candidates().get(0).content().parts().get(0).text();
     }
+
+    public record Part(String text) {
+    }
+
+    public record Content(List<Part> parts, String role) {
+    }
+
+    public record SafetyRating(String category, String probability) {
+    }
+
+    public record Candidate(Content content, String finishReason, int index, List<SafetyRating> safetyRatings) {
+    }
+
+    public record UsageMetadata(int promptTokenCount, int candidatesTokenCount, int totalTokenCount) {
+    }
+
+    public record JsonData(List<Candidate> candidates, UsageMetadata usageMetadata) {
+    }
+
 }
