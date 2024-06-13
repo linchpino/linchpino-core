@@ -92,6 +92,7 @@ jobs:
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars
             cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars > /opt/actions-runner/.env
+            source /opt/actions-runner/.env
             cd ${{ secrets.WORK_DIR }}
             sudo git fetch --all
             sudo git reset --hard
