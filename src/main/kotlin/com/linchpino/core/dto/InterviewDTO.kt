@@ -38,3 +38,10 @@ fun Interview.toCreateInterviewResult(): CreateInterviewResult = CreateInterview
     mentorAccount?.id,
     jobSeekerAccount?.email,
 )
+
+data class InterviewValidityResponse(
+    val interviewDateTimeStart: ZonedDateTime?,
+    val interviewDateTimeEnd: ZonedDateTime?,
+    val verifyStatus: Boolean,
+    val link: String?
+)
