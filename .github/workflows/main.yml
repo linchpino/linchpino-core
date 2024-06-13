@@ -85,10 +85,13 @@ jobs:
           env:
             PR_NUMBER: ${{ github.event.number }}
             ALLMYSECRETS: ${{ toJson(secrets) }}
+            ALLMYVARS: ${{ toJSON(vars) }}
           run: |
-            echo $ALLMYSECRETS > /opt/.linchpino-core-secrets
+            echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
+            echo $ALLMYVARS > /opt/.linchpino-core-vars
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets
-            cp /opt/.linchpino-core-secrets /opt/actions-runner/.env
+            sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars
+            cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars > /opt/actions-runner/.env
             cd ${{ secrets.WORK_DIR }}
             sudo git fetch --all
             sudo git reset --hard
