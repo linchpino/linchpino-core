@@ -19,7 +19,10 @@ services:
        -DMEET_CLIENT_EMAIL=$MEET_CLIENT_EMAIL \
        -DMEET_CLIENT_ID=$MEET_CLIENT_ID \
        -DOPEN_AI_API_KEY=$OPEN_AI_API_KEY'"
-
+    env_file: 
+      - ./.env
+    volumes:
+      - ./.env:/app/.env
   postgres:
     image: postgres
     container_name: linchpino-db
