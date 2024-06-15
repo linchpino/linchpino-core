@@ -84,7 +84,15 @@ jobs:
         - name: Connect to linchpino-core on GCP instance
           env:
             PR_NUMBER: ${{ github.event.number }}
+            ALLMYSECRETS: ${{ toJson(secrets) }}
+            ALLMYVARS: ${{ toJSON(vars) }}
           run: |
+            echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
+            echo $ALLMYVARS > /opt/.linchpino-core-vars
+            sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets && sudo sed -i "s/^ //g" /opt/.linchpino-core-secrets 
+            sudo  sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars && sudo sed -i "s/^ //g" /opt/.linchpino-core-vars 
+            sudo echo "LANG=C.UTF-8" > /opt/actions-runner/.env && cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars >> /opt/actions-runner/.env
+            source /opt/actions-runner/.env
             cd ${{ secrets.WORK_DIR }}
             sudo git fetch --all
             sudo git reset --hard
