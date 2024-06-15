@@ -23,6 +23,7 @@ services:
       - ./.env
     volumes:
       - ./.env:/app/.env
+      - ./certkeys:/app/certkeys
   postgres:
     image: postgres
     container_name: linchpino-db
