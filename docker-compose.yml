@@ -15,11 +15,11 @@ services:
        -DPOSTGRES_URL=$POSTGRES_URL \
        -DMAIL_PASSWORD=$MAIL_PASSWORD \
        -DMEET_PRIVATE_KEY_ID=$MEET_PRIVATE_KEY_ID \
-       -DMEET_PRIVATE_KEY=$MEET_PRIVATE_KEY \
+       -DMEET_PRIVATE_KEY=\"$MEET_PRIVATE_KEY\" \
        -DMEET_CLIENT_EMAIL=$MEET_CLIENT_EMAIL \
        -DMEET_CLIENT_ID=$MEET_CLIENT_ID \
        -DOPEN_AI_API_KEY=$OPEN_AI_API_KEY'"
-    env_file: 
+    env_file:
       - ./.env
     volumes:
       - ./.env:/app/.env
