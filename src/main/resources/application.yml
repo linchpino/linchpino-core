@@ -49,8 +49,8 @@ management:
     metrics:
       enabled: true
 rsa:
-  private-key: ${PRIVATE_KEY:classpath:certs/private.pem}
-  public-key: ${PUBLIC_KEY:classpath:certs/public.pem}
+  private-key: ${PRIVATE_KEY:classpath:/app/src/main/resources/certs/private.pem}
+  public-key: ${PUBLIC_KEY:classpath:/app/src/main/resources/certs/public.pem}
 
 logging:
   level:
