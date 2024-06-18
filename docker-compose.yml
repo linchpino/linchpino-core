@@ -24,6 +24,7 @@ services:
     volumes:
       - ./.env:/app/.env
       - ./certkeys:/app/certkeys
+      - ./ardent-window.json:/app/ardent-window.json
   postgres:
     image: postgres
     container_name: linchpino-db
