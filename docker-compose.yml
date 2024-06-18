@@ -25,7 +25,7 @@ services:
       - ./.env:/app/.env
       - ./certkeys:/app/certkeys
   postgres:
-    image: linchpino-core-db
+    image: postgres
     container_name: linchpino-db
     restart: unless-stopped
     ports:
