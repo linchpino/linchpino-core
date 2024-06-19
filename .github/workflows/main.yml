@@ -29,7 +29,6 @@ jobs:
             sudo  sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars && sudo sed -i "s/^ //g" /opt/.linchpino-core-vars 
             sudo echo "LANG=C.UTF-8" > /opt/actions-runner/.env && cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars >> /opt/actions-runner/.env
             cd ${{ secrets.WORK_DIR }}
-            cat /opt/actions-runner/.env > .env
             sudo git fetch --all
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
@@ -51,6 +50,7 @@ jobs:
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
+            cat /opt/actions-runner/.env > .env
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
