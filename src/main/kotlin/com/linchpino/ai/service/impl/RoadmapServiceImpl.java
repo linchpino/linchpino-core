@@ -99,7 +99,7 @@ public class RoadmapServiceImpl implements RoadmapService {
             partsJson.put("parts", new JSONArray().put(textJson));
             contentsJson.put("contents", new JSONArray().put(partsJson));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         // Create the request entity
