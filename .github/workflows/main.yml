@@ -39,7 +39,7 @@ jobs:
             sudo git checkout origin/development --  docker-compose.yml
             echo "the current branch is : " $currentBranch
             else
-            currentBranch="echo ${GITHUB_REF_NAME} | sed "s/\//-/g""
+            echo $(echo ${GITHUB_REF_NAME} | sed "s/\//-/g")
             echo "the current branch is : " $currentBranch
             sudo git checkout origin/$currentBranch
             sudo git checkout origin/$currentBranch --  docker-compose.yml
