@@ -41,7 +41,7 @@ jobs:
           echo "outcome":  ${{ steps.sonar-build-status.outcome }}
           echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
           exit 1
-          
+
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
     permissions:
@@ -73,7 +73,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
+
   Deploy-to-linchpino-core-server:
       runs-on: self-hosted
       permissions:
@@ -114,7 +114,7 @@ jobs:
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
-            cat /opt/actions-runner/.env > .env
+	          cat /opt/actions-runner/.env > .env
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
