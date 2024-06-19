@@ -34,7 +34,8 @@ jobs:
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
             echo "GITHUB_REF : "${GITHUB_REF}
-            echo "GITHUB_REF#origin :" ${GITHUB_REF#origin/}
+            echo "GITHUB_REF_NAME :" ${GITHUB_REF_NAME}
+            echo "GITHUB_REF#origin :" ${GITHUB_REF/}
             echo "GITHUB_HEAD_REF :" ${GITHUB_HEAD_REF}
             if [ ${GITHUB_REF##*/} == "merge" ]; then
             currentBranch=pr-$PR_NUMBER
