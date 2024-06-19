@@ -11,43 +11,11 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  Build-and-push-to-GHCR:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@main
-
-      - name: 'Login to GitHub Container Registry'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{github.actor}}
-          password: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
   Deploy-to-linchpino-core-server:
       runs-on: self-hosted
       permissions:
         contents: read
         packages: write
-      needs: Build-and-push-to-GHCR
       steps:
         - name: Connect to linchpino-core on GCP instance
           env:
@@ -65,6 +33,8 @@ jobs:
             sudo git fetch --all
             sudo git reset --hard
             echo "GITHUB_REF : "${GITHUB_REF##*/}
+            echo "GITHUB_REF : "${GITHUB_REF}
+            echi "GITHUB_HEAD_REF :" ${GITHUB_HEAD_REF}
             if [ ${GITHUB_REF##*/} == "merge" ]; then
             currentBranch=pr-$PR_NUMBER
             sudo git checkout origin/development --  docker-compose.yml
