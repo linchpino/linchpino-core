@@ -2,28 +2,22 @@ package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.RoadmapService;
 import com.linchpino.ai.service.domain.Prompt;
-import org.springframework.ai.client.AiClient;
+import org.apache.coyote.BadRequestException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RoadmapServiceImpl implements RoadmapService {
 
-    private final AiClient aiClient;
-    private final GeminiService geminiService;
+    private ApplicationContext applicationContext;
 
-    public RoadmapServiceImpl(AiClient aiClient, GeminiService geminiService) {
-        this.aiClient = aiClient;
-        this.geminiService = geminiService;
+    public AIService loadAIService(AIServiceName serviceName) {
+        return applicationContext.getBean(serviceName.getComponentName(), AIService.class);
     }
 
-    @Override
-    public String getRoadmapViaChatgpt() {
-        return aiClient.generate(Prompt.getDefaultRoadmapPrompt());
-    }
-
-    @Override
-    public String getRoadmapViaGemini() {
-        return geminiService.callGemini(Prompt.getDefaultRoadmapPrompt());
+    public String getRoadmap(String aIServiceProviderName) throws BadRequestException {
+        AIServiceName serviceName = AIServiceName.fromComponentName(aIServiceProviderName).orElseThrow(() -> new BadRequestException("Invalid AI Service Provider Name"));
+        return loadAIService(serviceName).talkToAI(Prompt.getDefaultRoadmapPrompt());
     }
 
 }

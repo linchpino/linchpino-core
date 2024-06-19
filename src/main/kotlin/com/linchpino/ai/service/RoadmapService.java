@@ -1,7 +1,7 @@
 package com.linchpino.ai.service;
 
-public interface RoadmapService {
-    String getRoadmapViaChatgpt();
+import org.apache.coyote.BadRequestException;
 
-    String getRoadmapViaGemini();
+public interface RoadmapService {
+    String getRoadmap(String aIServiceProviderName) throws BadRequestException;
 }

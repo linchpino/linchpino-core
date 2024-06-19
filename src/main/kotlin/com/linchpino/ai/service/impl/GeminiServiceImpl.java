@@ -16,28 +16,35 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
-@Component
-public class GeminiService {
+@Component("gemini")
+public class GeminiServiceImpl implements AIService {
+
+    public static final String COMPONENT_NAME = "gemini";
 
     @Value("${spring.ai.gemini.api-key}")
     private String geminiApiKey;
 
     private final RestTemplate restTemplate;
 
-    public GeminiService() {
+    public GeminiServiceImpl() {
         this.restTemplate = new RestTemplate();
     }
 
-    public String callGemini(String prompt) {
-        String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
-        // Set the headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        // Create the request entity
-        HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(prompt), headers);
-        // Make the POST request
-        ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
-        return response.getBody().candidates().get(0).content().parts().get(0).text();
+    @Override
+    public String talkToAI(String prompt) {
+        try {
+            String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
+            // Set the headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            // Create the request entity
+            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(prompt), headers);
+            // Make the POST request
+            ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
+            return response.getBody().candidates().get(0).content().parts().get(0).text();
+        } catch (Exception e) {
+            throw new LinchpinException(ErrorCode.SERVER_ERROR, "Error in generating response from Gemini AI with error: " + e.getMessage(), e);
+        }
     }
 
     private String getPromptRequest(String prompt) {
