@@ -18,6 +18,7 @@ services:
        -DMEET_PRIVATE_KEY=\"$MEET_PRIVATE_KEY\" \
        -DMEET_CLIENT_EMAIL=$MEET_CLIENT_EMAIL \
        -DMEET_CLIENT_ID=$MEET_CLIENT_ID \
+       -DGEMINI_API_KEY=$GEMINI_API_KEY \
        -DOPEN_AI_API_KEY=$OPEN_AI_API_KEY'"
     env_file:
       - ./.env
