@@ -9,7 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoadmapServiceImpl implements RoadmapService {
 
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
+
+    public RoadmapServiceImpl(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     public AIService loadAIService(AIServiceName serviceName) {
         return applicationContext.getBean(serviceName.getComponentName(), AIService.class);

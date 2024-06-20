@@ -17,7 +17,7 @@ public class RoadmapController {
         this.roadmapService = roadmapService;
     }
 
-    @GetMapping(name ="/me/{serviceName}", produces = "application/json")
+    @GetMapping(path ="/me/{serviceName}", produces = "application/json")
     public String getRoadmapVia(@PathVariable(name = "serviceName") String serviceName) throws BadRequestException {
         return roadmapService.getRoadmap(serviceName);
     }
