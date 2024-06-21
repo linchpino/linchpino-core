@@ -17,10 +17,11 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.service.CalendarService
 import com.linchpino.core.service.EmailService
-import com.linchpino.core.service.MeetService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,7 +41,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZonedDateTime
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -72,7 +72,8 @@ class InterviewControllerTestIT {
     private lateinit var entityManager: EntityManager
 
     @MockBean
-    private lateinit var meetService: MeetService
+    private lateinit var calendarService: CalendarService
+
 
     @BeforeEach
     fun init() {
