@@ -1,3 +1,4 @@
+
 name: Build and Deploy Current Branch to linchpino-core-dev server
 
 on:
@@ -92,21 +93,22 @@ jobs:
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets && sudo sed -i "s/^ //g" /opt/.linchpino-core-secrets 
             sudo  sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars && sudo sed -i "s/^ //g" /opt/.linchpino-core-vars 
             sudo echo "LANG=C.UTF-8" > /opt/actions-runner/.env && cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars >> /opt/actions-runner/.env
-            source /opt/actions-runner/.env
             cd ${{ secrets.WORK_DIR }}
+            cat /opt/actions-runner/.env > .env
             sudo git fetch --all
             sudo git reset --hard
+            echo "GITHUB_REF_NAME :" ${GITHUB_REF_NAME}
             echo "GITHUB_REF : "${GITHUB_REF##*/}
             if [ ${GITHUB_REF##*/} == "merge" ]; then
             currentBranch=pr-$PR_NUMBER
             sudo git checkout origin/development --  docker-compose.yml
             echo "the current branch is : " $currentBranch
             else
-            currentBranch=${GITHUB_REF##*/}
+            currentBranch=$(echo ${GITHUB_REF_NAME} | sed "s/\//-/g")
             echo "the current branch is : " $currentBranch
-            sudo git checkout origin/$currentBranch
-            sudo git checkout origin/$currentBranch --  docker-compose.yml
-            sudo git checkout origin/$currentBranch -- ./initscripts/init.sql
+            sudo git checkout origin/${GITHUB_REF_NAME}
+            sudo git checkout origin/${GITHUB_REF_NAME} --  docker-compose.yml
+            sudo git checkout origin/${GITHUB_REF_NAME} -- ./initscripts/init.sql
             fi
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
             export POSTGRES_DB=$currentBranch
@@ -114,6 +116,7 @@ jobs:
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
+            cat /opt/actions-runner/.env > .env
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
