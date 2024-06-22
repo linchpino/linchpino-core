@@ -4,6 +4,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.dto.InterviewListResponse
+import com.linchpino.core.dto.InterviewValidityResponse
 import com.linchpino.core.dto.toCreateInterviewResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
@@ -22,8 +23,11 @@ import com.linchpino.core.security.email
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 @Service
 @Transactional
@@ -97,6 +101,29 @@ class InterviewService(
     @Transactional(readOnly = true)
     fun pastInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
         return interviewRepository.findPastInterviews(authentication.email(), page)
+    }
+
+    @Transactional(readOnly = true)
+    fun checkValidity(id: Long): InterviewValidityResponse {
+        val start = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC)
+        val end = start.plusMinutes(5)
+        val authentication = SecurityContextHolder.getContextHolderStrategy().context.authentication
+        val email = authentication.email()
+        val interview = interviewRepository.findByInterviewIdAndAccountEmail(id, email) ?: throw LinchpinException(
+            ErrorCode.ENTITY_NOT_FOUND,
+            "interview with $id and time range $start and $end not found",
+            Interview::class.java.simpleName
+        )
+
+        return interview.timeSlot.let {
+            if (it?.fromTime?.isBefore(start) == true || it?.fromTime?.isAfter(end) == true) {
+                InterviewValidityResponse(it.fromTime, it.toTime, false, "")
+            } else {
+                InterviewValidityResponse(
+                    it?.fromTime, it?.toTime, true, "https://meet.google.com/${interview.meetCode}"
+                )
+            }
+        }
     }
 
 }
