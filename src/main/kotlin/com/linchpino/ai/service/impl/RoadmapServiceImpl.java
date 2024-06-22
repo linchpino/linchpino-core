@@ -1,52 +1,27 @@
 package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.RoadmapService;
-import org.springframework.ai.client.AiClient;
+import com.linchpino.ai.service.domain.Prompt;
+import org.apache.coyote.BadRequestException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RoadmapServiceImpl implements RoadmapService {
 
-    public static final String ROADMAP_PROMPT = """
-        Hi, I'm {fullName} and
-        I am started my field which is {field} and
-        based on estimation my level is {level} and
-        I want to have a roadmap to reach to level {targetLevel} and goal is {goal}
-        could you please give me a roadmap to reach goad {goal} and level {targetLevel}
-        please give me road map in json format like below
-        {
-            "roadmap": {
-                "level": {level},
-                "targetLevel": {targetLevel},
-                "goal": {goal},
-                "steps": [
-                    {
-                        "step": 1,
-                        "description": "step 1 description",
-                        "subSteps": [
-                            {
-                                "step": 1.1,
-                                "description": "step 1.1 description"
-                            },
-                            {
-                                "step": 1.2,
-                                "description": "step 1.2 description"
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-        """;
+    private final ApplicationContext applicationContext;
 
-    private final AiClient aiClient;
-
-    public RoadmapServiceImpl(AiClient aiClient) {
-        this.aiClient = aiClient;
+    public RoadmapServiceImpl(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
-    @Override
-    public String getRoadmap(String fullName, String field, String level, String targetLevel, String goal) {
-        return aiClient.generate(ROADMAP_PROMPT.formatted(fullName, field, level, targetLevel, goal));
+    public AIService loadAIService(AIServiceName serviceName) {
+        return applicationContext.getBean(serviceName.getComponentName(), AIService.class);
     }
+
+    public String getRoadmap(String aIServiceProviderName) throws BadRequestException {
+        AIServiceName serviceName = AIServiceName.fromComponentName(aIServiceProviderName).orElseThrow(() -> new BadRequestException("Invalid AI Service Provider Name"));
+        return loadAIService(serviceName).talkToAI(Prompt.getDefaultRoadmapPrompt());
+    }
+
 }
