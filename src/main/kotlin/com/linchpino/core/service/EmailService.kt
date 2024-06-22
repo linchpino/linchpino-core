@@ -4,11 +4,16 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.enums.AccountStatusEnum
 import jakarta.mail.internet.InternetAddress
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.InputStreamSource
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring6.SpringTemplateEngine
+import java.io.Serializable
+import java.time.*
+import java.time.format.DateTimeFormatter
 
 @Service
 class EmailService(
@@ -18,11 +23,28 @@ class EmailService(
     @Value("\${application.url}")
     var applicationUrl: String? = null
 
-    @Value("\${spring.mail.properties.mail.smtp.from}")
+    @Value("\${spring.mail.username}")
+    var mailUsername: String? = null
+
+    @Value("\${email.from.name}")
+    var mailFromName: String? = null
+
+    @Value("\${email.from.mailAddress}")
     var mailFrom: String? = null
 
-    @Value("\${mail.from.name}")
-    var mailFromName: String? = null
+    @Value("\${email.jobSeekerSubject}")
+    var jobSeekerSubject: String = ""
+
+    @Value("\${email.mentorSubject}")
+    var mentorSubject: String = ""
+
+    private var fromDate: String? = null
+    private var toDate: String? = null
+    private var jobSeekerFullName: String? = null
+    private var jobSeekerEmailAddress: String? = null
+    private var mentorFullName: String? = null
+    private var mentorEmailAddress: String? = null
+    val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.X")
 
     fun sendingWelcomeEmailToMentor(firstName: String, lastName: String, email: String) {
         val fullName = "$firstName $lastName"
@@ -31,10 +53,14 @@ class EmailService(
             "fullName" to fullName,
         )
 
+        mentorFullName = fullName
+        mentorEmailAddress = email
+
         sendEmail(
+            null, null, null,
             InternetAddress(mailFrom, mailFromName),
             email,
-            "Welcome to Linchpino: Confirmation of Mentor Registration",
+            mentorSubject,
             "mentor-email-template.html",
             templateContextData
         )
@@ -47,13 +73,54 @@ class EmailService(
             } else {
                 "${interview.jobSeekerAccount?.firstName} ${interview.jobSeekerAccount?.lastName}"
             }
+
+        interview.timeSlot?.fromTime?.let { fromDateTime(it) }
+        interview.timeSlot?.toTime?.let { toDateTime(it) }
+        jobSeekerFullName = fullName
+        jobSeekerEmailAddress = interview.jobSeekerAccount?.email
+
         val date = interview.timeSlot?.fromTime?.toLocalDate()
         val time = interview.timeSlot?.fromTime?.toLocalTime()
         val zone = interview.timeSlot?.fromTime?.zone
         val isJobSeekerIsNotActivated = interview.jobSeekerAccount?.status != AccountStatusEnum.ACTIVATED
         val jobSeekerExternalId = interview.jobSeekerAccount?.externalId
 
-        val templateContextData = mapOf(
+        val templateContextData =
+            jobSeekerEmailContextModel(
+                fullName,
+                date,
+                time,
+                zone,
+                isJobSeekerIsNotActivated,
+                interview,
+                jobSeekerExternalId
+            )
+
+        val attachmentFilename = createICSContent()
+        val attachment: InputStreamSource = ByteArrayResource(attachmentFilename.toByteArray())
+
+        sendEmail(
+            "invite.ics",
+            attachment,
+            "text/calendar; charset=UTF-8",
+            InternetAddress(mailFrom, mailFromName),
+            interview.jobSeekerAccount!!.email,
+            jobSeekerSubject,
+            "jobseeker-email-template.html",
+            templateContextData
+        )
+    }
+
+    private fun jobSeekerEmailContextModel(
+        fullName: String,
+        date: LocalDate?,
+        time: LocalTime?,
+        zone: ZoneId?,
+        isJobSeekerIsNotActivated: Boolean,
+        interview: Interview,
+        jobSeekerExternalId: String?
+    ): Map<String, Serializable?> {
+        return mapOf(
             "fullName" to fullName,
             "date" to date,
             "time" to time,
@@ -63,17 +130,12 @@ class EmailService(
             "interviewId" to interview.id.toString(),
             "jobSeekerExternalId" to jobSeekerExternalId
         )
-
-        sendEmail(
-            InternetAddress(mailFrom, mailFromName),
-            interview.jobSeekerAccount!!.email,
-            "Confirmation of Interview Schedule on Linchpino",
-            "jobseeker-email-template.html",
-            templateContextData
-        )
     }
 
     private fun sendEmail(
+        attachmentFileName: String?,
+        attachment: InputStreamSource?,
+        attachmentContentType: String?,
         from: InternetAddress,
         to: String,
         subject: String,
@@ -88,15 +150,57 @@ class EmailService(
         helper.setText(htmlContent, true)
         helper.setFrom(from)
 
+        attachmentFileName?.let { fileName ->
+            attachment?.let { icsContent ->
+                attachmentContentType?.let { contentType ->
+                    helper.addAttachment(fileName, icsContent, contentType)
+                }
+            }
+        }
+
         emailSender.send(message)
     }
 
     fun generateTemplate(model: Map<String, Any?>, templateName: String): String {
-
         val context = Context().apply {
             setVariables(model)
         }
 
         return templateEngine.process(templateName, context)
+    }
+
+    private fun createICSContent(): String {
+        return """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-///Linchpino//EN
+            CALSCALE:GREGORIAN
+            METHOD:REQUEST
+            BEGIN:VEVENT
+            UID:1234567890
+            DTSTAMP:${currentDateTime()}
+            DTSTART:$fromDate
+            DTEND:$toDate
+            SUMMARY:$jobSeekerSubject
+            LOCATION:Online
+            ORGANIZER;CN=Linchpino:mailto:$mailUsername
+            ATTENDEE;RSVP=TRUE;CN=$jobSeekerFullName Name:mailto:$jobSeekerEmailAddress
+            ATTENDEE;RSVP=TRUE;CN=$mentorFullName Name:mailto:$mentorEmailAddress
+            END:VEVENT
+            END:VCALENDAR
+            """.trimIndent()
+    }
+
+    private fun fromDateTime(fromTime: ZonedDateTime) {
+        fromDate = fromTime.format(dateTimeFormat)
+    }
+
+    private fun toDateTime(toTime: ZonedDateTime) {
+        toDate = toTime.format(dateTimeFormat)
+    }
+
+    private fun currentDateTime(): String {
+        val currentDateTime = ZonedDateTime.now(ZoneOffset.UTC)
+        return currentDateTime.format(dateTimeFormat)
     }
 }
