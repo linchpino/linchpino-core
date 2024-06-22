@@ -99,4 +99,14 @@ class InterviewService(
         return interviewRepository.findPastInterviews(authentication.email(), page)
     }
 
+    @Transactional(readOnly = true)
+    fun jobSeekerUpcomingInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
+        return interviewRepository.findJobSeekerUpcomingInterviews(authentication.email(), page)
+    }
+
+    @Transactional(readOnly = true)
+    fun jobSeekerPastInterviews(authentication: Authentication, page: Pageable): Page<InterviewListResponse> {
+        return interviewRepository.findJobSeekerPastInterviews(authentication.email(), page)
+    }
+
 }
