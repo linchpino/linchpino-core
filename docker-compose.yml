@@ -10,6 +10,7 @@ services:
     ports:
       - "8081:8080"
     command: "mvn spring-boot:run -Dspring-boot.run.jvmArguments='\
+       -DAPPLICATION_URL=$APPLICATION_URL \
        -DPOSTGRES_USERNAME=$POSTGRES_USERNAME \
        -DPOSTGRES_PASSWORD=$POSTGRES_PASSWORD \
        -DPOSTGRES_URL=$POSTGRES_URL \
