@@ -3,6 +3,7 @@ package com.linchpino.core.controller
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.dto.InterviewListResponse
+import com.linchpino.core.dto.InterviewValidityResponse
 import com.linchpino.core.service.InterviewService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -113,6 +114,22 @@ class InterviewControllerTest {
         // Then
         assertThat(response).isEqualTo(expected)
         verify(service, times(1)).pastInterviews(authentication, pageable)
+    }
+
+    @Test
+    fun `test interview validity calls service`() {
+        // Given
+        val expected =
+            InterviewValidityResponse(ZonedDateTime.now(), ZonedDateTime.now().plusMinutes(60), true, "meet link")
+        `when`(service.checkValidity(1)).thenReturn(expected)
+
+        // When
+        val result = controller.checkInterviewValidity(1)
+
+        // Then
+        verify(service, times(1)).checkValidity(1)
+        assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(result.body).isEqualTo(expected)
     }
 
     @Test

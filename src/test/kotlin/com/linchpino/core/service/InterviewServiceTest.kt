@@ -23,6 +23,8 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.findReferenceById
+import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.security.WithMockJwtSecurityContextFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,12 +33,15 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.anyLong
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import java.time.Instant
@@ -70,6 +75,7 @@ class InterviewServiceTest {
 
     @Mock
     private lateinit var emailService: EmailService
+
     @Mock
     private lateinit var meetService: MeetService
 
@@ -385,6 +391,86 @@ class InterviewServiceTest {
         assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
         assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(response).isEqualTo(expected)
+    }
+
+
+    @Test
+    fun `test interview validity returns status true and google meet link`() {
+
+        // Given
+        val id = 1L
+        val email = "john.doe@example.com"
+        val meetCode = "abc-efg-hij"
+        SecurityContextHolder.getContextHolderStrategy().context =
+            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
+
+        val timeSlot = MentorTimeSlot().apply {
+            fromTime = ZonedDateTime.now().plusMinutes(2)
+            toTime = ZonedDateTime.now().plusMinutes(60)
+            status = MentorTimeSlotEnum.ALLOCATED
+        }
+
+        val interview = Interview().apply {
+            this.timeSlot = timeSlot
+            this.meetCode = meetCode
+        }
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
+
+        // When
+        val response = service.checkValidity(id)
+
+        // Then
+        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
+        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
+        assertThat(response.verifyStatus).isEqualTo(true)
+        assertThat(response.link).isEqualTo("https://meet.google.com/$meetCode")
+    }
+
+    @Test
+    fun `test interview validity returns false status when timeslot starts more than 5 min from now`() {
+
+        // Given
+        val id = 1L
+        val email = "john.doe@example.com"
+        val meetCode = "abc-efg-hij"
+        SecurityContextHolder.getContextHolderStrategy().context =
+            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
+
+        val timeSlot = MentorTimeSlot().apply {
+            fromTime = ZonedDateTime.now().plusMinutes(6)
+            toTime = ZonedDateTime.now().plusMinutes(60)
+            status = MentorTimeSlotEnum.ALLOCATED
+        }
+
+        val interview = Interview().apply {
+            this.timeSlot = timeSlot
+            this.meetCode = meetCode
+        }
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
+
+        // When
+        val response = service.checkValidity(id)
+
+        // Then
+        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
+        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
+        assertThat(response.verifyStatus).isEqualTo(false)
+        assertThat(response.link).isEqualTo("")
+    }
+
+    @Test
+    fun `test interview validity throws not found exception if there is no interview with provided id or account email`() {
+        // Given
+        SecurityContextHolder.getContextHolderStrategy().context =
+            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
+
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(anyLong(), anyString())).thenReturn(null)
+
+        val exception = Assertions.assertThrows(LinchpinException::class.java) {
+            service.checkValidity(5)
+        }
+
+        assertThat(exception.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
     }
 
 

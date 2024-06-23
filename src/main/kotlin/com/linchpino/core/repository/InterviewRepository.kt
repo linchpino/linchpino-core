@@ -27,7 +27,11 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         and i.timeSlot.fromTime > CURRENT_TIMESTAMP
     """
     )
-    fun findUpcomingInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
+    fun findUpcomingInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
 
     @Query(
         """
@@ -44,7 +48,11 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         and i.timeSlot.fromTime <= CURRENT_TIMESTAMP
     """
     )
-    fun findPastInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
+    fun findPastInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
 
 
     @Query(
@@ -62,7 +70,11 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         and i.timeSlot.fromTime > CURRENT_TIMESTAMP
     """
     )
-    fun findJobSeekerUpcomingInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
+    fun findJobSeekerUpcomingInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
 
     @Query(
         """
@@ -79,5 +91,17 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         and i.timeSlot.fromTime <= CURRENT_TIMESTAMP
     """
     )
-    fun findJobSeekerPastInterviews(email: String,page: Pageable,status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED): Page<InterviewListResponse>
+    fun findJobSeekerPastInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
+
+
+    @Query(
+        """
+        from Interview i where i.id = :id and (i.jobSeekerAccount.email = :email or i.mentorAccount.email = :email)
+    """
+    )
+    fun findByInterviewIdAndAccountEmail(id: Long, email: String): Interview?
 }

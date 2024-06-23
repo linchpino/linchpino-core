@@ -41,6 +41,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -144,7 +145,8 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll().first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
+            mentorAccRepo.findAll()
+                .first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
             john.email
         )
         mockMvc.perform(
@@ -235,58 +237,7 @@ class InterviewControllerTestIT {
     @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
     fun `test upcoming interviews returns page of result successfully for authenticated user`() {
         // get required data set in before each
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        val interviews = listOf(interview1, interview2)
+        val interviews = saveInterviewData()
 
         // When & Then
         mockMvc.perform(
@@ -307,58 +258,7 @@ class InterviewControllerTestIT {
     @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
     fun `test upcoming interviews returns empty page if mentor does not have more than one page of interviews`() {
         // get required data set in before each
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        listOf(interview1, interview2)
+        saveInterviewData()
 
         // When & Then
         mockMvc.perform(
@@ -379,58 +279,7 @@ class InterviewControllerTestIT {
     )
     fun `test upcoming interviews returns 403 if authenticated user is not mentor`() {
         // get required data set in before each
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        listOf(interview1, interview2)
+        saveInterviewData()
 
         // When & Then
         mockMvc.perform(
@@ -445,58 +294,7 @@ class InterviewControllerTestIT {
     @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
     fun `test past interviews returns page of result successfully for authenticated user`() {
         // get required data set in before each
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        val interviews = listOf(interview1, interview2)
+        val interviews = saveInterviewData()
 
         // When & Then
         mockMvc.perform(
@@ -506,7 +304,7 @@ class InterviewControllerTestIT {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content.size()").value(1))
+            .andExpect(jsonPath("$.content.size()").value(2))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].jobSeekerAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].jobSeekerAccount?.firstName} ${interviews[0].jobSeekerAccount?.lastName}"))
             .andExpect(jsonPath("$.content[0].interviewType").value(interviews[0].interviewType?.name))
@@ -516,58 +314,7 @@ class InterviewControllerTestIT {
     @WithMockJwt(username = "john.smith@example.com", roles = [AccountTypeEnum.MENTOR])
     fun `test past interviews returns empty page if mentor does not have more than one page of interviews`() {
         // get required data set in before each
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        listOf(interview1, interview2)
+        saveInterviewData()
 
         // When & Then
         mockMvc.perform(
@@ -588,6 +335,89 @@ class InterviewControllerTestIT {
     )
     fun `test past interviews returns 403 if authenticated user is not mentor`() {
         // get required data set in before each
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/mentors/past")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "john.doe@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview validity returns valid interview response for job seeker`() {
+        // get required data set in before each
+        val interviews = saveInterviewData()
+        val interview = interviews[2]
+        val id = interview.id
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX")
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/$id/validity")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.format(formatter)))
+            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
+            .andExpect(jsonPath("$.verifyStatus").value(true))
+            .andExpect(jsonPath("$.link").value("https://meet.google.com/abc-efg-hij"))
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview validity returns invalid interview response for job seeker`() {
+        // get required data set in before each
+        val interviews = saveInterviewData()
+        val interview = interviews[1]
+        val id = interview.id
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX")
+
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/$id/validity")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.format(formatter)))
+            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
+            .andExpect(jsonPath("$.verifyStatus").value(false))
+            .andExpect(jsonPath("$.link").value(""))
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview validity returns 404 if job seeker sends an interview id that is not belong to himself`() {
+        // get required data set in before each
+        val interviews = saveInterviewData()
+        val interview =
+            interviews[0] // interview belongs to john.doe@example.com but authenticated user is jane.smith@example.com
+        val id = interview.id
+
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/$id/validity")
+        )
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.error").value("Interview entity not found"))
+    }
+
+    fun saveInterviewData(): List<Interview> {
         val jobSeeker1 = entityManager.createQuery(
             "select a from Account a where a.email = 'john.doe@example.com'",
             Account::class.java
@@ -617,9 +447,16 @@ class InterviewControllerTestIT {
             status = MentorTimeSlotEnum.ALLOCATED
         }
 
+        val mentorTimeSlot3 = MentorTimeSlot().apply {
+            account = mentor
+            fromTime = ZonedDateTime.now().plusMinutes(2)
+            toTime = ZonedDateTime.now().plusMinutes(60)
+            status = MentorTimeSlotEnum.ALLOCATED
+        }
 
         timeSlotRepo.save(mentorTimeSlot1)
         timeSlotRepo.save(mentorTimeSlot2)
+        timeSlotRepo.save(mentorTimeSlot3)
 
         // create two interviews for that mentor based on timeslots from previous step
         val interview1 = Interview().apply {
@@ -638,17 +475,19 @@ class InterviewControllerTestIT {
             this.timeSlot = mentorTimeSlot2
         }
 
+        val interview3 = Interview().apply {
+            this.jobPosition = jobPosition
+            this.interviewType = interviewType
+            this.jobSeekerAccount = jobSeeker1
+            this.mentorAccount = mentor
+            this.timeSlot = mentorTimeSlot3
+            this.meetCode = "abc-efg-hij"
+        }
         entityManager.persist(interview1)
         entityManager.persist(interview2)
-        listOf(interview1, interview2)
-
-        // When & Then
-        mockMvc.perform(
-            get("/api/interviews/mentors/past")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isForbidden)
+        entityManager.persist(interview3)
+        entityManager.flush()
+        return listOf(interview1, interview2, interview3)
     }
 
     @Test
@@ -716,7 +555,6 @@ class InterviewControllerTestIT {
     fun `test past interview for job seeker returns page of result successfully for authenticated user`() {
         // get required data set in before each
         val interviews = saveInterviewData()
-        println(interviews)
         // When & Then
         mockMvc.perform(
             get("/api/interviews/jobseekers/past")
@@ -725,10 +563,13 @@ class InterviewControllerTestIT {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content.size()").value(1))
+            .andExpect(jsonPath("$.content.size()").value(2))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].mentorAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].mentorAccount?.firstName} ${interviews[0].mentorAccount?.lastName}"))
             .andExpect(jsonPath("$.content[0].interviewType").value(interviews[0].interviewType?.name))
+            .andExpect(jsonPath("$.content[1].intervieweeId").value(interviews[1].mentorAccount?.id))
+            .andExpect(jsonPath("$.content[1].intervieweeName").value("${interviews[1].mentorAccount?.firstName} ${interviews[1].mentorAccount?.lastName}"))
+            .andExpect(jsonPath("$.content[1].interviewType").value(interviews[1].interviewType?.name))
     }
 
 
@@ -766,63 +607,5 @@ class InterviewControllerTestIT {
                 .param("size", "10")
         )
             .andExpect(status().isForbidden)
-    }
-
-
-
-
-    fun saveInterviewData():List<Interview> {
-        val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
-        ).singleResult
-        val jobPosition = jobPositionRepo.findAll().first()
-        val interviewType = interviewTypeRepo.findAll().first()
-
-        // create two timeslots for mentor on passed one ahead of now
-        val mentorTimeSlot1 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().minusDays(2)
-            toTime = ZonedDateTime.now().minusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-        val mentorTimeSlot2 = MentorTimeSlot().apply {
-            account = mentor
-            fromTime = ZonedDateTime.now().plusDays(2)
-            toTime = ZonedDateTime.now().plusDays(2).plusMinutes(30)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        timeSlotRepo.save(mentorTimeSlot1)
-        timeSlotRepo.save(mentorTimeSlot2)
-
-        // create two interviews for that mentor based on timeslots from previous step
-        val interview1 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker1
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot1
-        }
-
-        val interview2 = Interview().apply {
-            this.jobPosition = jobPosition
-            this.interviewType = interviewType
-            this.jobSeekerAccount = jobSeeker2
-            this.mentorAccount = mentor
-            this.timeSlot = mentorTimeSlot2
-        }
-
-        entityManager.persist(interview1)
-        entityManager.persist(interview2)
-        return listOf(interview1,interview2)
     }
 }
