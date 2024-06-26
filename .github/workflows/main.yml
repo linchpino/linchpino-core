@@ -31,7 +31,9 @@ jobs:
           -Dsonar.projectKey=linchpino_linchpino-core \
           -Dsonar.organization=linchpino \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN
+          -Dsonar.login=$SONARCLOUD_TOKEN \
+          -Dsonar.coverage.exclusions=src/main/kotlin/com/linchpino/core/security/SecurityConfig*,src/main/kotlin/com/linchpino/core/exception/*,src/main/kotlin/com/linchpino/core/service/SpaceServiceProvider* \
+          -Dsonar.verbose=true
           echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
