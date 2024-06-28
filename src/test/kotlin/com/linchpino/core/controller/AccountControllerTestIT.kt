@@ -582,6 +582,37 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.error").value("Account role is invalid"))
     }
 
+    @Test
+    fun `test add timeslots for mentor fails if provided timeslot starts after it ends`() {
+        val jobSeeker = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
+
+        val account = Account().apply {
+            email = "john.doe@example.com"
+        }
+
+        account.addRole(jobSeeker)
+
+        val id = accountRepository.save(account).id!!
+
+        val timeSlots = listOf(
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-09T14:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            )
+        )
+        val request = AddTimeSlotsRequest(id, timeSlots)
+
+        // Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/timeslots")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Timeslot is invalid"))
+            .andExpect(jsonPath("$.status").value(400))
+    }
+
     private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {
         val john = Account().apply {
             firstName = "John"

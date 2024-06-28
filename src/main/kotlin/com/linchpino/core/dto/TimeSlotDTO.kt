@@ -10,7 +10,8 @@ import jakarta.validation.constraints.NotNull
 import java.time.ZonedDateTime
 
 data class TimeSlot(@field:NotNull(message = "start time must not be null") val startTime: ZonedDateTime,@field:NotNull(message = "end time must not be null") val endTime: ZonedDateTime){
-    init {
+
+    fun validate(){
         if (startTime.isAfter(endTime)) {
             throw LinchpinException(ErrorCode.INVALID_TIMESLOT,"invalid time slot, start is after end")
         }
