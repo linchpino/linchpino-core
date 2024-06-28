@@ -2,8 +2,10 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.CreateInterviewResult
+import com.linchpino.core.dto.InterviewFeedBackRequest
 import com.linchpino.core.dto.InterviewListResponse
 import com.linchpino.core.dto.InterviewValidityResponse
+import com.linchpino.core.service.FeedbackService
 import com.linchpino.core.service.InterviewService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -29,6 +31,9 @@ class InterviewControllerTest {
 
     @Mock
     private lateinit var service: InterviewService
+
+    @Mock
+    private lateinit var feedbackService: FeedbackService
 
     @Test
     fun `test create new interview`() {
@@ -130,5 +135,18 @@ class InterviewControllerTest {
         verify(service, times(1)).checkValidity(1)
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expected)
+    }
+
+    @Test
+    fun `test feedback calls service with proper arguments`() {
+        // Given
+        val request = InterviewFeedBackRequest(2, "content")
+        val id = 1L
+
+        // When
+        controller.feedback(id, request)
+
+        // Then
+        verify(feedbackService, times(1)).createFeedback(id,request)
     }
 }

@@ -51,8 +51,8 @@ management:
     metrics:
       enabled: true
 rsa:
-  private-key: ${PRIVATE_KEY:file:/path/to/file}
-  public-key: ${PUBLIC_KEY:file:/path/to/file}
+  private-key: ${PRIVATE_KEY:classpath:/certs/private.pem}
+  public-key: ${PUBLIC_KEY:classpath:/certs/public.pem}
 
 logging:
   level:

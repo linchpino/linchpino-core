@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateInterviewRequest
+import com.linchpino.core.dto.InterviewFeedBackRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.InterviewType
@@ -42,6 +43,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -416,6 +419,121 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Interview entity not found"))
     }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview feedback`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isCreated)
+
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isCreated)
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.MENTOR]
+    )
+    fun `test interview feedback throws 403 if authenticated user is not job seeker`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `test interview feedback throws 401 if user is not authenticated`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview feedback throws fails with bad request if request is not valid`() {
+        // Given
+        val feedback1 = InterviewFeedBackRequest(6, "content")
+        val feedback2 = InterviewFeedBackRequest(0, "content")
+        val feedback3 = InterviewFeedBackRequest(3, "")
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback1))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be less than or equal to 5"))
+
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback2))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be greater than or equal to 1"))
+
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback3))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("content"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must not be blank"))
+    }
+
 
     fun saveInterviewData(): List<Interview> {
         val jobSeeker1 = entityManager.createQuery(
