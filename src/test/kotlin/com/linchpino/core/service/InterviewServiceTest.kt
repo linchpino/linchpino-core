@@ -357,7 +357,7 @@ class InterviewServiceTest {
     }
 
     @Test
-    fun `test past interviews`() {
+    fun `test past interviews`(){
         // Given
         val expected = PageImpl(
             mutableListOf(
@@ -471,5 +471,79 @@ class InterviewServiceTest {
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+    }
+
+
+    @Test
+    fun `test upcoming interviews for job seeker`() {
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val authentication = JwtAuthenticationToken(jwt)
+        val emailCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        `when`(service.jobSeekerUpcomingInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
+
+        val response = service.jobSeekerUpcomingInterviews(authentication, Pageable.unpaged())
+
+        verify(interviewRepository, times(1)).findJobSeekerUpcomingInterviews(
+            emailCaptor.captureNonNullable(),
+            pageCaptor.captureNonNullable(),
+            mentorTimeSlotCaptor.captureNonNullable()
+        )
+        assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
+        assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(response).isEqualTo(expected)
+    }
+
+    @Test
+    fun `test past interviews for job seeker`(){
+        // Given
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val authentication = JwtAuthenticationToken(jwt)
+        val emailCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        `when`(service.jobSeekerPastInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
+        // When
+        val response = service.jobSeekerPastInterviews(authentication, Pageable.unpaged())
+
+        verify(interviewRepository, times(1)).findJobSeekerPastInterviews(
+            emailCaptor.captureNonNullable(),
+            pageCaptor.captureNonNullable(),
+            mentorTimeSlotCaptor.captureNonNullable()
+        )
+        assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
+        assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(response).isEqualTo(expected)
     }
 }

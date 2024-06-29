@@ -131,4 +131,70 @@ class InterviewControllerTest {
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expected)
     }
+
+    @Test
+    fun `test upcoming interviews for job seeker calls service with correct arguments`() {
+        // Given
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val pageable = Pageable.ofSize(10)
+
+        val authentication = JwtAuthenticationToken(jwt)
+
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+
+        `when`(service.jobSeekerUpcomingInterviews(authentication, pageable)).thenReturn(expected)
+
+        // When
+        val response = controller.jobSeekerUpcomingInterviews(authentication, pageable)
+
+        // Then
+        assertThat(response).isEqualTo(expected)
+        verify(service, times(1)).jobSeekerUpcomingInterviews(authentication, pageable)
+    }
+
+    @Test
+    fun `test past interviews for job seeker calls service with correct arguments`() {
+        // Given
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val pageable = Pageable.ofSize(10)
+
+        val authentication = JwtAuthenticationToken(jwt)
+
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+
+        `when`(service.jobSeekerPastInterviews(authentication, pageable)).thenReturn(expected)
+
+        // When
+        val response = controller.jobSeekerPastInterviews(authentication, pageable)
+
+        // Then
+        assertThat(response).isEqualTo(expected)
+        verify(service, times(1)).jobSeekerPastInterviews(authentication, pageable)
+    }
 }
