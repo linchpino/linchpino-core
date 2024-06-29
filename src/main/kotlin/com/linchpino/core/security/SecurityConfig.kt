@@ -50,6 +50,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
+                it.requestMatchers("/api/interviews/*/feedback").hasAnyAuthority("SCOPE_JOB_SEEKER")
                 it.requestMatchers("/api/interviews/mentors/**").hasAnyAuthority("SCOPE_MENTOR")
                 it.requestMatchers("/api/interviews/jobseekers/**").hasAnyAuthority("SCOPE_JOB_SEEKER")
                 it.anyRequest().permitAll()
