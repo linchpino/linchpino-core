@@ -1,17 +1,6 @@
 package com.linchpino.core.service
 
-import com.linchpino.core.dto.AccountSummary
-import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
-import com.linchpino.core.dto.CreateAccountRequest
-import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.dto.MentorWithClosestTimeSlot
-import com.linchpino.core.dto.RegisterMentorRequest
-import com.linchpino.core.dto.RegisterMentorResult
-import com.linchpino.core.dto.SaveAccountRequest
-import com.linchpino.core.dto.UpdateAccountRequest
-import com.linchpino.core.dto.toCreateAccountResult
-import com.linchpino.core.dto.toRegisterMentorResult
-import com.linchpino.core.dto.toSummary
+import com.linchpino.core.dto.*
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
@@ -26,7 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.UUID
+import java.util.*
 
 @Service
 @Transactional
@@ -162,5 +151,45 @@ class AccountService(
             externalId = request.externalId ?: this.externalId
         }
         repository.save(account)
+    }
+
+    fun searchAccountByNameOrRoleOrBoth(name: String, roleTitle: String): List<SearchAccountResult> {
+        if (name.isNotEmpty() && roleTitle.isNotEmpty())
+            return mapSearchResultForNameAndRoles(repository.findByNameAndRoles(name, roleTitle))
+        if (name.isEmpty() && roleTitle.isNotEmpty())
+            return mapSearchResultByRoleOrName(repository.findByRole(roleTitle))
+        return mapSearchResultByRoleOrName(repository.findByName(name))
+    }
+
+    private fun mapSearchResultByRoleOrName(account: Account): List<SearchAccountResult> {
+        if (account == null)
+            throw LinchpinException(
+                ErrorCode.ACCOUNT_NOT_FOUND,
+                "No accounts found for the given criteria"
+            )
+
+        return account.roles().map { role ->
+            SearchAccountResult(
+                firstName = account.firstName,
+                lastName = account.lastName,
+                roles = account.roles().toList(),
+            )
+        }
+    }
+
+    private fun mapSearchResultForNameAndRoles(accountList: List<Account>): List<SearchAccountResult> {
+        if (accountList.isEmpty())
+            throw LinchpinException(
+                ErrorCode.ACCOUNT_NOT_FOUND,
+                "No accounts found for the given criteria"
+            )
+
+        return accountList.map { account ->
+            SearchAccountResult(
+                firstName = account.firstName,
+                lastName = account.lastName,
+                roles = account.roles().map { it }
+            )
+        }
     }
 }

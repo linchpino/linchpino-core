@@ -1,6 +1,7 @@
 package com.linchpino.core.dto
 
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.PasswordPolicy
@@ -113,4 +114,10 @@ data class RegisterMentorResult(
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise: String?,
     val linkedInUrl: String?
+)
+
+data class SearchAccountResult(
+    val firstName: String?,
+    val lastName: String?,
+    val roles: List<Role>,
 )

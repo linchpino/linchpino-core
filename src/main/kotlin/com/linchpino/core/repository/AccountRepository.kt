@@ -6,12 +6,12 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.ZonedDateTime
 
 @Repository
-interface AccountRepository : JpaRepository<Account, Long>{
-
+interface AccountRepository : JpaRepository<Account, Long> {
     fun findByEmailIgnoreCase(email: String): Account?
 
     @Query(
@@ -51,14 +51,38 @@ interface AccountRepository : JpaRepository<Account, Long>{
         from: ZonedDateTime,
         to: ZonedDateTime,
         interviewTypeId: Long,
-        type:AccountTypeEnum = AccountTypeEnum.MENTOR,
+        type: AccountTypeEnum = AccountTypeEnum.MENTOR,
         status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
-    @Query("""
+    @Query(
+        """
         select a from Account a join a.roles role where a.externalId = :externalId and role.title = :type
-    """)
-    fun findByExternalId(externalId:String,type: AccountTypeEnum):Account?
+    """
+    )
+    fun findByExternalId(externalId: String, type: AccountTypeEnum): Account?
 
+    @Query(
+        """
+        SELECT a FROM Account a WHERE LOWER(a.firstName)
+        LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(a.lastName)
+        LIKE LOWER(CONCAT('%', :name, '%'))
+        """
+    )
+    fun findByName(@Param("name") name: String): Account
+
+    @Query("""SELECT a FROM Account a JOIN a.roles r WHERE r.title = :roleTitle""")
+    fun findByRole(@Param("roleTitle") roleTitle: String): Account
+
+    @Query(
+        """
+        SELECT a FROM Account a JOIN a.roles r WHERE (LOWER(a.firstName)
+        LIKE LOWER(CONCAT('%', :name, '%'))
+        OR LOWER(a.lastName)
+        LIKE LOWER(CONCAT('%', :name, '%')))
+        AND r.title = :roleTitle
+        """
+    )
+    fun findByNameAndRoles(@Param("name") name: String, @Param("roleTitle") roleTitle: String): List<Account>
 }
-
