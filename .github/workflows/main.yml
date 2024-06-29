@@ -34,9 +34,7 @@ jobs:
           -Dsonar.login=$SONARCLOUD_TOKEN \
           -Dsonar.coverage.exclusions=src/main/kotlin/com/linchpino/core/security/SecurityConfig*,src/main/kotlin/com/linchpino/core/exception/*,src/main/kotlin/com/linchpino/core/service/SpaceServiceProvider* \
           -Dsonar.verbose=true
-          -Dsonar.branch.name=${GITHUB_REF_NAME}
-          -Dsonar.branch.target=${GITHUB_REF_NAME}
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
+              echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
         env:
           GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
           SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
