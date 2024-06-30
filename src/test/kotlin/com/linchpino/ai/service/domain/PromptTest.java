@@ -68,12 +68,12 @@ class PromptTest {
         """;
 
     @Test
-    void getRoadmapPrompt() {
-        assertEquals(testPrompt, Prompt.getRoadmapPrompt("Test", "Software tester", "Junior Test Engineer", "Senior Test Engineer", "Test engineer"));
+    void getRoadmapPromptFor() {
+        assertEquals(testPrompt, Prompt.getRoadmapPromptFor("Test", "Software tester", "Junior Test Engineer", "Senior Test Engineer", "Test engineer"));
     }
 
     @Test
     void getDefaultRoadmapPrompt() {
-        assertEquals(DEFAULT_ROADMAP_PROMPT, Prompt.getDefaultRoadmapPrompt());
+        assertEquals(DEFAULT_ROADMAP_PROMPT, Prompt.of(RequestDetail.getDefaultRequestDetail()).toString());
     }
 }

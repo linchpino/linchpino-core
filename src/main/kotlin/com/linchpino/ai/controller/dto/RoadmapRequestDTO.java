@@ -1,8 +1,8 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.controller.dto;
 
-import com.linchpino.ai.controller.dto.RoadmapRequestDTO;
+import java.io.Serializable;
 
-public class RequestDetail {
+public class RoadmapRequestDTO implements Serializable {
     private String fullName;
     private String field;
     private String level;
@@ -10,12 +10,18 @@ public class RequestDetail {
     private String goal;
     private String linkedinUrl;
 
-    public RequestDetail(String fullName, String field, String level, String targetLevel, String goal, String linkedinUrl) {
+    public RoadmapRequestDTO() {}
+
+    public RoadmapRequestDTO(String fullName, String field, String level, String targetLevel, String goal) {
         this.fullName = fullName;
         this.field = field;
         this.level = level;
         this.targetLevel = targetLevel;
         this.goal = goal;
+    }
+
+    public RoadmapRequestDTO(String targetLevel, String linkedinUrl) {
+        this.targetLevel = targetLevel;
         this.linkedinUrl = linkedinUrl;
     }
 
@@ -65,13 +71,5 @@ public class RequestDetail {
 
     public void setLinkedinUrl(String linkedinUrl) {
         this.linkedinUrl = linkedinUrl;
-    }
-
-    public static RequestDetail getDefaultRequestDetail() {
-        return new RequestDetail("John Doe", "Data Science", "Junior Data Scientist", "Senior Data Scientist", "Data Scientist", "linkedProfile");
-    }
-
-    public static RequestDetail of(RoadmapRequestDTO requestDTO) {
-        return new RequestDetail(requestDTO.getFullName(), requestDTO.getField(), requestDTO.getLevel(), requestDTO.getTargetLevel(), requestDTO.getGoal(), requestDTO.getLinkedinUrl());
     }
 }

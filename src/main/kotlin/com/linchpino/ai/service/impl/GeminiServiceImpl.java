@@ -3,6 +3,9 @@ package com.linchpino.ai.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.linchpino.ai.service.domain.InteractionType;
+import com.linchpino.ai.service.domain.Prompt;
+import com.linchpino.ai.service.domain.RequestDetail;
 import com.linchpino.core.exception.ErrorCode;
 import com.linchpino.core.exception.LinchpinException;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +34,17 @@ public class GeminiServiceImpl implements AIService {
     }
 
     @Override
-    public String talkToAI(String prompt) {
+    public String talkToAI(InteractionType interactionType, RequestDetail requestDetail) {
+        if (interactionType.isFunctionCall()) {
+            return "Not developed";
+        } else if (interactionType.isPrompt()) {
+            return getPromptResponse(Prompt.of(requestDetail).toString());
+        } else {
+            return "Not supported";
+        }
+    }
+
+    private String getPromptResponse(String prompt) {
         try {
             String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
             // Set the headers
@@ -41,7 +54,12 @@ public class GeminiServiceImpl implements AIService {
             HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(prompt), headers);
             // Make the POST request
             ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
-            return response.getBody().candidates().get(0).content().parts().get(0).text();
+            JsonData responseJson = response.getBody();
+            if (responseJson != null) {
+                return responseJson.candidates().get(0).content().parts().get(0).text();
+            } else {
+                return "Error in response type";
+            }
         } catch (Exception e) {
             throw new LinchpinException(ErrorCode.SERVER_ERROR, "Error in generating response from Gemini AI with error: " + e.getMessage(), e);
         }

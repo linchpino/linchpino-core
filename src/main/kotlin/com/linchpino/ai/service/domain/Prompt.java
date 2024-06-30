@@ -33,13 +33,17 @@ public class Prompt {
         provide me response in json without any other information
         """;
 
-    public static String defaultFullName = "John Doe";
-    public static String defaultFieldOfStudy = "Data Science";
-    public static String defaultCurrentLevel = "Junior Data Scientist";
-    public static String defaultTargetLevel = "Senior Data Scientist";
-    public static String defaultGoal = "Data Scientist";
+    private final RequestDetail requestDetail;
 
-    public static String getRoadmapPrompt(String fullName, String fieldOfStudy, String currentLevel, String targetLevel, String goal) {
+    public Prompt(RequestDetail requestDetail) {
+        this.requestDetail = requestDetail;
+    }
+
+    public static Prompt of(RequestDetail requestDetail) {
+        return new Prompt(requestDetail);
+    }
+
+    public static String getRoadmapPromptFor(String fullName, String fieldOfStudy, String currentLevel, String targetLevel, String goal) {
         return Prompt.ROADMAP_PROMPT.replace("_fullName_", fullName)
             .replace("_fieldOfStudy_", fieldOfStudy)
             .replace("_currentLevel_", currentLevel)
@@ -47,8 +51,12 @@ public class Prompt {
             .replace("_goal_", goal);
     }
 
-    public static String getDefaultRoadmapPrompt() {
-        return getRoadmapPrompt(Prompt.defaultFullName, Prompt.defaultFieldOfStudy, Prompt.defaultCurrentLevel, Prompt.defaultTargetLevel, Prompt.defaultGoal);
+    public String toString() {
+        return Prompt.ROADMAP_PROMPT.replace("_fullName_", requestDetail.getFullName())
+            .replace("_fieldOfStudy_", requestDetail.getField())
+            .replace("_currentLevel_", requestDetail.getLevel())
+            .replace("_targetLevel_", requestDetail.getTargetLevel())
+            .replace("_goal_", requestDetail.getGoal());
     }
 
 }
