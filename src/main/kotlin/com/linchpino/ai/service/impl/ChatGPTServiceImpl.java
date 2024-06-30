@@ -1,6 +1,5 @@
 package com.linchpino.ai.service.impl;
 
-import com.linchpino.ai.service.domain.InteractionType;
 import com.linchpino.ai.service.domain.Prompt;
 import com.linchpino.ai.service.domain.RequestDetail;
 import org.springframework.ai.client.AiClient;
@@ -18,18 +17,7 @@ public class ChatGPTServiceImpl implements AIService {
     }
 
     @Override
-    public String talkToAI(InteractionType interactionType, RequestDetail requestDetail) {
-        if(interactionType.isFunctionCall()) {
-            return "Not developed";
-        } else if (interactionType.isPrompt()) {
-            return getPromptResponse(Prompt.of(requestDetail).toString());
-        } else {
-            return "Not supported";
-        }
+    public String talkToAI(RequestDetail requestDetail) {
+        return aiClient.generate(Prompt.of(requestDetail).toString());
     }
-
-    private String getPromptResponse(String prompt) {
-        return aiClient.generate(prompt);
-    }
-
 }

@@ -3,7 +3,6 @@ package com.linchpino.ai.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.linchpino.ai.service.domain.InteractionType;
 import com.linchpino.ai.service.domain.Prompt;
 import com.linchpino.ai.service.domain.RequestDetail;
 import com.linchpino.core.exception.ErrorCode;
@@ -34,24 +33,14 @@ public class GeminiServiceImpl implements AIService {
     }
 
     @Override
-    public String talkToAI(InteractionType interactionType, RequestDetail requestDetail) {
-        if (interactionType.isFunctionCall()) {
-            return "Not developed";
-        } else if (interactionType.isPrompt()) {
-            return getPromptResponse(Prompt.of(requestDetail).toString());
-        } else {
-            return "Not supported";
-        }
-    }
-
-    private String getPromptResponse(String prompt) {
+    public String talkToAI(RequestDetail requestDetail) {
         try {
             String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
             // Set the headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             // Create the request entity
-            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(prompt), headers);
+            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(Prompt.of(requestDetail).toString()), headers);
             // Make the POST request
             ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
             JsonData responseJson = response.getBody();

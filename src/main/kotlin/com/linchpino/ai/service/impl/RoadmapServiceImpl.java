@@ -2,13 +2,16 @@ package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.RoadmapService;
 import com.linchpino.ai.service.domain.AIServiceName;
-import com.linchpino.ai.service.domain.InteractionType;
 import com.linchpino.ai.service.domain.RequestDetail;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RoadmapServiceImpl implements RoadmapService {
+
+    @Value("${spring.ai.default-service-provider}")
+    private String aiServiceName;
 
     private final ApplicationContext applicationContext;
 
@@ -20,10 +23,9 @@ public class RoadmapServiceImpl implements RoadmapService {
         return applicationContext.getBean(serviceName.getComponentName(), AIService.class);
     }
 
-    public String getRoadmap(String aIServiceProviderName, String interactionType, RequestDetail requestDetail) {
-        AIServiceName serviceName = AIServiceName.getComponentNameOrDefault(aIServiceProviderName);
-        InteractionType type = InteractionType.getInteractionTypeOrDefault(interactionType);
-        return loadAIService(serviceName).talkToAI(type, requestDetail);
+    public String getRoadmap(RequestDetail requestDetail) {
+        AIServiceName serviceName = AIServiceName.getComponentNameOrDefault(aiServiceName);
+        return loadAIService(serviceName).talkToAI(requestDetail);
     }
 
 }

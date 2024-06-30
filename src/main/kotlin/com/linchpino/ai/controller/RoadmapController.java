@@ -6,7 +6,6 @@ import com.linchpino.ai.service.domain.RequestDetail;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,9 +19,7 @@ public class RoadmapController {
     }
 
     @PostMapping(produces = "application/json")
-    public String getRoadmap(@RequestParam(name = "serviceName", required = false) String serviceName,
-                             @RequestParam(name = "interactionType", required = false) String interactionType,
-                             @RequestBody RoadmapRequestDTO requestDTO) {
-        return roadmapService.getRoadmap(serviceName, interactionType, RequestDetail.of(requestDTO));
+    public String getRoadmap(@RequestBody RoadmapRequestDTO requestDTO) {
+        return roadmapService.getRoadmap(RequestDetail.of(requestDTO));
     }
 }
