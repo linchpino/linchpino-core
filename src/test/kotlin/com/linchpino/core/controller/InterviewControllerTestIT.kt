@@ -17,8 +17,8 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.service.CalendarService
 import com.linchpino.core.service.EmailService
-import com.linchpino.core.service.MeetService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -73,7 +73,8 @@ class InterviewControllerTestIT {
     private lateinit var entityManager: EntityManager
 
     @MockBean
-    private lateinit var meetService: MeetService
+    private lateinit var calendarService: CalendarService
+
 
     @BeforeEach
     fun init() {
@@ -145,8 +146,7 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll()
-                .first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
+            mentorAccRepo.findAll().first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
             john.email
         )
         mockMvc.perform(
