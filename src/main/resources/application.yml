@@ -3,6 +3,7 @@ spring:
     name: linchpino-service
 
   ai:
+    default-service-provider: ${DEFAULT_AI_SERVICE_PROVIDER:gemini}
     openai:
       api-key: ${OPEN_AI_API_KEY:api-key}
     gemini:
@@ -68,7 +69,7 @@ password:
   policyRegex: "^[A-Za-z\\d@$!%*?&]{6,}$"
 
 application:
-  url:  ${APPLICATION_URL:https://linchpino.liara.run}
+  url: ${APPLICATION_URL:https://linchpino.liara.run}
 
 meet:
   credential: ${MEET_CREDENTIAL:file:/path/to/file}
