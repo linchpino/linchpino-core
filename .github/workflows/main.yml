@@ -2,11 +2,8 @@
 name: Build and Deploy Current Branch to linchpino-core-dev server
 
 on:
-  push:
-    branches:
-      - Sonar-New-Code-coverage-is-not-matched-with-Jacoco
   pull_request:
-      branches: [development]
+      branches: [development,Sonar-New-Code-coverage-is-not-matched-with-Jacoco]
       types: [opened,reopened]
   workflow_dispatch:
 
