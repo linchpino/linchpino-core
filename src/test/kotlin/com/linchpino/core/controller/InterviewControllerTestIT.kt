@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateInterviewRequest
+import com.linchpino.core.dto.InterviewFeedBackRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.InterviewType
@@ -17,8 +18,8 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.service.CalendarService
 import com.linchpino.core.service.EmailService
-import com.linchpino.core.service.MeetService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -36,7 +37,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -73,7 +76,8 @@ class InterviewControllerTestIT {
     private lateinit var entityManager: EntityManager
 
     @MockBean
-    private lateinit var meetService: MeetService
+    private lateinit var calendarService: CalendarService
+
 
     @BeforeEach
     fun init() {
@@ -145,8 +149,7 @@ class InterviewControllerTestIT {
             jobPositionRepo.findAll().first().id!!,
             interviewTypeRepo.findAll().first().id!!,
             timeSlotRepo.findAll().first().id!!,
-            mentorAccRepo.findAll()
-                .first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
+            mentorAccRepo.findAll().first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }.id!!,
             john.email
         )
         mockMvc.perform(
@@ -417,6 +420,121 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.error").value("Interview entity not found"))
     }
 
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview feedback`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isCreated)
+
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isCreated)
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.MENTOR]
+    )
+    fun `test interview feedback throws 403 if authenticated user is not job seeker`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `test interview feedback throws 401 if user is not authenticated`() {
+        // Given
+        val feedback = InterviewFeedBackRequest(2, "content")
+        val interviews = saveInterviewData()
+        val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/$id/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback))
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @WithMockJwt(
+        username = "jane.smith@example.com",
+        roles = [AccountTypeEnum.JOB_SEEKER]
+    )
+    fun `test interview feedback throws fails with bad request if request is not valid`() {
+        // Given
+        val feedback1 = InterviewFeedBackRequest(6, "content")
+        val feedback2 = InterviewFeedBackRequest(0, "content")
+        val feedback3 = InterviewFeedBackRequest(3, "")
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback1))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be less than or equal to 5"))
+
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback2))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be greater than or equal to 1"))
+
+        mockMvc.perform(
+            post("/api/interviews/1/feedback")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(feedback3))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("content"))
+            .andExpect(jsonPath("$.validationErrorMap[0].message").value("must not be blank"))
+    }
+
+
     fun saveInterviewData(): List<Interview> {
         val jobSeeker1 = entityManager.createQuery(
             "select a from Account a where a.email = 'john.doe@example.com'",
@@ -488,5 +606,124 @@ class InterviewControllerTestIT {
         entityManager.persist(interview3)
         entityManager.flush()
         return listOf(interview1, interview2, interview3)
+    }
+
+    @Test
+    @WithMockJwt(username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER])
+    fun `test upcoming interviews for job seeker returns page of result successfully for authenticated user`() {
+        // get required data set in before each
+        val interviews = saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/upcoming")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content.size()").value(1))
+            .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[1].mentorAccount?.id))
+            .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[1].mentorAccount?.firstName} ${interviews[1].mentorAccount?.lastName}"))
+            .andExpect(jsonPath("$.content[0].interviewType").value(interviews[1].interviewType?.name))
+
+    }
+
+
+
+    @Test
+    @WithMockJwt(username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER])
+    fun `test upcoming interviews for job seeker returns empty page if job seeker does not have more than one page of interviews`() {
+        // get required data set in before each
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/upcoming")
+                .param("page", "1")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content").isEmpty)
+
+    }
+
+
+    @Test
+    @WithMockJwt(
+        username = "john.smith@example.com",
+        roles = [AccountTypeEnum.GUEST, AccountTypeEnum.ADMIN, AccountTypeEnum.MENTOR]
+    )
+    fun `test upcoming interviews for job seeker returns 403 if authenticated user is not job seeker`() {
+        // get required data set in before each
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/upcoming")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.JOB_SEEKER])
+    fun `test past interview for job seeker returns page of result successfully for authenticated user`() {
+        // get required data set in before each
+        val interviews = saveInterviewData()
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/past")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content.size()").value(2))
+            .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].mentorAccount?.id))
+            .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].mentorAccount?.firstName} ${interviews[0].mentorAccount?.lastName}"))
+            .andExpect(jsonPath("$.content[0].interviewType").value(interviews[0].interviewType?.name))
+            .andExpect(jsonPath("$.content[1].intervieweeId").value(interviews[1].mentorAccount?.id))
+            .andExpect(jsonPath("$.content[1].intervieweeName").value("${interviews[1].mentorAccount?.firstName} ${interviews[1].mentorAccount?.lastName}"))
+            .andExpect(jsonPath("$.content[1].interviewType").value(interviews[1].interviewType?.name))
+    }
+
+
+    @Test
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.JOB_SEEKER])
+    fun `test past interviews returns empty page if job seeker does not have more than one page of interviews`() {
+        // get required data set in before each
+        saveInterviewData()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/past")
+                .param("page", "1")
+                .param("size", "10")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content").isArray)
+            .andExpect(jsonPath("$.content").isEmpty)
+
+    }
+
+
+    @Test
+    @WithMockJwt(
+        username = "john.smith@example.com",
+        roles = [AccountTypeEnum.GUEST, AccountTypeEnum.ADMIN, AccountTypeEnum.MENTOR]
+    )
+    fun `test past interviews for job seeker returns 403 if authenticated user is not job seeker`() {
+        // get required data set in before each
+       saveInterviewData()
+        // When & Then
+        mockMvc.perform(
+            get("/api/interviews/jobseekers/past")
+                .param("page", "0")
+                .param("size", "10")
+        )
+            .andExpect(status().isForbidden)
     }
 }
