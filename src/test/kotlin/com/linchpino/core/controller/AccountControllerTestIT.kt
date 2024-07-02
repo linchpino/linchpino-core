@@ -21,6 +21,7 @@ import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
@@ -33,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -49,6 +51,10 @@ import java.util.UUID
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
+@TestPropertySource(properties = [
+    "admin.username=testAdmin",
+    "admin.password=testPassword"
+])
 class AccountControllerTestIT {
 
     @Autowired
@@ -727,6 +733,16 @@ class AccountControllerTestIT {
                 .param("role", "3")
         )
             .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `adminAccountRunner creates admin account`() {
+        // The ApplicationContext will trigger the ApplicationRunner automatically
+
+        val admin = accountRepository.findAll().firstOrNull { it.firstName == "admin" && it.lastName == "admin" }
+        assertThat(admin).isNotNull
+        assertThat(admin?.email).isEqualTo("testAdmin")
+        assertThat(admin?.roles()?.map { it.title }).contains(AccountTypeEnum.ADMIN)
     }
 
 

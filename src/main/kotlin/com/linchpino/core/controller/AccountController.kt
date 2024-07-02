@@ -9,6 +9,7 @@ import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
 import io.swagger.v3.oas.annotations.Operation
@@ -20,6 +21,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.ApplicationRunner
+import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -109,7 +113,11 @@ class AccountController(private val accountService: AccountService, private val 
             ApiResponse(responseCode = "400", description = "Invalid request body")
         ]
     )
-    @PostMapping("/mentors",consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        "/mentors",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     fun registerMentor(@Valid @RequestBody request: RegisterMentorRequest): ResponseEntity<RegisterMentorResult> {
         val result = accountService.registerMentor(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
@@ -123,7 +131,11 @@ class AccountController(private val accountService: AccountService, private val 
             ApiResponse(responseCode = "400", description = "Invalid request body")
         ]
     )
-    @PostMapping("/mentors/timeslots",consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        "/mentors/timeslots",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     fun addTimeSlotsForMentor(@Valid @RequestBody request: AddTimeSlotsRequest) {
         timeSlotService.addTimeSlots(request)
     }
@@ -142,5 +154,20 @@ class AccountController(private val accountService: AccountService, private val 
         @RequestParam(required = false) role: Int?
     ): List<SearchAccountResult> {
         return accountService.searchAccountByNameOrRole(name, role)
+    }
+
+    @Bean
+    fun adminAccountRunner(
+        @Value("\${admin.username}") username: String,
+        @Value("\${admin.password}") password: String
+    ) = ApplicationRunner {
+        val request = CreateAccountRequest(
+            "admin",
+            "admin",
+            username,
+            password,
+            AccountTypeEnum.ADMIN.value
+        )
+        createAccount(request)
     }
 }
