@@ -1,6 +1,14 @@
 package com.linchpino.core.controller
 
-import com.linchpino.core.dto.*
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddTimeSlotsRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
 import io.swagger.v3.oas.annotations.Operation
@@ -15,7 +23,14 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import java.time.ZonedDateTime
 
 @RestController
@@ -118,14 +133,14 @@ class AccountController(private val accountService: AccountService, private val 
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Successful"),
-            ApiResponse(responseCode = "400", description = "Invalid request body"),
-            ApiResponse(responseCode = "404", description = "No accounts found for the given criteria")
+            ApiResponse(responseCode = "401", description = "Not authenticated"),
+            ApiResponse(responseCode = "403", description = "Not authorized")
         ]
     )
     fun searchAccounts(
-        @RequestParam(required = false) name: String,
-        @RequestParam(required = false) roleTitle: String
+        @RequestParam(required = false) name: String?,
+        @RequestParam(required = false) role: Int?
     ): List<SearchAccountResult> {
-        return accountService.searchAccountByNameOrRoleOrBoth(name, roleTitle)
+        return accountService.searchAccountByNameOrRole(name, role)
     }
 }

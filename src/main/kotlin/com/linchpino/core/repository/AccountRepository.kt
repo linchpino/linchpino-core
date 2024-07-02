@@ -6,7 +6,6 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.ZonedDateTime
 
@@ -64,25 +63,14 @@ interface AccountRepository : JpaRepository<Account, Long> {
 
     @Query(
         """
-        SELECT a FROM Account a WHERE LOWER(a.firstName)
-        LIKE LOWER(CONCAT('%', :name, '%'))
-        OR LOWER(a.lastName)
-        LIKE LOWER(CONCAT('%', :name, '%'))
+        SELECT DISTINCT a
+        FROM Account a
+        JOIN a.roles r
+        WHERE
+        (:type IS NULL OR r.title = :type) AND
+        (LOWER(a.firstName) = LOWER(COALESCE(:name, a.firstName)) OR LOWER(a.lastName) = LOWER(COALESCE(:name, a.lastName)))
         """
     )
-    fun findByName(@Param("name") name: String): Account
+    fun searchByNameOrRole(name: String?, type: AccountTypeEnum?): List<Account>
 
-    @Query("""SELECT a FROM Account a JOIN a.roles r WHERE r.title = :roleTitle""")
-    fun findByRole(@Param("roleTitle") roleTitle: String): Account
-
-    @Query(
-        """
-        SELECT a FROM Account a JOIN a.roles r WHERE (LOWER(a.firstName)
-        LIKE LOWER(CONCAT('%', :name, '%'))
-        OR LOWER(a.lastName)
-        LIKE LOWER(CONCAT('%', :name, '%')))
-        AND r.title = :roleTitle
-        """
-    )
-    fun findByNameAndRoles(@Param("name") name: String, @Param("roleTitle") roleTitle: String): List<Account>
 }
