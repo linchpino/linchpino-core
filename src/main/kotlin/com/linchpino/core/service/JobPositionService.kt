@@ -1,8 +1,12 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.dto.JobPositionSearchResponse
+import com.linchpino.core.entity.JobPosition
+import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -10,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class JobPositionService(private val jobPositionRepository: JobPositionRepository) {
+class JobPositionService(
+    private val jobPositionRepository: JobPositionRepository,
+    private val interviewTypeRepository: InterviewTypeRepository
+) {
 
 
     @Transactional(readOnly = true)
@@ -20,5 +27,14 @@ class JobPositionService(private val jobPositionRepository: JobPositionRepositor
     @Transactional(readOnly = true)
     fun findInterviewTypesBy(jobPositionId: Long, pageable: Pageable): Page<InterviewTypeSearchResponse> {
         return jobPositionRepository.findInterviewsByJobPositionId(jobPositionId, pageable)
+    }
+
+    fun createJobPosition(request: JobPositionCreateRequest) {
+        val interviewType = interviewTypeRepository.findReferenceById(request.interviewTypeId)
+        val jobPosition = JobPosition().apply {
+            title = request.title
+            addInterviewType(interviewType)
+        }
+        jobPositionRepository.save(jobPosition)
     }
 }

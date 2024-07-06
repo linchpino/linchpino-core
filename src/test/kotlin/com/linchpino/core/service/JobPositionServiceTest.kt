@@ -2,8 +2,13 @@ package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.dto.JobPositionSearchResponse
+import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.JobPosition
+import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
+import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,6 +32,9 @@ class JobPositionServiceTest {
 
     @Mock
     private lateinit var jobPositionRepository: JobPositionRepository
+
+    @Mock
+    private lateinit var interviewTypeRepository: InterviewTypeRepository
 
     @Captor
     private lateinit var nameCaptor: ArgumentCaptor<String?>
@@ -105,6 +113,29 @@ class JobPositionServiceTest {
         )
         assertThat(idCaptor.value).isEqualTo(jobPositionId)
         assertThat(result.content.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `test create jobPosition`() {
+        // Given
+        val jobPositionCaptor: ArgumentCaptor<JobPosition> = ArgumentCaptor.forClass(JobPosition::class.java)
+        val request = JobPositionCreateRequest("Java Developer", 1)
+        val interviewType = InterviewType().apply {
+            id = 1
+        }
+
+        `when`(interviewTypeRepository.findReferenceById(1)).thenReturn(interviewType)
+
+        // When
+        jobPositionService.createJobPosition(request)
+
+        // Then
+        verify(jobPositionRepository, times(1)).save(jobPositionCaptor.captureNonNullable())
+
+        val jobPosition = jobPositionCaptor.value
+        assertThat(jobPosition.title).isEqualTo(request.title)
+        assertThat(jobPosition.interviewTypes().size).isEqualTo(1)
+        assertThat(jobPosition.interviewTypes().first()).isEqualTo(interviewType)
     }
 
 }
