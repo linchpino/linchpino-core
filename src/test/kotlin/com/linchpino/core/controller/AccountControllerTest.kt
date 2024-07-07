@@ -1,7 +1,16 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
-import com.linchpino.core.dto.*
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddProfileImageResponse
+import com.linchpino.core.dto.AddTimeSlotsRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
@@ -12,9 +21,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockMultipartFile
 import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
@@ -178,5 +190,19 @@ class AccountControllerTest {
         verify(timeSlotService, times(1)).addTimeSlots(captor.captureNonNullable())
 
         assertThat(captor.value).isEqualTo(request)
+    }
+
+
+    @Test
+    fun `test upload image calls account service`(){
+        // Given
+        val file = MockMultipartFile("file", "fileName", "image/jpeg", "test image content".toByteArray())
+        `when`(accountService.uploadProfileImage(1,file)).thenReturn(AddProfileImageResponse("fileName"))
+        // When
+        val result = accountController.uploadProfileImage(1,file)
+
+        // Then
+        verify(accountService).uploadProfileImage(1,file)
+        assertThat(result.imageUrl).isEqualTo("fileName")
     }
 }

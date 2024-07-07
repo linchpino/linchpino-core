@@ -3,14 +3,12 @@ package com.linchpino.core.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.linchpino.core.PostgresContainerConfig
-import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
-import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
@@ -25,7 +23,6 @@ import jakarta.persistence.PersistenceContext
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
@@ -725,4 +722,35 @@ class AccountControllerTestIT {
         }
 
     }
+
+    /*
+    @Test
+    fun `test uploadProfileImage success`() {
+
+        // Arrange
+        val fileName = "profile.jpg"
+        val account = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = "secret"
+        }
+
+        accountRepository.save(account)
+
+        val file = MockMultipartFile("file", fileName, "image/jpeg", "test image content".toByteArray())
+        val response = AddProfileImageResponse(fileName)
+
+
+        // Act & Assert
+        mockMvc.perform(
+            multipart("/api/accounts/${account.id}/image")
+            .file(file)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(MockMvcResultMatchers.content().json(ObjectMapper().writeValueAsString(response)))
+
+    }
+*/
 }

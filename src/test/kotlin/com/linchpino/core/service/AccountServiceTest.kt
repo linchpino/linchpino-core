@@ -16,6 +16,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,11 +26,13 @@ import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.web.multipart.MultipartFile
 import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
@@ -52,6 +55,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var emailService: EmailService
+
+    @Mock
+    private lateinit var storageService: StorageService
 
     @Test
     fun `test creating account`() {
@@ -250,5 +256,28 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
+    }
+
+
+    @Test
+    fun `test uploadProfileImage success`() {
+        // Give
+        val fileName = "profile.jpg"
+        val account = Account().apply {
+            id = 1L
+        }
+        val file: MultipartFile = mock(MultipartFile::class.java)
+
+        `when`(repository.findReferenceById(account.id!!)).thenReturn(account)
+        `when`(storageService.uploadProfileImage(account, file)).thenReturn(fileName)
+
+        // When
+        val response = accountService.uploadProfileImage(account.id!!, file)
+
+        // Then
+        assertEquals(fileName, response.imageUrl)
+        assertEquals(fileName, account.avatar)
+        verify(repository).findReferenceById(account.id!!)
+        verify(storageService).uploadProfileImage(account, file)
     }
 }

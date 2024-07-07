@@ -2,6 +2,7 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.AccountSummary
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
@@ -20,10 +21,12 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -35,7 +38,8 @@ class AccountService(
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val roleRepository: RoleRepository,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val storageService: StorageService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -162,5 +166,13 @@ class AccountService(
             externalId = request.externalId ?: this.externalId
         }
         repository.save(account)
+    }
+
+
+    fun uploadProfileImage(id: Long, file: MultipartFile): AddProfileImageResponse {
+        val account = repository.findReferenceById(id)
+        val fileName = storageService.uploadProfileImage(account,file)
+        account.avatar = fileName
+        return AddProfileImageResponse(fileName)
     }
 }

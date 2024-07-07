@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.dto.AccountSummary
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
@@ -9,6 +10,7 @@ import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.StorageService
 import com.linchpino.core.service.TimeSlotService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -19,10 +21,12 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -30,11 +34,15 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
-class AccountController(private val accountService: AccountService,private val timeSlotService: TimeSlotService) {
+class AccountController(private val accountService: AccountService, private val timeSlotService: TimeSlotService) {
+
+    @Autowired
+    lateinit var storageService: StorageService
 
     @Operation(summary = "Create a new account")
     @ResponseStatus(HttpStatus.CREATED)
@@ -108,7 +116,11 @@ class AccountController(private val accountService: AccountService,private val t
             ApiResponse(responseCode = "400", description = "Invalid request body")
         ]
     )
-    @PostMapping("/mentors",consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        "/mentors",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     fun registerMentor(@Valid @RequestBody request: RegisterMentorRequest): ResponseEntity<RegisterMentorResult> {
         val result = accountService.registerMentor(request)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
@@ -122,8 +134,23 @@ class AccountController(private val accountService: AccountService,private val t
             ApiResponse(responseCode = "400", description = "Invalid request body")
         ]
     )
-    @PostMapping("/mentors/timeslots",consumes = [MediaType.APPLICATION_JSON_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(
+        "/mentors/timeslots",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     fun addTimeSlotsForMentor(@Valid @RequestBody request: AddTimeSlotsRequest) {
         timeSlotService.addTimeSlots(request)
+    }
+
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/{id}/image")
+    fun uploadProfileImage(
+        @PathVariable id: Long,
+        @RequestParam("file") file: MultipartFile
+    ): AddProfileImageResponse {
+        val result = accountService.uploadProfileImage(id, file)
+        return result
     }
 }

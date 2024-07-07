@@ -74,4 +74,6 @@ application:
 meet:
   credential: ${MEET_CREDENTIAL:file:/path/to/file}
 
-
+gcp:
+  bucket: ${BUCKET_NAME:linchpino_profile_image}
+  projectId: ${PROJECT_ID:ardent-window-404920}
