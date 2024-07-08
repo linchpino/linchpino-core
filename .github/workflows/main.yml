@@ -88,7 +88,7 @@ jobs:
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
             cat /opt/actions-runner/.env > .env
             echo "which user is login"
-            whoami
+            pwd
             if [ ${GITHUB_REF##*/} == "development" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
