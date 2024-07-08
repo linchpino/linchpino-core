@@ -4,9 +4,9 @@ name: Build and Deploy Current Branch to linchpino-core-stage server
 on:
   push:
     branches:
-      - stage
+      - Staging
   pull_request:
-      branches: [stage]
+      branches: [Staging]
       types: [opened,reopened]
 
 env:
