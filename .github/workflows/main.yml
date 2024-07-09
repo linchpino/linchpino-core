@@ -83,6 +83,9 @@ jobs:
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
             export POSTGRES_DB=$currentBranch
             sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            if [ ${GITHUB_REF##*/} == "Staging" ]; then
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-staging.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            fi
             export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
