@@ -691,6 +691,23 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
+    fun `test search account by role or name returns list of matched accounts when role and partial ame are provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name","ohn")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
     fun `test search account by role or name returns empty list if both role and name are provided and only one matches`() {
         // Given
         saveAccountsWithRole()

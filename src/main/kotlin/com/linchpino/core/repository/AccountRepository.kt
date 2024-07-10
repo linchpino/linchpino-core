@@ -68,7 +68,7 @@ interface AccountRepository : JpaRepository<Account, Long> {
         JOIN a.roles r
         WHERE
         (:type IS NULL OR r.title = :type) AND
-        (LOWER(a.firstName) = LOWER(COALESCE(:name, a.firstName)) OR LOWER(a.lastName) = LOWER(COALESCE(:name, a.lastName)))
+        (LOWER(a.firstName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.firstName)),'%') OR LOWER(a.lastName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.lastName)),'%'))
         """
     )
     fun searchByNameOrRole(name: String?, type: AccountTypeEnum?): List<Account>
