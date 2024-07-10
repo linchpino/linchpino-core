@@ -4,7 +4,11 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.PasswordPolicy
-import jakarta.validation.constraints.*
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import java.time.ZonedDateTime
 
 data class CreateAccountRequest(
@@ -113,4 +117,10 @@ data class RegisterMentorResult(
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise: String?,
     val linkedInUrl: String?
+)
+
+data class SearchAccountResult(
+    val firstName: String?,
+    val lastName: String?,
+    val roles: List<String>,
 )
