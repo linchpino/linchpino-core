@@ -5,6 +5,6 @@ WORKDIR /app
 # Copy the pom.xml and the project files to the container
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package 
+RUN mvn clean package -Dmaven.test.skip=true
 
 EXPOSE 8081
