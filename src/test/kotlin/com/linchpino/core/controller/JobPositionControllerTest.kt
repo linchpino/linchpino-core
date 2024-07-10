@@ -1,6 +1,7 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.service.JobPositionService
 import org.assertj.core.api.Assertions.assertThat
@@ -95,5 +96,14 @@ class JobPositionControllerTest {
         assertThat(result.content.size).isEqualTo(1)
         assertThat(result.content[0].title).isEqualTo("InterviewType1")
 
+    }
+
+    @Test
+    fun `test addJobPosition calls service with provided arguments`() {
+        val request = JobPositionCreateRequest("Mock Interview")
+
+        jobPositionController.addJobPosition(request)
+
+        verify(jobPositionService, times(1)).createJobPosition(request)
     }
 }
