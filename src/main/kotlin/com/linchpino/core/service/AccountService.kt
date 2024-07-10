@@ -8,6 +8,7 @@ import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.SaveAccountRequest
+import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toRegisterMentorResult
@@ -162,5 +163,12 @@ class AccountService(
             externalId = request.externalId ?: this.externalId
         }
         repository.save(account)
+    }
+
+    @Transactional(readOnly = true)
+    fun searchAccountByNameOrRole(name: String?, role: Int?): List<SearchAccountResult> {
+        val accountType = AccountTypeEnum.entries.firstOrNull { it.value == role }
+        return repository.searchByNameOrRole(name, accountType)
+            .map { SearchAccountResult(it.firstName, it.lastName, it.roles().map { r -> r.title.name }) }
     }
 }

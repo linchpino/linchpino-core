@@ -1,7 +1,16 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
-import com.linchpino.core.dto.*
+import com.linchpino.core.dto.AccountSummary
+import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddTimeSlotsRequest
+import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
@@ -12,7 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import java.time.ZonedDateTime
@@ -162,14 +173,20 @@ class AccountControllerTest {
 
 
     @Test
-    fun `test add timeslots for mentor`(){
+    fun `test add timeslots for mentor`() {
         // Given
         val timeSlots = listOf(
-            TimeSlot(ZonedDateTime.parse("2024-05-09T12:30:45+03:00"), ZonedDateTime.parse("2024-05-09T13:30:45+03:00")),
-            TimeSlot(ZonedDateTime.parse("2024-05-10T12:30:45+03:00"), ZonedDateTime.parse("2024-05-10T13:30:45+03:00")),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-09T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            ),
+            TimeSlot(
+                ZonedDateTime.parse("2024-05-10T12:30:45+03:00"),
+                ZonedDateTime.parse("2024-05-10T13:30:45+03:00")
+            ),
         )
         val request = AddTimeSlotsRequest(1000, timeSlots)
-        val captor:ArgumentCaptor<AddTimeSlotsRequest> = ArgumentCaptor.forClass(AddTimeSlotsRequest::class.java)
+        val captor: ArgumentCaptor<AddTimeSlotsRequest> = ArgumentCaptor.forClass(AddTimeSlotsRequest::class.java)
 
         // When
         accountController.addTimeSlotsForMentor(request)
@@ -178,5 +195,27 @@ class AccountControllerTest {
         verify(timeSlotService, times(1)).addTimeSlots(captor.captureNonNullable())
 
         assertThat(captor.value).isEqualTo(request)
+    }
+
+    @Test
+    fun `test search accounts by name and role`() {
+        // Given
+        val expectedResult = listOf(
+            SearchAccountResult(
+                "John", "Doe",
+                listOf("MENTOR")
+            )
+        )
+
+        `when`(accountService.searchAccountByNameOrRole("john", 3)).thenReturn(
+            expectedResult
+        )
+
+        // When
+        val result = accountController.searchAccounts("john", 3)
+
+        // Then
+        assertThat(result).isEqualTo(expectedResult)
+        verify(accountService, times(1)).searchAccountByNameOrRole("john", 3)
     }
 }
