@@ -168,6 +168,9 @@ class AccountController(private val accountService: AccountService, private val 
             password,
             AccountTypeEnum.ADMIN.value
         )
-        createAccount(request)
+        val admins = accountService.searchAccountByNameOrRole(null,AccountTypeEnum.ADMIN.value)
+        if(admins.isEmpty()) {
+            createAccount(request)
+        }
     }
 }

@@ -58,6 +58,9 @@ import java.util.UUID
 class AccountControllerTestIT {
 
     @Autowired
+    private lateinit var accountController: AccountController
+
+    @Autowired
     private lateinit var mockMvc: MockMvc
 
     @MockBean
@@ -760,6 +763,10 @@ class AccountControllerTestIT {
         assertThat(admin).isNotNull
         assertThat(admin?.email).isEqualTo("testAdmin")
         assertThat(admin?.roles()?.map { it.title }).contains(AccountTypeEnum.ADMIN)
+
+        accountController.adminAccountRunner("testAdmin2","secret")
+        val admins = accountRepository.searchByNameOrRole(null,AccountTypeEnum.ADMIN)
+        assertThat(admins.size).isEqualTo(1)
     }
 
 
