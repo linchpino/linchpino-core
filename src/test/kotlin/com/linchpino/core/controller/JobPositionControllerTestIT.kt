@@ -171,32 +171,15 @@ class JobPositionControllerTestIT {
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
     fun `test create jobPosition`() {
-        val interviewType = InterviewType().apply {
-            name = "Mock interview"
-        }
+        // Given
+        val request = JobPositionCreateRequest("Java Developer")
 
-        interviewTypeRepository.save(interviewType)
-
-        val request = JobPositionCreateRequest("Java Developer", interviewType.id!!)
-
+        // When & Then
         mockMvc.perform(
             post("/api/jobposition").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
             .andExpect(status().isCreated)
-    }
-
-    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
-    @Test
-    fun `test create job position fails with 404 if interviewTypeId is not valid`() {
-        val request = JobPositionCreateRequest("Java Developer", 100)
-        mockMvc.perform(
-            post("/api/jobposition").contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
-        )
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("InterviewType entity not found"))
     }
 
 
@@ -206,7 +189,10 @@ class JobPositionControllerTestIT {
     )
     @Test
     fun `test create job position fails with 403 if user is not admin`() {
-        val request = JobPositionCreateRequest("Java Developer", 1)
+        // Given
+        val request = JobPositionCreateRequest("Java Developer")
+
+        // When & Then
         mockMvc.perform(
             post("/api/jobposition").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
@@ -214,10 +200,14 @@ class JobPositionControllerTestIT {
             .andExpect(status().isForbidden)
     }
 
+
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
     fun `test create job position fails with 400 if title is not provided`() {
-        val request = JobPositionCreateRequest("", 1)
+        // Given
+        val request = JobPositionCreateRequest("")
+
+        // When & Then
         mockMvc.perform(
             post("/api/jobposition").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))

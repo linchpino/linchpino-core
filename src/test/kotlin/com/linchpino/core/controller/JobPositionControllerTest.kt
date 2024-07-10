@@ -100,7 +100,7 @@ class JobPositionControllerTest {
 
     @Test
     fun `test addJobPosition calls service with provided arguments`() {
-        val request = JobPositionCreateRequest("Mock Interview", 1)
+        val request = JobPositionCreateRequest("Mock Interview")
 
         jobPositionController.addJobPosition(request)
 

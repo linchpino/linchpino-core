@@ -6,7 +6,6 @@ import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.findReferenceById
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -30,10 +29,8 @@ class JobPositionService(
     }
 
     fun createJobPosition(request: JobPositionCreateRequest) {
-        val interviewType = interviewTypeRepository.findReferenceById(request.interviewTypeId)
         val jobPosition = JobPosition().apply {
             title = request.title
-            addInterviewType(interviewType)
         }
         jobPositionRepository.save(jobPosition)
     }
