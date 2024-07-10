@@ -1,5 +1,7 @@
 package com.linchpino.ai.service.impl;
 
+import com.linchpino.ai.service.domain.Prompt;
+import com.linchpino.ai.service.domain.RequestDetail;
 import org.springframework.ai.client.AiClient;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +17,7 @@ public class ChatGPTServiceImpl implements AIService {
     }
 
     @Override
-    public String talkToAI(String prompt) {
-        return aiClient.generate(prompt);
+    public String talkToAI(RequestDetail requestDetail) {
+        return aiClient.generate(Prompt.of(requestDetail).toString());
     }
-
 }

@@ -1,6 +1,7 @@
 package com.linchpino.ai.service.impl;
 
-public interface AIService {
+import com.linchpino.ai.service.domain.RequestDetail;
 
-    String talkToAI(String prompt);
+public interface AIService {
+    String talkToAI(RequestDetail requestDetail);
 }

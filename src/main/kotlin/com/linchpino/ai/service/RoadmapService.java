@@ -1,7 +1,7 @@
 package com.linchpino.ai.service;
 
-import org.apache.coyote.BadRequestException;
+import com.linchpino.ai.service.domain.RequestDetail;
 
 public interface RoadmapService {
-    String getRoadmap(String aIServiceProviderName) throws BadRequestException;
+    String getRoadmap(RequestDetail requestDetail);
 }

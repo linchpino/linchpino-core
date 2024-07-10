@@ -51,16 +51,16 @@ public class Roadmap {
     }
 
     public static class Step {
-        private double step;
+        private String section;
         private String description;
         private List<SubStep> subSteps;
 
-        public double getStep() {
-            return step;
+        public String getSection() {
+            return section;
         }
 
-        public void setStep(double step) {
-            this.step = step;
+        public void setSection(String section) {
+            this.section = section;
         }
 
         public String getDescription() {
@@ -81,17 +81,15 @@ public class Roadmap {
     }
 
     public static class SubStep {
-        private double step;
+        private String subSection;
         private String description;
 
-        // Getters and setters
-
-        public double getStep() {
-            return step;
+        public String getSubSection() {
+            return subSection;
         }
 
-        public void setStep(double step) {
-            this.step = step;
+        public void setSubSection(String subSection) {
+            this.subSection = subSection;
         }
 
         public String getDescription() {

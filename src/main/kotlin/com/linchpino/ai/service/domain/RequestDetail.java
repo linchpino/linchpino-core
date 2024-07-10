@@ -1,42 +1,14 @@
 package com.linchpino.ai.service.domain;
 
+import com.linchpino.ai.controller.dto.RoadmapRequestDTO;
+
 public class RequestDetail {
-    private String fullName;
-    private String field;
-    private String level;
     private String targetLevel;
-    private String goal;
+    private String linkedinUrl;
 
-    public RequestDetail(String fullName, String field, String level, String targetLevel, String goal) {
-        this.fullName = fullName;
-        this.field = field;
-        this.level = level;
+    public RequestDetail(String targetLevel, String linkedinUrl) {
         this.targetLevel = targetLevel;
-        this.goal = goal;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getField() {
-        return field;
-    }
-
-    public void setField(String field) {
-        this.field = field;
-    }
-
-    public String getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
+        this.linkedinUrl = linkedinUrl;
     }
 
     public String getTargetLevel() {
@@ -47,11 +19,19 @@ public class RequestDetail {
         this.targetLevel = targetLevel;
     }
 
-    public String getGoal() {
-        return goal;
+    public String getLinkedinUrl() {
+        return linkedinUrl;
     }
 
-    public void setGoal(String goal) {
-        this.goal = goal;
+    public void setLinkedinUrl(String linkedinUrl) {
+        this.linkedinUrl = linkedinUrl;
+    }
+
+    public static RequestDetail getDefaultRequestDetail() {
+        return new RequestDetail("Senior Data Scientist", "www.linkedin.com/mmasoomi");
+    }
+
+    public static RequestDetail of(RoadmapRequestDTO requestDTO) {
+        return new RequestDetail(requestDTO.getTargetLevel(), requestDTO.getLinkedinUrl());
     }
 }

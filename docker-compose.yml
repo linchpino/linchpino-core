@@ -24,7 +24,7 @@ services:
       - ./certkeys:/app/certkeys
       - ./ardent-window.json:/app/ardent-window.json
   postgres:
-    image: postgres
+    image: postgres:16
     container_name: linchpino-db
     restart: unless-stopped
     ports:
