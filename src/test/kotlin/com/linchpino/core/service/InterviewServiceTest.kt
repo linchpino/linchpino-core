@@ -46,9 +46,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import java.time.Instant
 import java.time.ZonedDateTime
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyList
-import org.mockito.Mockito.anyString
 
 @ExtendWith(MockitoExtension::class)
 class InterviewServiceTest {
@@ -488,7 +485,7 @@ class InterviewServiceTest {
             this.timeSlot = timeSlot
             this.meetCode = meetCode
         }
-        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(anyLong(), anyString())).thenReturn(interview)
 
         // When
         val response = service.checkValidity(id)
