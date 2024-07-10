@@ -42,17 +42,16 @@ import java.net.URI
 class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
-    fun securityFilterChain(
-        http: HttpSecurity,
-        opaqueTokenIntrospector: OpaqueTokenIntrospector,
-        userService: UserService
-    ): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity,
+                            opaqueTokenIntrospector: OpaqueTokenIntrospector,
+                            userService: UserService): SecurityFilterChain {
         return http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
                 it.requestMatchers(HttpMethod.POST, "/api/jobposition").hasAnyAuthority("SCOPE_ADMIN")
+                it.requestMatchers(HttpMethod.POST,"/api/interviewtypes").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/interviews/*/feedback").hasAnyAuthority("SCOPE_JOB_SEEKER")
                 it.requestMatchers("/api/interviews/mentors/**").hasAnyAuthority("SCOPE_MENTOR")
                 it.requestMatchers("/api/interviews/jobseekers/**").hasAnyAuthority("SCOPE_JOB_SEEKER")
@@ -62,10 +61,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .oauth2ResourceServer {
                 it.authenticationManagerResolver(tokenAuthenticationManagerResolver(opaqueTokenIntrospector))
             }
-            .addFilterBefore(
-                LinkedInSecurityFilter(restClient(), "https://api.linkedin.com/v2/userinfo", userService),
-                AuthorizationFilter::class.java
-            )
+            .addFilterBefore(LinkedInSecurityFilter(restClient(),"https://api.linkedin.com/v2/userinfo",userService),AuthorizationFilter::class.java)
             .httpBasic(Customizer.withDefaults())
             .build()
     }
@@ -87,7 +83,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
         return try {
             jwtDecoder().decode(token)
             true
-        } catch (ex: JwtException) {
+        }catch (ex: JwtException){
             false
         }
     }
@@ -106,8 +102,8 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     @Bean
     fun opaqueTokenIntrospector(
-        @Value("\${linkedin.clientId}") clientId: String,
-        @Value("\${linkedin.secret}") clientSecret: String,
+        @Value("\${linkedin.clientId}") clientId:String,
+        @Value("\${linkedin.secret}") clientSecret:String,
     ): OpaqueTokenIntrospector {
         val restTemplate = RestTemplate()
         val introspectUri = "https://www.linkedin.com/oauth/v2/introspectToken"

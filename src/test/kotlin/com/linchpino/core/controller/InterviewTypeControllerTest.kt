@@ -1,6 +1,7 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.service.InterviewTypeService
 import org.assertj.core.api.Assertions.assertThat
@@ -57,5 +58,14 @@ class InterviewTypeControllerTest{
         // Then
         assertThat(result).isEqualTo(page)
 
+    }
+
+    @Test
+    fun `test create calls service with provided arguments`(){
+        val request = InterviewTypeCreateRequest("Mock Interview", 1)
+
+        controller.addInterviewType(request)
+
+        verify(service, times(1)).createInterviewType(request)
     }
 }
