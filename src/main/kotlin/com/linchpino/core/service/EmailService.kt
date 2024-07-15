@@ -32,11 +32,9 @@ class EmailService(
     @Value("\${email.from.mailAddress}")
     var mailFrom: String? = null
 
-    @Value("\${email.jobSeekerSubject}")
-    var jobSeekerSubject: String = ""
+    var jobSeekerSubject: String = "Confirmation of Interview Schedule on Linchpino"
 
-    @Value("\${email.mentorSubject}")
-    var mentorSubject: String = ""
+    var mentorSubject: String = "Welcome to Linchpino - Confirmation of Mentor Registration"
 
     private val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.X")
 
