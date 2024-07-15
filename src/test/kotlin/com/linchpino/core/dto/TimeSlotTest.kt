@@ -12,7 +12,7 @@ class TimeSlotTest{
     @Test
     fun `test timeslot dto throws exception if endTime is before startTime`(){
         val exception = Assertions.assertThrows(LinchpinException::class.java){
-            TimeSlot(ZonedDateTime.now().plusMinutes(10), ZonedDateTime.now())
+            TimeSlot(ZonedDateTime.now().plusMinutes(10), ZonedDateTime.now()).validate()
         }
         assertThat(exception.errorCode).isEqualTo(ErrorCode.INVALID_TIMESLOT)
     }

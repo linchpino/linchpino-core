@@ -30,6 +30,7 @@ class TimeSlotService(
             ?: throw LinchpinException(ErrorCode.INVALID_ACCOUNT_ROLE, "account does not have mentor role")
 
         val mentorTimeSlots = request.timeSlots
+            .onEach { it.validate() }
             .map { it.toAvailableMentorTimeSlot(account) }
         repository.saveAll(mentorTimeSlots)
     }

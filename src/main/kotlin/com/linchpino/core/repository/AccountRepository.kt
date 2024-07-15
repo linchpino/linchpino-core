@@ -10,8 +10,7 @@ import org.springframework.stereotype.Repository
 import java.time.ZonedDateTime
 
 @Repository
-interface AccountRepository : JpaRepository<Account, Long>{
-
+interface AccountRepository : JpaRepository<Account, Long> {
     fun findByEmailIgnoreCase(email: String): Account?
 
     @Query(
@@ -51,14 +50,27 @@ interface AccountRepository : JpaRepository<Account, Long>{
         from: ZonedDateTime,
         to: ZonedDateTime,
         interviewTypeId: Long,
-        type:AccountTypeEnum = AccountTypeEnum.MENTOR,
+        type: AccountTypeEnum = AccountTypeEnum.MENTOR,
         status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
-    @Query("""
+    @Query(
+        """
         select a from Account a join a.roles role where a.externalId = :externalId and role.title = :type
-    """)
-    fun findByExternalId(externalId:String,type: AccountTypeEnum):Account?
+    """
+    )
+    fun findByExternalId(externalId: String, type: AccountTypeEnum): Account?
+
+    @Query(
+        """
+        SELECT DISTINCT a
+        FROM Account a
+        JOIN a.roles r
+        WHERE
+        (:type IS NULL OR r.title = :type) AND
+        (LOWER(a.firstName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.firstName)),'%') OR LOWER(a.lastName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.lastName)),'%'))
+        """
+    )
+    fun searchByNameOrRole(name: String?, type: AccountTypeEnum?): List<Account>
 
 }
-

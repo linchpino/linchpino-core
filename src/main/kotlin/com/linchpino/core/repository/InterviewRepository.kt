@@ -57,6 +57,49 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
 
     @Query(
         """
+         select NEW com.linchpino.core.dto.InterviewListResponse(
+            i.mentorAccount.id,
+            concat(i.mentorAccount.firstName, ' ', i.mentorAccount.lastName),
+            i.timeSlot.fromTime,
+            i.timeSlot.toTime,
+            i.interviewType.name
+            )
+        from Interview i
+        where i.jobSeekerAccount.email = :email
+        and i.timeSlot.status = :status
+        and i.timeSlot.fromTime > CURRENT_TIMESTAMP
+    """
+    )
+    fun findJobSeekerUpcomingInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
+
+    @Query(
+        """
+         select NEW com.linchpino.core.dto.InterviewListResponse(
+            i.mentorAccount.id,
+            concat(i.mentorAccount.firstName, ' ', i.mentorAccount.lastName),
+            i.timeSlot.fromTime,
+            i.timeSlot.toTime,
+            i.interviewType.name
+            )
+        from Interview i
+        where i.jobSeekerAccount.email = :email
+        and i.timeSlot.status = :status
+        and i.timeSlot.fromTime <= CURRENT_TIMESTAMP
+    """
+    )
+    fun findJobSeekerPastInterviews(
+        email: String,
+        page: Pageable,
+        status: MentorTimeSlotEnum = MentorTimeSlotEnum.ALLOCATED
+    ): Page<InterviewListResponse>
+
+
+    @Query(
+        """
         from Interview i where i.id = :id and (i.jobSeekerAccount.email = :email or i.mentorAccount.email = :email)
     """
     )

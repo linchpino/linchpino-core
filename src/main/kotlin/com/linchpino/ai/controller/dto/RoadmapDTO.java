@@ -1,11 +1,12 @@
 package com.linchpino.ai.controller.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.linchpino.ai.service.domain.Roadmap;
 
+import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class RoadmapDTO {
+public class RoadmapDTO implements Serializable {
     private int level;
     private int targetLevel;
     private String goal;
@@ -45,19 +46,18 @@ public class RoadmapDTO {
         this.steps = steps;
     }
 
-    public static class Step {
-        private double step;
+    public static class Step implements Serializable {
+        @JsonProperty("step")
+        private String section;
         private String description;
         private List<SubStep> subSteps;
 
-        // Getters and setters
-
-        public double getStep() {
-            return step;
+        public String getSection() {
+            return section;
         }
 
-        public void setStep(double step) {
-            this.step = step;
+        public void setSection(String section) {
+            this.section = section;
         }
 
         public String getDescription() {
@@ -76,17 +76,17 @@ public class RoadmapDTO {
             this.subSteps = subSteps;
         }
 
-        public static class SubStep {
-            private double step;
+        public static class SubStep implements Serializable {
+            @JsonProperty("subStep")
+            private String subSection;
             private String description;
 
-            // Getters and setters
-            public double getStep() {
-                return step;
+            public String getSubSection() {
+                return subSection;
             }
 
-            public void setStep(double step) {
-                this.step = step;
+            public void setSubSection(String subSection) {
+                this.subSection = subSection;
             }
 
             public String getDescription() {
@@ -110,24 +110,24 @@ public class RoadmapDTO {
 
     private static List<Step> getSteps(List<com.linchpino.ai.service.domain.Roadmap.Step> steps) {
         return steps.stream()
-                .map(step -> {
-                    Step stepDTO = new Step();
-                    stepDTO.setStep(step.getStep());
-                    stepDTO.setDescription(step.getDescription());
-                    stepDTO.setSubSteps(getSubSteps(step.getSubSteps()));
-                    return stepDTO;
-                })
-                .collect(Collectors.toList());
+            .map(step -> {
+                Step stepDTO = new Step();
+                stepDTO.setSection(step.getSection());
+                stepDTO.setDescription(step.getDescription());
+                stepDTO.setSubSteps(getSubSteps(step.getSubSteps()));
+                return stepDTO;
+            })
+            .toList();
     }
 
     private static List<Step.SubStep> getSubSteps(List<Roadmap.SubStep> subSteps) {
         return subSteps.stream()
-                .map(subStep -> {
-                    Step.SubStep subStepDTO = new Step.SubStep();
-                    subStepDTO.setStep(subStep.getStep());
-                    subStepDTO.setDescription(subStep.getDescription());
-                    return subStepDTO;
-                })
-                .collect(Collectors.toList());
+            .map(subStep -> {
+                Step.SubStep subStepDTO = new Step.SubStep();
+                subStepDTO.setSubSection(subStep.getSubSection());
+                subStepDTO.setDescription(subStep.getDescription());
+                return subStepDTO;
+            })
+            .toList();
     }
 }

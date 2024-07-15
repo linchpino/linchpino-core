@@ -77,7 +77,7 @@ class InterviewServiceTest {
     private lateinit var emailService: EmailService
 
     @Mock
-    private lateinit var meetService: MeetService
+    private lateinit var calendarService: CalendarService
 
     @Test
     fun `test create new interview when account exists`() {
@@ -134,12 +134,24 @@ class InterviewServiceTest {
         val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
             ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
 
+        val attendeeCaptor: ArgumentCaptor<List<String>> =
+            ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<String>>
+        val titleCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
+            ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
+
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
         `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
-        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
+        `when`(
+            calendarService.googleMeetCode(
+                attendeeCaptor.captureNonNullable(),
+                titleCaptor.captureNonNullable(),
+                timeCaptor.captureNonNullable()
+            )
+        ).thenReturn("fake-meet-code")
 
         val result = service.createInterview(createInterviewRequest)
 
@@ -151,7 +163,6 @@ class InterviewServiceTest {
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
 
         assertEquals(createInterviewResult, result)
-        verify(meetService, times(1)).createGoogleWorkSpace()
         val savedInterview = captor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
@@ -160,6 +171,15 @@ class InterviewServiceTest {
         assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
         assertThat(savedInterview.meetCode).isEqualTo("fake-meet-code")
+
+        val attendees = attendeeCaptor.value
+        assertThat(attendees).isEqualTo(listOf(mentorAcc.email, jobSeekerAccount.email))
+
+        val meetTitle = titleCaptor.value
+        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAccount.firstName}")
+
+        val times = timeCaptor.value
+        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
     }
 
     @Test
@@ -206,6 +226,11 @@ class InterviewServiceTest {
         val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
             ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
 
+        val attendeeCaptor: ArgumentCaptor<List<String>> =
+            ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<String>>
+        val titleCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
+            ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
             typeInterview.id!!,
@@ -232,11 +257,16 @@ class InterviewServiceTest {
                 listOf()
             )
         )
-        `when`(meetService.createGoogleWorkSpace()).thenReturn("fake-meet-code")
+        `when`(
+            calendarService.googleMeetCode(
+                attendeeCaptor.captureNonNullable(),
+                titleCaptor.captureNonNullable(),
+                timeCaptor.captureNonNullable()
+            )
+        ).thenReturn("fake-meet-code")
 
         service.createInterview(createInterviewRequest)
 
-        verify(meetService, times(1)).createGoogleWorkSpace()
         verify(interviewRepository, times(1)).save(interviewCaptor.capture())
         verify(timeSlotService, times(1)).updateTimeSlotStatus(
             timeSlotCaptor.captureNonNullable(),
@@ -258,6 +288,15 @@ class InterviewServiceTest {
 
         assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
+
+        val attendees = attendeeCaptor.value
+        assertThat(attendees).isEqualTo(listOf(mentorAccount.email, jobSeekerAccount.email))
+
+        val meetTitle = titleCaptor.value
+        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAccount.firstName} and ${jobSeekerAccount.firstName}")
+
+        val times = timeCaptor.value
+        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
     }
 
     @Test
@@ -393,71 +432,6 @@ class InterviewServiceTest {
         assertThat(response).isEqualTo(expected)
     }
 
-
-    @Test
-    fun `test interview validity returns status true and google meet link`() {
-
-        // Given
-        val id = 1L
-        val email = "john.doe@example.com"
-        val meetCode = "abc-efg-hij"
-        SecurityContextHolder.getContextHolderStrategy().context =
-            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
-
-        val timeSlot = MentorTimeSlot().apply {
-            fromTime = ZonedDateTime.now().plusMinutes(2)
-            toTime = ZonedDateTime.now().plusMinutes(60)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        val interview = Interview().apply {
-            this.timeSlot = timeSlot
-            this.meetCode = meetCode
-        }
-        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
-
-        // When
-        val response = service.checkValidity(id)
-
-        // Then
-        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
-        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
-        assertThat(response.verifyStatus).isEqualTo(true)
-        assertThat(response.link).isEqualTo("https://meet.google.com/$meetCode")
-    }
-
-    @Test
-    fun `test interview validity returns false status when timeslot starts more than 5 min from now`() {
-
-        // Given
-        val id = 1L
-        val email = "john.doe@example.com"
-        val meetCode = "abc-efg-hij"
-        SecurityContextHolder.getContextHolderStrategy().context =
-            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
-
-        val timeSlot = MentorTimeSlot().apply {
-            fromTime = ZonedDateTime.now().plusMinutes(6)
-            toTime = ZonedDateTime.now().plusMinutes(60)
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
-
-        val interview = Interview().apply {
-            this.timeSlot = timeSlot
-            this.meetCode = meetCode
-        }
-        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
-
-        // When
-        val response = service.checkValidity(id)
-
-        // Then
-        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
-        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
-        assertThat(response.verifyStatus).isEqualTo(false)
-        assertThat(response.link).isEqualTo("")
-    }
-
     @Test
     fun `test interview validity throws not found exception if there is no interview with provided id or account email`() {
         // Given
@@ -471,5 +445,79 @@ class InterviewServiceTest {
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+    }
+
+
+    @Test
+    fun `test upcoming interviews for job seeker`() {
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val authentication = JwtAuthenticationToken(jwt)
+        val emailCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        `when`(service.jobSeekerUpcomingInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
+
+        val response = service.jobSeekerUpcomingInterviews(authentication, Pageable.unpaged())
+
+        verify(interviewRepository, times(1)).findJobSeekerUpcomingInterviews(
+            emailCaptor.captureNonNullable(),
+            pageCaptor.captureNonNullable(),
+            mentorTimeSlotCaptor.captureNonNullable()
+        )
+        assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
+        assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(response).isEqualTo(expected)
+    }
+
+    @Test
+    fun `test past interviews for job seeker`(){
+        // Given
+        val expected = PageImpl(
+            mutableListOf(
+                InterviewListResponse(1L, "John Doe", ZonedDateTime.now(), ZonedDateTime.now(), "InterviewType")
+            )
+        )
+        val jwt = Jwt(
+            "token",
+            Instant.now(),
+            Instant.now().plusSeconds(3600),
+            mapOf("alg" to "none"),
+            mapOf(
+                "sub" to "john.doe@example.com",
+                "scope" to "MENTOR JOB_SEEKER"
+            )
+        )
+        val authentication = JwtAuthenticationToken(jwt)
+        val emailCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
+        val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
+        val mentorTimeSlotCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
+            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        `when`(service.jobSeekerPastInterviews(authentication, Pageable.unpaged())).thenReturn(expected)
+        // When
+        val response = service.jobSeekerPastInterviews(authentication, Pageable.unpaged())
+
+        verify(interviewRepository, times(1)).findJobSeekerPastInterviews(
+            emailCaptor.captureNonNullable(),
+            pageCaptor.captureNonNullable(),
+            mentorTimeSlotCaptor.captureNonNullable()
+        )
+        assertThat(emailCaptor.value).isEqualTo("john.doe@example.com")
+        assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
+        assertThat(response).isEqualTo(expected)
     }
 }
