@@ -32,9 +32,6 @@ class EmailService(
     @Value("\${email.from.mailAddress}")
     var mailFrom: String? = null
 
-    var jobSeekerSubject: String = "Confirmation of Interview Schedule on Linchpino"
-
-    var mentorSubject: String = "Welcome to Linchpino - Confirmation of Mentor Registration"
 
     private val dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.X")
 
@@ -47,7 +44,7 @@ class EmailService(
         sendEmail(
             InternetAddress(mailFrom, mailFromName),
             email,
-            mentorSubject,
+            "Welcome to Linchpino - Confirmation of Mentor Registration",
             "mentor-email-template.html",
             templateContextData,
         )
@@ -87,14 +84,15 @@ class EmailService(
                 jobSeekerFullName,
                 interview.jobSeekerAccount?.email,
                 interview.timeSlot?.toTime?.format(dateTimeFormat),
-                interview.timeSlot?.fromTime?.format(dateTimeFormat)
+                interview.timeSlot?.fromTime?.format(dateTimeFormat),
+                "Confirmation of Interview Schedule on Linchpino"
             ).toByteArray()
         )
 
         sendEmail(
             InternetAddress(mailFrom, mailFromName),
             interview.jobSeekerAccount!!.email,
-            jobSeekerSubject,
+            "Confirmation of Interview Schedule on Linchpino",
             "jobseeker-email-template.html",
             templateContextData,
             Attachment("invite.ics", attachment, "text/calendar; charset=UTF-8")
@@ -139,7 +137,8 @@ class EmailService(
         jobSeekerFullName: String,
         jobSeekerEmail: String?,
         toDate: String?,
-        fromDate: String?
+        fromDate: String?,
+        summary:String
     ): String {
         return """
             BEGIN:VCALENDAR
@@ -152,7 +151,7 @@ class EmailService(
             DTSTAMP:${ZonedDateTime.now(ZoneOffset.UTC).format(dateTimeFormat)}
             DTSTART:$fromDate
             DTEND:$toDate
-            SUMMARY:$jobSeekerSubject
+            SUMMARY:$summary
             LOCATION:Online
             ORGANIZER;CN=Linchpino:mailto:$mailUsername
             ATTENDEE;RSVP=TRUE;CN=$jobSeekerFullName Name:mailto:$jobSeekerEmail
