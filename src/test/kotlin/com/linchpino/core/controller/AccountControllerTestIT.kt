@@ -17,10 +17,13 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.hasItems
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.times
@@ -31,12 +34,15 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -45,7 +51,14 @@ import java.util.UUID
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
+@TestPropertySource(properties = [
+    "admin.username=testAdmin",
+    "admin.password=testPassword"
+])
 class AccountControllerTestIT {
+
+    @Autowired
+    private lateinit var accountController: AccountController
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -72,7 +85,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(createAccountRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(status().isCreated)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.firstName").value("John"))
             .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -92,7 +105,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("firstName"))
@@ -109,7 +122,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("lastName"))
@@ -126,7 +139,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("email"))
@@ -143,7 +156,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap", hasSize<Int>(1)))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("password"))
@@ -160,7 +173,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap").isArray)
             .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("email")))
@@ -188,7 +201,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(createAccountRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(status().isCreated)
 
 
         mockMvc.perform(
@@ -196,7 +209,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(createAccountRequestWithDuplicateEmail))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Unique email violation"))
             .andExpect(jsonPath("$.status").value(400))
     }
@@ -217,7 +230,7 @@ class AccountControllerTestIT {
                 .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
@@ -247,7 +260,7 @@ class AccountControllerTestIT {
                 .param("date", "2024-03-27T00:00:00+10:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
@@ -273,7 +286,7 @@ class AccountControllerTestIT {
                 .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
             .andExpect(jsonPath("$").isEmpty)
@@ -295,7 +308,7 @@ class AccountControllerTestIT {
                 .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
             .andExpect(jsonPath("$").isEmpty)
@@ -309,7 +322,7 @@ class AccountControllerTestIT {
                 .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.status").value(400))
@@ -325,7 +338,7 @@ class AccountControllerTestIT {
                 .param("interviewTypeId", 5L.toString())
                 .contentType(MediaType.APPLICATION_JSON)
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.status").value(400))
@@ -347,7 +360,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
             .andExpect(jsonPath("$.firstName").value("updated firstname"))
             .andExpect(jsonPath("$.lastName").value("updated last name"))
@@ -368,7 +381,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
     }
 
     @Test
@@ -389,7 +402,7 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(status().isNotFound)
     }
 
     @Test
@@ -413,7 +426,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)
             .andExpect(jsonPath("$.firstName").value("John"))
             .andExpect(jsonPath("$.lastName").value("Doe"))
@@ -450,7 +463,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.timestamp").exists())
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Interview type not found"))
@@ -473,7 +486,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(invalidRequest))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap[*].field", hasItem("firstName")))
@@ -516,7 +529,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(status().isCreated)
     }
 
     @Test
@@ -540,7 +553,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Account entity not found"))
 
     }
@@ -575,7 +588,7 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Account role is invalid"))
     }
 
@@ -605,9 +618,183 @@ class AccountControllerTestIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Timeslot is invalid"))
             .andExpect(jsonPath("$.status").value(400))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns list of matched accounts when lastName is provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name", "doe")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns list of matched accounts when firstName is provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name", "john")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns list of matched accounts when role is provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("role", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns list of matched accounts when role and name are provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name","doe")
+                .param("role", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns list of matched accounts when role and partial ame are provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name","ohn")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].firstName").value("John"))
+            .andExpect(jsonPath("$[0].lastName").value("Doe"))
+            .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns empty list if both role and name are provided and only one matches`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name","smith")
+                .param("role", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").isEmpty)
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test search account by role or name returns all accounts if no name and role provided`() {
+        // Given
+        saveAccountsWithRole()
+
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[*].firstName").value(hasItems("Jane", "John")))
+            .andExpect(jsonPath("$[*].lastName").value(hasItems("Smith", "Doe")))
+            .andExpect(jsonPath("$[?(@.firstName == 'Jane')].roles[0]").value(hasItem("JOB_SEEKER")))
+            .andExpect(jsonPath("$[?(@.firstName == 'John')].roles[0]").value(hasItem("MENTOR")))
+
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.GUEST,AccountTypeEnum.MENTOR,AccountTypeEnum.JOB_SEEKER])
+    @Test
+    fun `test search account by role or name throws 403 if user is not admin`() {
+        // When
+        mockMvc.perform(
+            get("/api/accounts/search")
+                .param("name","smith")
+                .param("role", "3")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `adminAccountRunner creates admin account`() {
+        // The ApplicationContext will trigger the ApplicationRunner automatically
+
+        val admin = accountRepository.findAll().firstOrNull { it.firstName == "admin" && it.lastName == "admin" }
+        assertThat(admin).isNotNull
+        assertThat(admin?.email).isEqualTo("testAdmin")
+        assertThat(admin?.roles()?.map { it.title }).contains(AccountTypeEnum.ADMIN)
+
+        accountController.adminAccountRunner("testAdmin2","secret")
+        val admins = accountRepository.searchByNameOrRole(null,AccountTypeEnum.ADMIN)
+        assertThat(admins.size).isEqualTo(1)
+    }
+
+
+    private fun saveAccountsWithRole() {
+        val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
+        val jobSeekerRole = entityManager.find(Role::class.java, AccountTypeEnum.JOB_SEEKER.value)
+
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = "secret"
+            status = AccountStatusEnum.ACTIVATED
+        }
+
+        val jane = Account().apply {
+            firstName = "Jane"
+            lastName = "Smith"
+            email = "janesmith@gmail.com"
+            password = "secret"
+            status = AccountStatusEnum.ACTIVATED
+        }
+
+        john.addRole(mentorRole)
+        jane.addRole(jobSeekerRole)
+
+        accountRepository.save(john)
+        accountRepository.save(jane)
     }
 
     private fun saveFakeJobSeekerAccount(externalId: String, accountStatus: AccountStatusEnum) {

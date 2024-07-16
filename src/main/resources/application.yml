@@ -74,6 +74,11 @@ application:
 meet:
   credential: ${MEET_CREDENTIAL:file:/path/to/file}
 
+admin:
+  username: ${ADMIN_USERNAME:admin@example.com}
+  password: ${ADMIN_PASSWORD:secret}
+
+
 gcp:
   bucket: ${BUCKET_NAME:linchpino_profile_image}
   projectId: ${PROJECT_ID:ardent-window-404920}

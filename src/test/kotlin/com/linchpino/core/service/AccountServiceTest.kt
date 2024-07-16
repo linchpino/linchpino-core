@@ -5,6 +5,7 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.Role
@@ -256,6 +257,34 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
+    }
+
+    @Test
+    fun `test search accounts by name or role`() {
+        // Given
+        val account = Account().apply {
+            id = 1
+            firstName = "John"
+            lastName = "Doe"
+            addRole(Role().apply {
+                id = 2
+                title = AccountTypeEnum.MENTOR
+            })
+        }
+        `when`(repository.searchByNameOrRole("john", AccountTypeEnum.MENTOR)).thenReturn(listOf(account))
+
+        // When
+        val result = accountService.searchAccountByNameOrRole("john", 3)
+
+        // Then
+        verify(repository, times(1)).searchByNameOrRole("john", AccountTypeEnum.MENTOR)
+        assertThat(result).isEqualTo(
+            listOf(
+                SearchAccountResult(
+                    account.firstName,
+                    account.lastName,
+                    account.roles().map { it.title.name })))
+
     }
 
 

@@ -119,4 +119,10 @@ data class RegisterMentorResult(
     val linkedInUrl: String?
 )
 
+data class SearchAccountResult(
+    val firstName: String?,
+    val lastName: String?,
+    val roles: List<String>,
+)
+
 data class AddProfileImageResponse(val imageUrl:String)
