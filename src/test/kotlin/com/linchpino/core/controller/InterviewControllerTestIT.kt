@@ -196,7 +196,6 @@ class InterviewControllerTestIT {
     @Test
     fun `test with not exist email address result in creating a silent account for job seeker`() {
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
-        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val mentorAccount = entityManager.createQuery(
             "select a from Account a where email = 'john.smith@example.com'",
             Account::class.java

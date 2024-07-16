@@ -36,8 +36,11 @@ spring:
           starttls:
             enable: true
             required: true
-          from: no-reply@linchpino.com
-mail.from.name: Linchpino
+
+email:
+  from:
+    name: Linchpino
+    mailAddress: no-reply@linchpino.com
 
 management:
   server:
