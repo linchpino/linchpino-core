@@ -18,6 +18,9 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
+import com.linchpino.core.security.WithMockJwt
+import com.linchpino.core.security.email
+import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -35,6 +38,9 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.multipart.MultipartFile
 import java.time.ZonedDateTime
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {
@@ -297,16 +303,17 @@ class AccountServiceTest {
         }
         val file: MultipartFile = mock(MultipartFile::class.java)
 
-        `when`(repository.findReferenceById(account.id!!)).thenReturn(account)
+        val authentication = WithMockJwt.mockAuthentication()
+        `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
         `when`(storageService.uploadProfileImage(account, file)).thenReturn(fileName)
 
         // When
-        val response = accountService.uploadProfileImage(account.id!!, file)
+        val response = accountService.uploadProfileImage(file, authentication)
 
         // Then
         assertEquals(fileName, response.imageUrl)
         assertEquals(fileName, account.avatar)
-        verify(repository).findReferenceById(account.id!!)
+        verify(repository).findByEmailIgnoreCase(authentication.email())
         verify(storageService).uploadProfileImage(account, file)
     }
 }

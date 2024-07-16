@@ -23,6 +23,7 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
+import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -31,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import org.springframework.security.core.Authentication
 
 @Service
 @Transactional
@@ -177,8 +179,9 @@ class AccountService(
     }
 
 
-    fun uploadProfileImage(id: Long, file: MultipartFile): AddProfileImageResponse {
-        val account = repository.findReferenceById(id)
+    fun uploadProfileImage(file: MultipartFile, authentication: Authentication): AddProfileImageResponse {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
         val fileName = storageService.uploadProfileImage(account, file)
         account.avatar = fileName
         return AddProfileImageResponse(fileName)

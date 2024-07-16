@@ -911,6 +911,7 @@ class AccountControllerTestIT {
     }
 
     /*
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
     @Test
     fun `test uploadProfileImage success`() {
 
@@ -931,7 +932,7 @@ class AccountControllerTestIT {
 
         // Act & Assert
         mockMvc.perform(
-            multipart("/api/accounts/${account.id}/image")
+            multipart("/api/accounts/image")
             .file(file)
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .accept(MediaType.APPLICATION_JSON))

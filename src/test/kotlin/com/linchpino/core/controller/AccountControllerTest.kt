@@ -14,6 +14,7 @@ import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
 import java.time.ZonedDateTime
@@ -226,12 +227,13 @@ class AccountControllerTest {
     fun `test upload image calls account service`() {
         // Given
         val file = MockMultipartFile("file", "fileName", "image/jpeg", "test image content".toByteArray())
-        `when`(accountService.uploadProfileImage(1, file)).thenReturn(AddProfileImageResponse("fileName"))
+        val authentication = WithMockJwt.mockAuthentication()
+        `when`(accountService.uploadProfileImage( file, authentication)).thenReturn(AddProfileImageResponse("fileName"))
         // When
-        val result = accountController.uploadProfileImage(1, file)
+        val result = accountController.uploadProfileImage(file,authentication)
 
         // Then
-        verify(accountService).uploadProfileImage(1, file)
+        verify(accountService).uploadProfileImage(file, authentication)
         assertThat(result.imageUrl).isEqualTo("fileName")
     }
 }
