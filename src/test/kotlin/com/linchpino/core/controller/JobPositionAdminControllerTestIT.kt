@@ -23,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -119,5 +120,54 @@ class JobPositionAdminControllerTestIT {
 
         mockMvc.perform(delete("/api/admin/jobposition/{id}", 1))
             .andExpect(status().isForbidden)
+    }
+
+    @WithMockJwt("john.doe@example.com", roles = [ADMIN])
+    @Test
+    fun `test create jobPosition`() {
+        // Given
+        val request = JobPositionCreateRequest("Java Developer")
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/admin/jobposition").contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isCreated)
+    }
+
+
+    @WithMockJwt(
+        "john.doe@example.com",
+        roles = [MENTOR, GUEST, JOB_SEEKER]
+    )
+    @Test
+    fun `test create job position fails with 403 if user is not admin`() {
+        // Given
+        val request = JobPositionCreateRequest("Java Developer")
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/admin/jobposition").contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isForbidden)
+    }
+
+
+    @WithMockJwt("john.doe@example.com", roles = [ADMIN])
+    @Test
+    fun `test create job position fails with 400 if title is not provided`() {
+        // Given
+        val request = JobPositionCreateRequest("")
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/admin/jobposition").contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
     }
 }

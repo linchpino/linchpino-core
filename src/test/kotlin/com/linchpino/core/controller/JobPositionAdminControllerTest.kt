@@ -63,4 +63,14 @@ class JobPositionAdminControllerTest {
         verify(jobPositionService, times(1)).getById(idToFetch)
         assertThat(result).isEqualTo(expectedResponse)
     }
+
+
+    @Test
+    fun `test addJobPosition calls service with provided arguments`() {
+        val request = JobPositionCreateRequest("Mock Interview")
+
+        jobPositionAdminController.addJobPosition(request)
+
+        verify(jobPositionService, times(1)).createJobPosition(request)
+    }
 }
