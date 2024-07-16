@@ -5,8 +5,8 @@ import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.JobPosition
-import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,9 +30,6 @@ class JobPositionServiceTest {
 
     @Mock
     private lateinit var jobPositionRepository: JobPositionRepository
-
-    @Mock
-    private lateinit var interviewTypeRepository: InterviewTypeRepository
 
     @Captor
     private lateinit var nameCaptor: ArgumentCaptor<String?>
@@ -127,6 +124,56 @@ class JobPositionServiceTest {
 
         val jobPosition = jobPositionCaptor.value
         assertThat(jobPosition.title).isEqualTo(request.title)
+    }
+
+
+    @Test
+    fun `test delete by id`() {
+        // Given
+        val idToDelete = 1L
+
+        // When
+        jobPositionService.deleteById(idToDelete)
+
+        // Then
+        verify(jobPositionRepository).deleteById(idToDelete)
+    }
+
+    @Test
+    fun `test update`() {
+        val idToUpdate = 1L
+        val request = JobPositionCreateRequest("Updated Title")
+
+        val jobPosition = JobPosition().apply {
+            id = idToUpdate
+            title = "Old Title"
+        }
+        `when`(jobPositionRepository.findById(idToUpdate)).thenReturn(Optional.of(jobPosition))
+
+        // When
+        jobPositionService.update(idToUpdate, request)
+
+        // Then
+        verify(jobPositionRepository).findById(idToUpdate)
+        assertThat(jobPosition.title).isEqualTo("Updated Title")
+    }
+
+    @Test
+    fun `test get by id`() {
+        // Given
+        val jobPosition = JobPosition().apply {
+            id = 1L
+            title = "Title"
+        }
+        `when`(jobPositionRepository.findById(jobPosition.id!!)).thenReturn(Optional.of(jobPosition))
+
+        // When
+        val result = jobPositionService.getById(jobPosition.id!!)
+
+        // Then
+        verify(jobPositionRepository).findById(jobPosition.id!!)
+        assertThat(result.id).isEqualTo(jobPosition.id)
+        assertThat(result.title).isEqualTo("Title")
     }
 
 }
