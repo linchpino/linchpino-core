@@ -93,7 +93,7 @@ class JobPositionAdminController(private val jobPositionService: JobPositionServ
     )
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    fun addJobPosition(@Valid @RequestBody request: JobPositionCreateRequest) {
-        jobPositionService.createJobPosition(request)
+    fun addJobPosition(@Valid @RequestBody request: JobPositionCreateRequest):JobPositionSearchResponse {
+        return jobPositionService.createJobPosition(request)
     }
 }

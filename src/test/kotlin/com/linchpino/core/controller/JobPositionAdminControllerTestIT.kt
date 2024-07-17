@@ -134,6 +134,7 @@ class JobPositionAdminControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(request))
         )
             .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.title").value(request.title))
     }
 
 

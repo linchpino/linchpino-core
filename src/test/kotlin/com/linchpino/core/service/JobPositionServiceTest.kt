@@ -14,6 +14,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -117,13 +118,14 @@ class JobPositionServiceTest {
         val request = JobPositionCreateRequest("Java Developer")
 
         // When
-        jobPositionService.createJobPosition(request)
+        val result = jobPositionService.createJobPosition(request)
 
         // Then
         verify(jobPositionRepository, times(1)).save(jobPositionCaptor.captureNonNullable())
 
         val jobPosition = jobPositionCaptor.value
         assertThat(jobPosition.title).isEqualTo(request.title)
+        assertThat(result.title).isEqualTo(request.title)
     }
 
 

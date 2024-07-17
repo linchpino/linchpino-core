@@ -29,11 +29,12 @@ class JobPositionService(
         return jobPositionRepository.findInterviewsByJobPositionId(jobPositionId, pageable)
     }
 
-    fun createJobPosition(request: JobPositionCreateRequest) {
+    fun createJobPosition(request: JobPositionCreateRequest): JobPositionSearchResponse {
         val jobPosition = JobPosition().apply {
             title = request.title
         }
         jobPositionRepository.save(jobPosition)
+        return JobPositionSearchResponse(jobPosition.id,jobPosition.title)
     }
 
     fun deleteById(id: Long) {
