@@ -78,7 +78,7 @@ class InterviewTypeServiceTest {
         `when`(jobPositionRepository.findReferenceById(1)).thenReturn(jobPosition)
 
         // When
-        service.createInterviewType(request)
+        val result = service.createInterviewType(request)
 
         // Then
         verify(repository,times(1)).save(interviewTypeCaptor.captureNonNullable())
@@ -87,6 +87,7 @@ class InterviewTypeServiceTest {
         assertThat(interviewType.name).isEqualTo(request.name)
         assertThat(interviewType.jobPositions.size).isEqualTo(1)
         assertThat(interviewType.jobPositions.first()).isEqualTo(jobPosition)
+        assertThat(result.title).isEqualTo(request.name)
     }
 
 }
