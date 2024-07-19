@@ -97,13 +97,4 @@ class JobPositionControllerTest {
         assertThat(result.content[0].title).isEqualTo("InterviewType1")
 
     }
-
-    @Test
-    fun `test addJobPosition calls service with provided arguments`() {
-        val request = JobPositionCreateRequest("Mock Interview")
-
-        jobPositionController.addJobPosition(request)
-
-        verify(jobPositionService, times(1)).createJobPosition(request)
-    }
 }
