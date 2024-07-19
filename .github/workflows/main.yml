@@ -13,7 +13,6 @@ env:
 jobs:
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
-    environment: staging
     permissions:
       contents: read
       packages: write
@@ -45,7 +44,6 @@ jobs:
 
   Deploy-to-linchpino-core-server:
       runs-on: stage-runner
-      environment: staging
       permissions:
         contents: read
         packages: write
