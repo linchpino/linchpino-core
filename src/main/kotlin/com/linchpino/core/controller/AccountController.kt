@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.dto.AccountSummary
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
@@ -21,12 +22,14 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -35,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.time.ZonedDateTime
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("api/accounts")
@@ -172,5 +175,16 @@ class AccountController(private val accountService: AccountService, private val 
         if(admins.isEmpty()) {
             createAccount(request)
         }
+    }
+
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/image")
+    fun uploadProfileImage(
+        @RequestParam("file") file: MultipartFile,
+        authentication: Authentication
+    ): AddProfileImageResponse {
+        val result = accountService.uploadProfileImage(file, authentication)
+        return result
     }
 }

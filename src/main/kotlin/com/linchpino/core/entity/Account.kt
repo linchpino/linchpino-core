@@ -14,6 +14,7 @@ import jakarta.persistence.Table
 @Table(name = "ACCOUNT")
 @Entity
 class Account : AbstractEntity() {
+
     @Column(name = "FIRST_NAME")
     var firstName: String? = null
 
@@ -43,8 +44,13 @@ class Account : AbstractEntity() {
 
     @Column(name = "expertise", columnDefinition = "TEXT")
     var detailsOfExpertise:String? = null
+
     @Column(name = "linkedin_url")
     var linkedInUrl:String? = null
+
+    @Column(name = "avatar")
+    var avatar: String? = null
+
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)

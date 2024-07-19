@@ -2,6 +2,7 @@ package com.linchpino.core.service
 
 import com.linchpino.core.dto.AccountSummary
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
+import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
@@ -21,13 +22,17 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
+import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import org.springframework.security.core.Authentication
 
 @Service
 @Transactional
@@ -36,7 +41,8 @@ class AccountService(
     private val passwordEncoder: PasswordEncoder,
     private val interviewTypeRepository: InterviewTypeRepository,
     private val roleRepository: RoleRepository,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val storageService: StorageService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -170,5 +176,14 @@ class AccountService(
         val accountType = AccountTypeEnum.entries.firstOrNull { it.value == role }
         return repository.searchByNameOrRole(name, accountType)
             .map { SearchAccountResult(it.firstName, it.lastName, it.roles().map { r -> r.title.name }) }
+    }
+
+
+    fun uploadProfileImage(file: MultipartFile, authentication: Authentication): AddProfileImageResponse {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
+        val fileName = storageService.uploadProfileImage(account, file)
+        account.avatar = fileName
+        return AddProfileImageResponse(fileName)
     }
 }

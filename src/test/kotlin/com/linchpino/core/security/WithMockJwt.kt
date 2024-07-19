@@ -1,6 +1,8 @@
 package com.linchpino.core.security
 
 import com.linchpino.core.enums.AccountTypeEnum
+import java.time.Instant
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.oauth2.jwt.Jwt
@@ -8,12 +10,26 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithSecurityContext
 import org.springframework.security.test.context.support.WithSecurityContextFactory
-import java.time.Instant
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
 @WithSecurityContext(factory = WithMockJwtSecurityContextFactory::class)
-annotation class WithMockJwt(val username: String = "user", val roles: Array<AccountTypeEnum> = [AccountTypeEnum.GUEST])
+annotation class WithMockJwt(val username: String = "user", val roles: Array<AccountTypeEnum> = [AccountTypeEnum.GUEST]) {
+    companion object {
+        fun mockAuthentication():Authentication  = JwtAuthenticationToken(
+            Jwt(
+                "token",
+                Instant.now(),
+                Instant.now().plusSeconds(3600),
+                mapOf("alg" to "none"),
+                mapOf(
+                    "sub" to "fake@example.com",
+                    "scope" to listOf<String>()
+                )
+            ), listOf()
+        )
+    }
+}
 
 class WithMockJwtSecurityContextFactory : WithSecurityContextFactory<WithMockJwt> {
     override fun createSecurityContext(withMockJwt: WithMockJwt): SecurityContext {
