@@ -909,4 +909,36 @@ class AccountControllerTestIT {
         }
 
     }
+
+    /*
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test uploadProfileImage success`() {
+
+        // Arrange
+        val fileName = "profile.jpg"
+        val account = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = "secret"
+        }
+
+        accountRepository.save(account)
+
+        val file = MockMultipartFile("file", fileName, "image/jpeg", "test image content".toByteArray())
+        val response = AddProfileImageResponse(fileName)
+
+
+        // Act & Assert
+        mockMvc.perform(
+            multipart("/api/accounts/image")
+            .file(file)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isCreated)
+            .andExpect(MockMvcResultMatchers.content().json(ObjectMapper().writeValueAsString(response)))
+
+    }
+*/
 }

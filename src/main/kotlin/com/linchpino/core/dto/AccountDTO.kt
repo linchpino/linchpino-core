@@ -124,3 +124,5 @@ data class SearchAccountResult(
     val lastName: String?,
     val roles: List<String>,
 )
+
+data class AddProfileImageResponse(val imageUrl:String)

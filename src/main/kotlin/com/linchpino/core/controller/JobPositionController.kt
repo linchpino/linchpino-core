@@ -17,9 +17,11 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -54,25 +56,4 @@ class JobPositionController(private val jobPositionService: JobPositionService) 
     ): Page<InterviewTypeSearchResponse> {
         return jobPositionService.findInterviewTypesBy(id, pageable)
     }
-
-
-    @Operation(summary = "Add a new job position", description = "Creates a new job position in the system.")
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "job position created",
-                content = [Content(schema = Schema(implementation = JobPositionCreateRequest::class))]
-            ),
-            ApiResponse(responseCode = "400", description = "Invalid input"),
-            ApiResponse(responseCode = "401", description = "Unauthorized"),
-            ApiResponse(responseCode = "403", description = "Forbidden if not ADMIN"),
-        ]
-    )
-    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping
-    fun addJobPosition(@Valid @RequestBody request: JobPositionCreateRequest) {
-        jobPositionService.createJobPosition(request)
-    }
-
 }
