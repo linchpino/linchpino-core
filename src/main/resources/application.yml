@@ -85,3 +85,11 @@ admin:
 gcp:
   bucket: ${BUCKET_NAME:linchpino_profile_image}
   projectId: ${PROJECT_ID:ardent-window-404920}
+
+valid-mime-types: >
+  application/pdf,
+  image/png,
+  image/jpeg,
+  image/jpg,
+  image/bmp,
+  image/gif

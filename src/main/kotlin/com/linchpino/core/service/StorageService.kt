@@ -6,11 +6,16 @@ import com.google.cloud.storage.Storage
 import com.linchpino.core.entity.Account
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
+import java.io.BufferedInputStream
+import java.io.InputStream
+import java.util.UUID
+import org.apache.tika.Tika
+import org.apache.tika.metadata.Metadata
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import java.util.UUID
+
 
 @Service
 class StorageService(
@@ -19,14 +24,17 @@ class StorageService(
     private val storage: Storage
 ) {
 
+    @Value("\${inpress.valid-mime-types}")
+    private lateinit var validMimeTypes: Array<String>
+    private val tika: Tika = Tika()
 
     fun uploadProfileImage(account: Account, file: MultipartFile): String {
+        validateMimeType(file.inputStream)
         val filename = "${account.id}-${UUID.randomUUID()}"
         val blobId = BlobId.of(bucketName, filename)
         val blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.contentType).build()
 
         storage.createFrom(blobInfo, file.inputStream)
-
         return filename
     }
 
@@ -35,5 +43,19 @@ class StorageService(
         val blob = storage.get(BlobId.of(bucketName, filename)) ?: throw LinchpinException(ErrorCode.ENTITY_NOT_FOUND,"image with name $filename not found",filename)
         val contentType = blob.contentType ?: MediaType.APPLICATION_OCTET_STREAM_VALUE
         return blob.getContent() to contentType
+    }
+
+
+    private fun validateMimeType(inputStream: InputStream) {
+
+        if (validMimeTypes.isEmpty()) return
+
+        val metadata = Metadata()
+
+        val mimeType: String = tika.detector.detect(inputStream, metadata).toString()
+
+        for (validMimetype in validMimeTypes) if (validMimetype == mimeType) return
+
+        throw LinchpinException(ErrorCode.MIME_TYPE_NOT_ALLOWED,"MIME type not supported: $mimeType")
     }
 }
