@@ -44,16 +44,4 @@ class InterviewTypeController(private val service: InterviewTypeService) {
 
 
 
-    @Operation(summary = "Add a new interview type", description = "Creates a new interview type in the system.")
-    @ApiResponses(value = [
-        ApiResponse(responseCode = "201", description = "Interview type created", content = [Content(schema = Schema(implementation = InterviewTypeCreateRequest::class))]),
-        ApiResponse(responseCode = "400", description = "Invalid input"),
-        ApiResponse(responseCode = "401", description = "Unauthorized"),
-        ApiResponse(responseCode = "403", description = "Forbidden if not ADMIN"),
-    ])
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    fun addInterviewType(@Valid @RequestBody request: InterviewTypeCreateRequest){
-        service.createInterviewType(request)
-    }
 }

@@ -1,24 +1,17 @@
 package com.linchpino.core.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
-import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.entity.InterviewType
-import com.linchpino.core.entity.JobPosition
-import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.security.WithMockJwt
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
@@ -108,63 +101,4 @@ class InterviewTypeControllerTestIT {
             .andExpect(jsonPath("$.content[1].title").value("Edit Resume"))
             .andExpect(jsonPath("$.content[0].title").value("Resume Review"))
     }
-
-    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
-    @Test
-    fun `test create interviewType`() {
-        val position = JobPosition().apply {
-            title = "Java Developer"
-        }
-        jobPositionRepository.save(position)
-
-        val request = InterviewTypeCreateRequest("Mock interview", position.id!!)
-
-        mockMvc.perform(
-            post("/api/interviewtypes").contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
-        )
-            .andExpect(status().isCreated)
-    }
-
-    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
-    @Test
-    fun `test create interviewType fails with 404 if jobPositionId is not valid`() {
-        val request = InterviewTypeCreateRequest("Mock interview", 1)
-        mockMvc.perform(
-            post("/api/interviewtypes").contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
-        )
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.error").value("JobPosition entity not found"))
-    }
-
-    @WithMockJwt(
-        "john.doe@example.com",
-        roles = [AccountTypeEnum.MENTOR, AccountTypeEnum.GUEST, AccountTypeEnum.JOB_SEEKER]
-    )
-    @Test
-    fun `test create interviewType fails with 403 if user is not admin`() {
-        val request = InterviewTypeCreateRequest("Mock interview", 1)
-        mockMvc.perform(
-            post("/api/interviewtypes").contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
-        )
-            .andExpect(status().isForbidden)
-    }
-
-    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
-    @Test
-    fun `test create interviewType fails with 400 if name is not provided`() {
-        val request = InterviewTypeCreateRequest("", 1)
-        mockMvc.perform(
-            post("/api/interviewtypes").contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.status").value(400))
-            .andExpect(jsonPath("$.error").value("Invalid Param"))
-    }
-
-
 }

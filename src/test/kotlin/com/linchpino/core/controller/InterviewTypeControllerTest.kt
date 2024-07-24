@@ -59,13 +59,4 @@ class InterviewTypeControllerTest{
         assertThat(result).isEqualTo(page)
 
     }
-
-    @Test
-    fun `test create calls service with provided arguments`(){
-        val request = InterviewTypeCreateRequest("Mock Interview", 1)
-
-        controller.addInterviewType(request)
-
-        verify(service, times(1)).createInterviewType(request)
-    }
 }
