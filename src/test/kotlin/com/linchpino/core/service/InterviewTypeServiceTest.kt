@@ -3,13 +3,18 @@ package com.linchpino.core.service
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.InterviewTypeUpdateRequest
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
@@ -78,15 +83,85 @@ class InterviewTypeServiceTest {
         `when`(jobPositionRepository.findReferenceById(1)).thenReturn(jobPosition)
 
         // When
-        service.createInterviewType(request)
+        val result = service.createInterviewType(request)
 
         // Then
-        verify(repository,times(1)).save(interviewTypeCaptor.captureNonNullable())
+        verify(repository, times(1)).save(interviewTypeCaptor.captureNonNullable())
 
         val interviewType = interviewTypeCaptor.value
         assertThat(interviewType.name).isEqualTo(request.name)
         assertThat(interviewType.jobPositions.size).isEqualTo(1)
         assertThat(interviewType.jobPositions.first()).isEqualTo(jobPosition)
+        assertThat(result.title).isEqualTo(request.name)
+    }
+
+    @Test
+    fun `test get interview type by id returns interview type`() {
+        // Given
+        val expected = InterviewType().apply {
+            id = 1
+            name = "Mock Interview"
+        }
+        `when`(repository.findById(1)).thenReturn(Optional.of(expected))
+
+        // When
+        val result = service.getInterviewTypeById(1)
+
+        // Then
+        assertThat(result).isEqualTo(InterviewTypeSearchResponse(expected.id, expected.name))
+        verify(repository, times(1)).findById(1)
+    }
+
+    @Test
+    fun `test get interview type by id returns 404 if entity not found`() {
+        // Given
+        `when`(repository.findById(1)).thenReturn(Optional.empty())
+
+        // When
+        val ex = assertThrows<LinchpinException> {
+            service.getInterviewTypeById(1)
+        }
+
+        // Then
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+    }
+
+
+    @Test
+    fun `test update interview type`() {
+        // Given
+        val interviewType = InterviewType().apply {
+            id = 1
+            name = "Mock Interview"
+        }
+        `when`(repository.findById(1)).thenReturn(Optional.of(interviewType))
+
+        // When
+        service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+
+        // Then
+        verify(repository, times(1)).findById(1)
+        assertThat(interviewType.name).isEqualTo("newName")
+    }
+
+    @Test
+    fun `test update interview type return 404 if entity not found`() {
+        // Given
+        `when`(repository.findById(1)).thenReturn(Optional.empty())
+
+        // When
+        val ex = assertThrows<LinchpinException> {
+            service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+        }
+
+        // Then
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+    }
+
+    @Test
+    fun `test delete interview type`() {
+        service.deleteInterviewType(1)
+        verify(repository, times(1)).deleteById(1)
     }
 
 }

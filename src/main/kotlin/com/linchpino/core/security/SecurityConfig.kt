@@ -52,7 +52,6 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
                 it.requestMatchers("/login").authenticated()
                 it.requestMatchers("/api/accounts/search").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/admin/**").hasAnyAuthority("SCOPE_ADMIN")
-                it.requestMatchers(HttpMethod.POST,"/api/interviewtypes").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/interviews/*/feedback").hasAnyAuthority("SCOPE_JOB_SEEKER")
                 it.requestMatchers("/api/interviews/mentors/**").hasAnyAuthority("SCOPE_MENTOR")
                 it.requestMatchers("/api/interviews/jobseekers/**").hasAnyAuthority("SCOPE_JOB_SEEKER")
