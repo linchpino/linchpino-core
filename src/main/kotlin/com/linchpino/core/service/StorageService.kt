@@ -35,7 +35,7 @@ class StorageService(
     private val tika: Tika = Tika()
 
     fun uploadProfileImage(account: Account, file: MultipartFile): String {
-        validateMimeType(file.inputStream)
+        validateMimeType(BufferedInputStream(file.inputStream))
         if(file.size < 10 * 1024){
             throw LinchpinException(ErrorCode.SMALL_FILE_SIZE,"file too small")
         }
@@ -55,10 +55,11 @@ class StorageService(
     }
 
 
-    private fun validateMimeType(inputStream: InputStream) {
+    private fun validateMimeType(inputStream: BufferedInputStream) {
         if (validMimeTypes.isEmpty()) return
         val metadata = Metadata()
-        val mimeType: String = tika.detector.detect(inputStream, metadata).toString()
+        val detector = tika.detector
+        val mimeType: String = detector.detect(inputStream, metadata).toString()
         for (validMimetype in validMimeTypes)
             if (validMimetype == mimeType) return
 
