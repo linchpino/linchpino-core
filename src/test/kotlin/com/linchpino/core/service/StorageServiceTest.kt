@@ -64,7 +64,7 @@ class StorageServiceTest {
             verify(storage, times(1)).createFrom(blobInfoCaptor.capture(), streamCaptor.capture())
             val blobInfo = blobInfoCaptor.value
             assertThat(blobInfo.blobId.bucket).isEqualTo(bucketName)
-            assertThat(blobInfo.contentType).isEqualTo(MediaType.IMAGE_JPEG_VALUE)
+            assertThat(blobInfo.contentType).isEqualTo(MediaType.IMAGE_PNG_VALUE)
             assertThat(blobInfo.blobId.name.startsWith(account.id.toString())).isTrue()
             assertThat(result).isNotBlank()
         }
