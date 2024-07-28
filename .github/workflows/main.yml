@@ -54,8 +54,8 @@ jobs:
         - name: Connect to linchpino-core on GCP instance
           env:
             PR_NUMBER: ${{ github.event.number }}
-            ALLMYSECRETS: ${{ toJson(secrets.STAGING*) }}
-            ALLMYVARS: ${{ toJSON(vars.STAGING* ) }}
+            ALLMYSECRETS: ${{ toJson(secrets) }}
+            ALLMYVARS: ${{ toJSON(vars) }}
           run: |
             echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
             echo $ALLMYVARS > /opt/.linchpino-core-vars
