@@ -78,7 +78,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-      runs-on: self-hosted
+      runs-on: core-dev-runner
       permissions:
         contents: read
         packages: write
