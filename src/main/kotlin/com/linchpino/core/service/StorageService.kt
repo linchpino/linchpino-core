@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import kotlin.concurrent.thread
 
 
 @Service
@@ -24,12 +25,20 @@ class StorageService(
     private val storage: Storage
 ) {
 
-    @Value("\${inpress.valid-mime-types}")
-    private lateinit var validMimeTypes: Array<String>
+    private var validMimeTypes: Array<String> = arrayOf(
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/bmp",
+        "image/gif")
+
     private val tika: Tika = Tika()
 
     fun uploadProfileImage(account: Account, file: MultipartFile): String {
         validateMimeType(file.inputStream)
+        if(file.size < 10 * 1024){
+            throw LinchpinException(ErrorCode.SMALL_FILE_SIZE,"file too small")
+        }
         val filename = "${account.id}-${UUID.randomUUID()}"
         val blobId = BlobId.of(bucketName, filename)
         val blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.contentType).build()
@@ -47,14 +56,11 @@ class StorageService(
 
 
     private fun validateMimeType(inputStream: InputStream) {
-
         if (validMimeTypes.isEmpty()) return
-
         val metadata = Metadata()
-
         val mimeType: String = tika.detector.detect(inputStream, metadata).toString()
-
-        for (validMimetype in validMimeTypes) if (validMimetype == mimeType) return
+        for (validMimetype in validMimeTypes)
+            if (validMimetype == mimeType) return
 
         throw LinchpinException(ErrorCode.MIME_TYPE_NOT_ALLOWED,"MIME type not supported: $mimeType")
     }

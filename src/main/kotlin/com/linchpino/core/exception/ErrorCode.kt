@@ -12,5 +12,6 @@ enum class ErrorCode(val status: HttpStatus) {
     INVALID_TIMESLOT(HttpStatus.BAD_REQUEST),
     ENTITY_NOT_FOUND(HttpStatus.NOT_FOUND),
     INVALID_ACCOUNT_ROLE(HttpStatus.BAD_REQUEST),
-    MIME_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST)
+    MIME_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST),
+    SMALL_FILE_SIZE(HttpStatus.BAD_REQUEST),
 }
