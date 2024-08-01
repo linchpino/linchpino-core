@@ -21,7 +21,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring6.SpringTemplateEngine
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.Properties
 
 @ExtendWith(MockitoExtension::class)
 class EmailServiceTest {

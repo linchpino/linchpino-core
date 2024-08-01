@@ -517,4 +517,60 @@ class InterviewServiceTest {
         assertThat(mentorTimeSlotCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
         assertThat(response).isEqualTo(expected)
     }
+
+    @Test
+    fun `test reminder`(){
+        val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+
+        val from = ZonedDateTime.now()
+        val to = from.plusMinutes(30)
+        `when`(interviewRepository.findInterviewsWithin(fromCaptor.captureNonNullable(), toCaptor.captureNonNullable())).thenReturn(
+            listOf(Interview().apply {
+                mentorAccount = Account().apply {
+                    firstName = "john"
+                    lastName = "doe"
+                    email = "john.doe@example.com"
+                }
+                jobSeekerAccount = Account().apply {
+                    firstName = "jane"
+                    lastName = "smith"
+                    email = "jane.smith@example.com"
+                }
+                timeSlot = MentorTimeSlot().apply {
+                    fromTime = from
+                    toTime = to
+                }
+            })
+        )
+
+        service.remindInterviewParties()
+
+        verify(emailService, times(1)).sendEmail(
+            "jane.smith@example.com",
+            "Reminder: Your Upcoming Interview on Linchpino",
+            "interviewee-reminder.html",
+            mapOf(
+                "fullName" to "jane smith",
+                "date" to from.toLocalDate(),
+                "time" to from.toLocalTime(),
+                "timezone" to from.zone,
+            )
+        )
+
+
+        verify(emailService, times(1)).sendEmail(
+            "john.doe@example.com",
+            "Reminder: Interview Scheduled on Linchpino",
+            "interviewer-reminder.html",
+            mapOf(
+                "fullName" to "john doe",
+                "intervieweeName" to "jane smith",
+                "date" to from.toLocalDate(),
+                "time" to from.toLocalTime(),
+                "timezone" to from.zone,
+            )
+        )
+
+    }
 }
