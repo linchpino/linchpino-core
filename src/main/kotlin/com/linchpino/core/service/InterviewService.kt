@@ -78,7 +78,7 @@ class InterviewService(
         val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
         val googleMeetCode = calendarService.googleMeetCode(
             listOf(mentorAcc.email,jobSeekerAcc.email)
-            ,"${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAcc.firstName}",
+            , "${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAcc.firstName ?: "jobseeker"}",
             Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
         if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
             throw LinchpinException(
