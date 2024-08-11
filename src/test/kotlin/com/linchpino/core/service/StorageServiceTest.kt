@@ -72,7 +72,7 @@ class StorageServiceTest {
     }
 
     @Test
-    fun `test upload profile image with wrong meme type results in error`() {
+    fun `test upload profile image with wrong MIME type results in error`() {
         // Arrange
         val account = Account().apply { id = 1 }
         val file = MockMultipartFile("file", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "test".toByteArray())
