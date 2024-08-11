@@ -38,3 +38,5 @@ build/
 
 ###Docker Compose ####
 docker-compose.yml
+###Workflow file ####
+.github/workflows/main.yml
