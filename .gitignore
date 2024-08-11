@@ -36,3 +36,5 @@ build/
 ./PgadminData
 ./PostgresData 
 
+###Docker Compose ####
+docker-compose.yml
