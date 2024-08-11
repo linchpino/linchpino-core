@@ -14,6 +14,7 @@ import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
@@ -79,6 +80,9 @@ class InterviewServiceTest {
     @Mock
     private lateinit var calendarService: CalendarService
 
+    @Mock
+    private lateinit var interviewLogService: InterviewLogService
+
     @Test
     fun `test create new interview when account exists`() {
         val jobSeekerAccount = Account().apply {
@@ -140,6 +144,9 @@ class InterviewServiceTest {
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
 
+        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
@@ -161,6 +168,7 @@ class InterviewServiceTest {
             timeSlotStatusCaptor.captureNonNullable()
         )
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
 
         assertEquals(createInterviewResult, result)
         val savedInterview = captor.value
@@ -180,6 +188,12 @@ class InterviewServiceTest {
 
         val times = timeCaptor.value
         assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
+
+        val id = idCaptor.value
+        val logType = logTypeCaptor.value
+
+        assertThat(id).isEqualTo(1)
+        assertThat(logType).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
@@ -231,6 +245,10 @@ class InterviewServiceTest {
         val titleCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
+        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+
+
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
             typeInterview.id!!,
@@ -273,6 +291,7 @@ class InterviewServiceTest {
             timeSlotStatusCaptor.captureNonNullable()
         )
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.value)
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -297,6 +316,12 @@ class InterviewServiceTest {
 
         val times = timeCaptor.value
         assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
+
+        val id = idCaptor.value
+        val logType = logTypeCaptor.value
+
+        assertThat(id).isEqualTo(1)
+        assertThat(logType).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
