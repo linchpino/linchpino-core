@@ -126,6 +126,9 @@ class InterviewService(
             if (it?.fromTime?.isBefore(start) == true || it?.fromTime?.isAfter(end) == true) {
                 InterviewValidityResponse(it.fromTime, it.toTime, false, "")
             } else {
+                accountRepository.findByEmailIgnoreCase(email)?.id?.let {
+                    id -> interviewLogService.save(InterviewLogType.JOINED,id)
+                }
                 InterviewValidityResponse(
                     it?.fromTime, it?.toTime, true, "https://meet.google.com/${interview.meetCode}"
                 )
