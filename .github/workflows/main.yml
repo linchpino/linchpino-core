@@ -44,11 +44,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-      env:
-         ENVIRONMENT_INFO: ${{ secrets.ENVIRONMENT_INFO }}
-         RUNNER_INFO: ${{ secrets.RUNNER_INFO }}
-      runs-on: $RUNNER_INFO
-      environment: $ENVIRONMENT_INFO
+      runs-on: core-stage-runner
+      environment: staging
       permissions:
         contents: read
         packages: write
