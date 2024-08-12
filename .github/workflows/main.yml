@@ -9,9 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  RUNNER_INFO: ${{ vars.RUNNER_INFO }}
-  ENVIRONMENT_INFO: ${{ vars.ENVIRONMENT_INFO }}
-  
+    
 jobs:
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
@@ -46,8 +44,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-      runs-on: $RUNNER_INFO
-      environment: $ENVIRONMENT_INFO
+      runs-on: core-stage-runner
+      environment: staging
       permissions:
         contents: read
         packages: write
