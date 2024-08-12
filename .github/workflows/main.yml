@@ -44,12 +44,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-      runs-on: ${{ secrets.RUNNER_INFO }}
-      environment: ${{ secrets.ENVIRONMENT_INFO }}
+      runs-on: $RUNNER_INFO
+      environment: $ENVIRONMENT_INFO
       permissions:
         contents: read
         packages: write
       needs: Build-and-push-to-GHCR
+      env:
+         ENVIRONMENT_INFO: ${{ secrets.ENVIRONMENT_INFO }}
+         RUNNER_INFO: ${{ secrets.RUNNER_INFO }}
       steps:
         - name: Connect to linchpino-core on GCP instance
           env:
