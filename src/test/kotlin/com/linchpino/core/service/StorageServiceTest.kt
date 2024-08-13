@@ -23,6 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import java.io.InputStream
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertThrows
 
 @ExtendWith(MockitoExtension::class)
 class StorageServiceTest {
@@ -44,21 +46,56 @@ class StorageServiceTest {
     fun `test upload profile image`() {
         // Arrange
         val account = Account().apply { id = 1 }
+        this::class.java.getResourceAsStream("/img/test.png").use { inputStream ->
+            val file = MockMultipartFile(
+                "file",
+                "test.png",
+                MediaType.IMAGE_PNG_VALUE,
+                inputStream ?: "test.png".toByteArray().inputStream()
+            )
+
+            val blobInfoCaptor: ArgumentCaptor<BlobInfo> = ArgumentCaptor.forClass(BlobInfo::class.java)
+            val streamCaptor: ArgumentCaptor<InputStream> = ArgumentCaptor.forClass(InputStream::class.java)
+
+            // Act
+            val result = storageService.uploadProfileImage(account, file)
+
+            // Then
+            verify(storage, times(1)).createFrom(blobInfoCaptor.capture(), streamCaptor.capture())
+            val blobInfo = blobInfoCaptor.value
+            assertThat(blobInfo.blobId.bucket).isEqualTo(bucketName)
+            assertThat(blobInfo.contentType).isEqualTo(MediaType.IMAGE_PNG_VALUE)
+            assertThat(blobInfo.blobId.name.startsWith(account.id.toString())).isTrue()
+            assertThat(result).isNotBlank()
+        }
+
+    }
+
+    @Test
+    fun `test upload profile image with wrong MIME type results in error`() {
+        // Arrange
+        val account = Account().apply { id = 1 }
         val file = MockMultipartFile("file", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "test".toByteArray())
-
-        val blobInfoCaptor:ArgumentCaptor<BlobInfo> = ArgumentCaptor.forClass(BlobInfo::class.java)
-        val streamCaptor:ArgumentCaptor<InputStream> = ArgumentCaptor.forClass(InputStream::class.java)
-
         // Act
-        val result = storageService.uploadProfileImage(account, file)
+        val ex = assertThrows<LinchpinException> { storageService.uploadProfileImage(account, file) }
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.MIME_TYPE_NOT_ALLOWED)
+    }
 
-        // Then
-        verify(storage, times(1)).createFrom(blobInfoCaptor.capture(),streamCaptor.capture())
-        val blobInfo = blobInfoCaptor.value
-        assertThat(blobInfo.blobId.bucket).isEqualTo(bucketName)
-        assertThat(blobInfo.contentType).isEqualTo(MediaType.IMAGE_JPEG_VALUE)
-        assertThat(blobInfo.blobId.name.startsWith(account.id.toString())).isTrue()
-        assertThat(result).isNotBlank()
+    @Test
+    fun `test upload profile image with size less than 10kb results in error`() {
+        val account = Account().apply { id = 1 }
+        this::class.java.getResourceAsStream("/img/test_small.png").use { inputStream ->
+            val file = MockMultipartFile(
+                "file",
+                "test_small.png",
+                MediaType.IMAGE_PNG_VALUE,
+                inputStream ?: "test.png".toByteArray().inputStream()
+            )
+
+            val ex = assertThrows<LinchpinException> { storageService.uploadProfileImage(account, file) }
+
+           assertThat(ex.errorCode).isEqualTo(ErrorCode.SMALL_FILE_SIZE)
+        }
     }
 
     @Test

@@ -36,7 +36,11 @@ spring:
           starttls:
             enable: true
             required: true
-
+  servlet:
+    multipart:
+      max-file-size: 500KB
+      max-request-size: 500KB
+      enabled: true
 email:
   from:
     name: Linchpino
