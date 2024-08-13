@@ -188,10 +188,7 @@ class InterviewServiceTest {
 
         val jobSeekerAccount = Account().apply {
             id = 1
-            firstName = "test"
-            lastName = "test"
             email = "test@example.com"
-            password = "password123"
         }
         val mentorAccount = Account().apply {
             id = 2
@@ -293,7 +290,7 @@ class InterviewServiceTest {
         assertThat(attendees).isEqualTo(listOf(mentorAccount.email, jobSeekerAccount.email))
 
         val meetTitle = titleCaptor.value
-        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAccount.firstName} and ${jobSeekerAccount.firstName}")
+        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAccount.firstName} and jobseeker")
 
         val times = timeCaptor.value
         assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
