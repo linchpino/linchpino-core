@@ -33,3 +33,20 @@ class Interview : AbstractEntity() {
     @Column(name = "MEET_CODE")
     var meetCode:String? = null
 }
+
+fun Interview.interviewPartiesFullName(): Pair<String,String> {
+    val jobSeekerFullName =
+        if (this.jobSeekerAccount?.firstName == null || this.jobSeekerAccount?.lastName == null) {
+            "JobSeeker"
+        } else {
+            "${this.jobSeekerAccount?.firstName} ${this.jobSeekerAccount?.lastName}"
+        }
+
+    val mentorFullName =
+        if (this.mentorAccount?.firstName == null || this.mentorAccount?.lastName == null) {
+            "Mentor"
+        } else {
+            "${this.mentorAccount?.firstName} ${this.mentorAccount?.lastName}"
+        }
+    return mentorFullName to jobSeekerFullName
+}
