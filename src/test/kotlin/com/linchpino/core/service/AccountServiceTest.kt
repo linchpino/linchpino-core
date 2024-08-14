@@ -4,6 +4,7 @@ import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.entity.Account
@@ -17,10 +18,8 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
-import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
-import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -38,9 +37,11 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.multipart.MultipartFile
 import java.time.ZonedDateTime
-import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.oauth2.core.OAuth2AccessToken
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
+import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {
@@ -65,6 +66,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var storageService: StorageService
+
+    @Mock
+    private lateinit var linkedInService: LinkedInService
 
     @Test
     fun `test creating account`() {
@@ -315,5 +319,97 @@ class AccountServiceTest {
         assertEquals(fileName, account.avatar)
         verify(repository).findByEmailIgnoreCase(authentication.email())
         verify(storageService).uploadProfileImage(account, file)
+    }
+
+
+    @Test
+    fun `test profile returns account summary when token is jwt`(){
+        val account = Account().apply {
+            id = 1
+            email = "johndoe@example.com"
+            firstName = "John"
+            lastName = "Doe"
+        }
+
+        val mockedAuth = WithMockJwt.mockAuthentication()
+        `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(account)
+
+        val result = accountService.profile(mockedAuth)
+        assertThat(result.email).isEqualTo(account.email)
+        assertThat(result.firstName).isEqualTo(account.firstName)
+        assertThat(result.lastName).isEqualTo(account.lastName)
+    }
+
+    @Test
+    fun `test profile returns account summary when token is bearer token`(){
+        val account = Account().apply {
+            id = 1
+            email = "johndoe@example.com"
+            firstName = "John"
+            lastName = "Doe"
+        }
+
+        val mockedAuth = BearerTokenAuthentication(
+            OAuth2IntrospectionAuthenticatedPrincipal(
+                account.email,
+                mutableMapOf<String, Any?>("key" to "value"),
+                mutableListOf<GrantedAuthority?>()
+            ),
+            OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "token", null, null),
+            mutableListOf()
+        )
+
+        `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(account)
+
+        val result = accountService.profile(mockedAuth)
+        assertThat(result.email).isEqualTo(account.email)
+        assertThat(result.firstName).isEqualTo(account.firstName)
+        assertThat(result.lastName).isEqualTo(account.lastName)
+    }
+
+    @Test
+    fun `test profile saves account and returns summary when token is bearer token and user does not exist`(){
+        // Given
+        val account = LinkedInUserInfoResponse("john@example.com","john","doe")
+        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val mockedAuth = BearerTokenAuthentication(
+            OAuth2IntrospectionAuthenticatedPrincipal(
+                account.email,
+                mutableMapOf<String, Any?>("key" to "value"),
+                mutableListOf<GrantedAuthority?>()
+            ),
+            OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "token", null, null),
+            mutableListOf()
+        )
+        `when`(linkedInService.userInfo("token")).thenReturn(account)
+        `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(null)
+        `when`(roleRepository.findAll()).thenReturn(listOf(Role().apply { title = AccountTypeEnum.MENTOR },Role().apply { title = AccountTypeEnum.JOB_SEEKER },Role().apply { title = AccountTypeEnum.ADMIN }))
+        // When
+        val result = accountService.profile(mockedAuth)
+
+        // Then
+        assertThat(result.email).isEqualTo(account.email)
+        assertThat(result.firstName).isEqualTo(account.firstName)
+        assertThat(result.lastName).isEqualTo(account.lastName)
+
+        verify(repository, times(1)).save(accountCaptor.captureNonNullable())
+        val savedAccount = accountCaptor.value
+        assertThat(savedAccount.email).isEqualTo(account.email)
+        assertThat(savedAccount.firstName).isEqualTo(account.firstName)
+        assertThat(savedAccount.lastName).isEqualTo(account.lastName)
+        assertThat(savedAccount.roles().map { it.title }).isEqualTo(listOf(AccountTypeEnum.JOB_SEEKER))
+    }
+
+    @Test
+    fun `test profile throws exception if account does not exist and authentication is jwt`(){
+
+        val mockedAuth = WithMockJwt.mockAuthentication()
+
+        `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(null)
+
+        val ex = assertThrows(LinchpinException::class.java){
+            accountService.profile(mockedAuth)
+        }
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
     }
 }

@@ -6,6 +6,7 @@ import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
+import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
@@ -17,8 +18,10 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.security.WithMockBearerToken
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
+import com.linchpino.core.service.LinkedInService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -28,6 +31,7 @@ import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -36,7 +40,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
@@ -65,6 +68,9 @@ class AccountControllerTestIT {
 
     @MockBean
     private lateinit var mailService: EmailService
+
+    @MockBean
+    private lateinit var linkedInService: LinkedInService
 
     @Autowired
     private lateinit var accountRepository: AccountRepository
@@ -225,7 +231,7 @@ class AccountControllerTestIT {
 
         // Perform GET request and verify response
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
                 .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -255,7 +261,7 @@ class AccountControllerTestIT {
 
         // Perform GET request and verify response
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
                 .param("date", "2024-03-27T00:00:00+10:00")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -281,7 +287,7 @@ class AccountControllerTestIT {
 
         // Perform GET request and verify response
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("interviewTypeId", (-1).toString())
                 .param("date", "2024-03-26T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -303,7 +309,7 @@ class AccountControllerTestIT {
 
         // Perform GET request and verify response
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
                 .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -318,7 +324,7 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns bad request when interviewTypeId not provided`() {
 
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("date", "2024-03-28T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -334,7 +340,7 @@ class AccountControllerTestIT {
     fun `test search for mentors by date and interviewType returns bad request when date not provided`() {
 
         mockMvc.perform(
-            MockMvcRequestBuilders.get("/api/accounts/mentors/search")
+            get("/api/accounts/mentors/search")
                 .param("interviewTypeId", 5L.toString())
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -769,6 +775,68 @@ class AccountControllerTestIT {
         assertThat(admins.size).isEqualTo(1)
     }
 
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test profile throws not found exception if logged in user is not from linkedin and is not present in database`(){
+        // When & Then
+        mockMvc.perform(
+            get("/api/accounts/profile")
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @WithMockJwt(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test profile returns account summary if user is logged in with Linchpino jwt and exists in database`(){
+        // Given
+        saveAccountsWithRole()
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/accounts/profile")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstName").value("John"))
+            .andExpect(jsonPath("$.lastName").value("Doe"))
+            .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+    }
+
+    @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test profile returns account summary if user is logged in with LinkedIn and exists in database`(){
+        // Given
+        saveAccountsWithRole()
+
+        `when`(linkedInService.userInfo("dummy token")).thenReturn(LinkedInUserInfoResponse("johndoe@gmail.com","John","Doe"))
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/accounts/profile")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstName").value("John"))
+            .andExpect(jsonPath("$.lastName").value("Doe"))
+            .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+    }
+
+    @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test profile saves user and returns summary if user is logged in with LinkedIn and does not exist in database`(){
+        // Given
+        `when`(linkedInService.userInfo("dummy token")).thenReturn(LinkedInUserInfoResponse("johndoe@gmail.com","John","Doe"))
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/accounts/profile")
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstName").value("John"))
+            .andExpect(jsonPath("$.lastName").value("Doe"))
+            .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+
+        val savedAccount = accountRepository.findByEmailIgnoreCase("johndoe@gmail.com")
+        assertThat(savedAccount).isNotNull
+    }
 
     private fun saveAccountsWithRole() {
         val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)

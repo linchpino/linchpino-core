@@ -1,5 +1,6 @@
 package com.linchpino.core.security
 
+import com.linchpino.core.service.LinkedInService
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
@@ -44,12 +45,13 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
     @Bean
     fun securityFilterChain(http: HttpSecurity,
                             opaqueTokenIntrospector: OpaqueTokenIntrospector,
-                            userService: UserService): SecurityFilterChain {
+                            linkedInService: LinkedInService): SecurityFilterChain {
         return http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
+                it.requestMatchers("/api/accounts/profile").authenticated()
                 it.requestMatchers("/api/accounts/search").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/admin/**").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/interviews/*/feedback").hasAnyAuthority("SCOPE_JOB_SEEKER")
@@ -62,7 +64,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .oauth2ResourceServer {
                 it.authenticationManagerResolver(tokenAuthenticationManagerResolver(opaqueTokenIntrospector))
             }
-            .addFilterBefore(LinkedInSecurityFilter(restClient(),"https://api.linkedin.com/v2/userinfo",userService),AuthorizationFilter::class.java)
+            .addFilterBefore(LinkedInSecurityFilter(linkedInService),AuthorizationFilter::class.java)
             .httpBasic(Customizer.withDefaults())
             .build()
     }

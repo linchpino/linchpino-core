@@ -1,14 +1,17 @@
 package com.linchpino.core.security
 
+import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.service.LinkedInService
 import jakarta.servlet.FilterChain
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentMatchers.anyString
+import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
@@ -30,32 +33,26 @@ import org.springframework.web.client.RestClient
 
 
 @ExtendWith(MockitoExtension::class)
-//@RestClientTest
 class LinkedInSecurityFilterTest {
 
     @Mock
-    lateinit var restClient: RestClient
-
-    @Mock
-    lateinit var userService: UserService
+    lateinit var linkedInService: LinkedInService
 
     @Mock
     lateinit var filterChain: FilterChain
 
+    @InjectMocks
     private lateinit var linkedInSecurityFilter: LinkedInSecurityFilter
 
+    @Mock
     private lateinit var request: MockHttpServletRequest
 
+    @Mock
     private lateinit var response: MockHttpServletResponse
 
 
     @BeforeEach
     fun setUp() {
-        linkedInSecurityFilter = LinkedInSecurityFilter(restClient, "http://localhost/somefakeuri", userService)
-        MockitoAnnotations.openMocks(linkedInSecurityFilter)
-        request = MockHttpServletRequest()
-        response = MockHttpServletResponse()
-        linkedInSecurityFilter = LinkedInSecurityFilter(restClient, "userInfoUri", userService)
         SecurityContextHolder.clearContext()
     }
 
@@ -71,7 +68,7 @@ class LinkedInSecurityFilterTest {
         val email = "user@example.com"
         val principalAttributes = mapOf<String, Any>("key" to "value")
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
-        val userInfoResponse = LinkedInUserInfoResponse("john.doe@example.com", "Test User")
+        val userInfoResponse = LinkedInUserInfoResponse("john.doe@example.com", "john","doe")
 
         val principal = OAuth2IntrospectionAuthenticatedPrincipal(email, principalAttributes, authorities)
         val authentication = BearerTokenAuthentication(
@@ -82,20 +79,8 @@ class LinkedInSecurityFilterTest {
 
         SecurityContextHolder.getContext().authentication = authentication
 
-        val requestHeadersUriSpec = mock(RestClient.RequestHeadersUriSpec::class.java)
-        val requestHeadersSpec = mock(RestClient.RequestHeadersSpec::class.java)
-        val responseSpec = mock(RestClient.ResponseSpec::class.java)
+        `when`(linkedInService.userInfo(authentication.token.tokenValue)).thenReturn(userInfoResponse)
 
-        `when`(restClient.get()).thenReturn(requestHeadersUriSpec)
-        `when`(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec)
-        `when`(requestHeadersSpec.header(eq(HttpHeaders.AUTHORIZATION), anyString())).thenReturn(requestHeadersSpec)
-        `when`(requestHeadersSpec.retrieve()).thenReturn(responseSpec)
-        `when`(responseSpec.body(LinkedInUserInfoResponse::class.java)).thenReturn(userInfoResponse)
-
-
-        `when`(userService.loadUserByUsername(userInfoResponse.email)).thenReturn(SecurityUser(setOf(Role().apply {
-            title = AccountTypeEnum.MENTOR
-        }), userInfoResponse.email, "password", AccountStatusEnum.ACTIVATED))
 
         linkedInSecurityFilter.doFilterInternal(request, response, filterChain)
 
@@ -104,41 +89,6 @@ class LinkedInSecurityFilterTest {
         assert(newAuthentication!!.name == "john.doe@example.com")
 
         verify(filterChain).doFilter(request, response)
-    }
-
-    @Test
-    fun `doFilterInternal when user not found should log error`() {
-        val token = "valid-token"
-        val email = "user@example.com"
-        val principalAttributes = mapOf<String, Any>("key" to "value")
-        val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
-        val userInfoResponse = LinkedInUserInfoResponse(email, "Test User")
-
-        val principal = OAuth2IntrospectionAuthenticatedPrincipal(email, principalAttributes, authorities)
-        val authentication = BearerTokenAuthentication(
-            principal,
-            OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, token, null, null),
-            authorities
-        )
-
-        SecurityContextHolder.getContext().authentication = authentication
-
-        val requestHeadersUriSpec = mock(RestClient.RequestHeadersUriSpec::class.java)
-        val requestHeadersSpec = mock(RestClient.RequestHeadersSpec::class.java)
-        val responseSpec = mock(RestClient.ResponseSpec::class.java)
-
-        `when`(restClient.get()).thenReturn(requestHeadersUriSpec)
-        `when`(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec)
-        `when`(requestHeadersSpec.header(eq(HttpHeaders.AUTHORIZATION), anyString())).thenReturn(requestHeadersSpec)
-        `when`(requestHeadersSpec.retrieve()).thenReturn(responseSpec)
-        `when`(responseSpec.body(LinkedInUserInfoResponse::class.java)).thenReturn(userInfoResponse)
-
-        `when`(userService.loadUserByUsername(email)).thenThrow(UsernameNotFoundException(email))
-
-        linkedInSecurityFilter.doFilterInternal(request, response, filterChain)
-
-        verify(filterChain).doFilter(request, response)
-        verify(userService).loadUserByUsername(email)
     }
 
     companion object {
