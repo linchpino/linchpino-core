@@ -189,7 +189,6 @@ class AccountService(
         return AddProfileImageResponse(fileName)
     }
 
-    @Transactional(readOnly = true)
     fun profile(authentication: Authentication): AccountSummary {
         val account = repository.findByEmailIgnoreCase(authentication.email())
         if(authentication is BearerTokenAuthentication && account == null){
