@@ -1,5 +1,6 @@
 package com.linchpino.core.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
@@ -76,16 +77,17 @@ data class ActivateJobSeekerAccountRequest(
 
 
 data class AccountSummary(
-    val id: Long,
+    val id: Long?,
     val firstName: String?,
     val lastName: String?,
     val email: String,
     val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum,
-    val externalId: String?
+    val externalId: String?,
+    val avatar:String? = null
 )
 
-fun Account.toSummary() = AccountSummary(id!!, firstName, lastName, email, roles().map { it.title }, status, externalId)
+fun Account.toSummary() = AccountSummary(id, firstName, lastName, email, roles().map { it.title }, status, externalId,avatar)
 
 data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
@@ -126,3 +128,5 @@ data class SearchAccountResult(
 )
 
 data class AddProfileImageResponse(val imageUrl:String)
+
+data class LinkedInUserInfoResponse(val email: String, @JsonProperty("given_name")val firstName: String?, @JsonProperty("family_name") val lastName: String?)

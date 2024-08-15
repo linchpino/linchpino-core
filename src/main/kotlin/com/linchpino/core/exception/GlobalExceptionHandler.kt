@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.Instant
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 
 @RestControllerAdvice
 class GlobalExceptionHandler(private val messageSource: MessageSource) {
@@ -96,5 +97,22 @@ class GlobalExceptionHandler(private val messageSource: MessageSource) {
                 request.servletPath
             )
         )
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException::class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleFileSizeException(exception: MaxUploadSizeExceededException, request: HttpServletRequest): ResponseEntity<*> {
+        log.error("Max request size error: {}", exception.localizedMessage, exception)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body<Any>(
+                ErrorResponse(
+                    Instant.now(),
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Max upload size exceeded error",
+                    listOf(),
+                    request.servletPath
+                )
+            )
     }
 }

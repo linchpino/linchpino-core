@@ -236,4 +236,15 @@ class AccountControllerTest {
         verify(accountService).uploadProfileImage(file, authentication)
         assertThat(result.imageUrl).isEqualTo("fileName")
     }
+
+    @Test
+    fun `test profile returns successfully`(){
+        val summary = AccountSummary(1,"john","doe","john@example.com", listOf(),AccountStatusEnum.ACTIVATED,null)
+        val authentication = WithMockJwt.mockAuthentication()
+
+        `when`(accountService.profile(authentication)).thenReturn(summary)
+        val result = accountController.profile(authentication)
+        verify(accountService, times(1)).profile(authentication)
+        assertThat(result).isEqualTo(summary)
+    }
 }

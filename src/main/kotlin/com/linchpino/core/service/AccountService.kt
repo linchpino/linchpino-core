@@ -22,10 +22,11 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
-import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.core.OAuth2AccessToken
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
@@ -42,7 +43,8 @@ class AccountService(
     private val interviewTypeRepository: InterviewTypeRepository,
     private val roleRepository: RoleRepository,
     private val emailService: EmailService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val linkedInService: LinkedInService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -185,5 +187,24 @@ class AccountService(
         val fileName = storageService.uploadProfileImage(account, file)
         account.avatar = fileName
         return AddProfileImageResponse(fileName)
+    }
+
+    fun profile(authentication: Authentication): AccountSummary {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+        if(authentication is BearerTokenAuthentication && account == null){
+            val userInfo = linkedInService.userInfo((authentication.credentials as OAuth2AccessToken).tokenValue)
+            return saveAccount(
+                SaveAccountRequest(
+                    userInfo.firstName,
+                    userInfo.lastName,
+                    userInfo.email,
+                    null,
+                    listOf(AccountTypeEnum.JOB_SEEKER.value)
+                )
+            ).toSummary()
+        }else if(account != null){
+            return account.toSummary()
+        }
+        throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND,"account not found")
     }
 }

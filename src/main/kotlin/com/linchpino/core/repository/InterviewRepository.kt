@@ -7,7 +7,9 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.ZonedDateTime
 
 @Repository
 interface InterviewRepository : JpaRepository<Interview, Long> {
@@ -104,4 +106,10 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
     """
     )
     fun findByInterviewIdAndAccountEmail(id: Long, email: String): Interview?
+
+    @Query("""
+        SELECT i FROM Interview i WHERE i.timeSlot.fromTime BETWEEN :start AND :end
+    """)
+    fun findInterviewsWithin(@Param("start") start: ZonedDateTime,
+                             @Param("end") end: ZonedDateTime): List<Interview>
 }

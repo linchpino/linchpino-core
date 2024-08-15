@@ -187,4 +187,9 @@ class AccountController(private val accountService: AccountService, private val 
         val result = accountService.uploadProfileImage(file, authentication)
         return result
     }
+
+    @GetMapping("/profile")
+    fun profile(authentication: Authentication): AccountSummary {
+        return accountService.profile(authentication)
+    }
 }

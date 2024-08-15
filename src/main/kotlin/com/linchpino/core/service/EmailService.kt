@@ -1,6 +1,7 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.entity.Interview
+import com.linchpino.core.entity.interviewPartiesFullName
 import com.linchpino.core.enums.AccountStatusEnum
 import jakarta.mail.internet.InternetAddress
 import org.springframework.beans.factory.annotation.Value
@@ -11,8 +12,8 @@ import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring6.SpringTemplateEngine
-import java.time.ZonedDateTime
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -42,7 +43,6 @@ class EmailService(
             "fullName" to fullName,
         )
         sendEmail(
-            InternetAddress(mailFrom, mailFromName),
             email,
             "Welcome to Linchpino - Confirmation of Mentor Registration",
             "mentor-email-template.html",
@@ -51,19 +51,8 @@ class EmailService(
     }
 
     fun sendingInterviewInvitationEmailToJobSeeker(interview: Interview) {
-        val jobSeekerFullName =
-            if (interview.jobSeekerAccount?.firstName == null || interview.jobSeekerAccount?.lastName == null) {
-                "JobSeeker"
-            } else {
-                "${interview.jobSeekerAccount?.firstName} ${interview.jobSeekerAccount?.lastName}"
-            }
 
-        val mentorFullName =
-            if (interview.mentorAccount?.firstName == null || interview.mentorAccount?.lastName == null) {
-                "Mentor"
-            } else {
-                "${interview.mentorAccount?.firstName} ${interview.mentorAccount?.lastName}"
-            }
+        val (mentorFullName, jobSeekerFullName) = interview.interviewPartiesFullName()
 
         val templateContextData =
             mapOf(
@@ -90,7 +79,6 @@ class EmailService(
         )
 
         sendEmail(
-            InternetAddress(mailFrom, mailFromName),
             interview.jobSeekerAccount!!.email,
             "Confirmation of Interview Schedule on Linchpino",
             "jobseeker-email-template.html",
@@ -100,8 +88,7 @@ class EmailService(
     }
 
 
-    private fun sendEmail(
-        from: InternetAddress,
+    fun sendEmail(
         to: String,
         subject: String,
         templateName: String,
@@ -114,7 +101,7 @@ class EmailService(
         helper.setTo(to)
         helper.setSubject(subject)
         helper.setText(htmlContent, true)
-        helper.setFrom(from)
+        helper.setFrom(InternetAddress(mailFrom, mailFromName))
 
         attachment?.let {
             helper.addAttachment(it.fileName, it.file, it.contentType)
@@ -138,7 +125,7 @@ class EmailService(
         jobSeekerEmail: String?,
         toDate: String?,
         fromDate: String?,
-        summary:String
+        summary: String
     ): String {
         return """
             BEGIN:VCALENDAR
@@ -161,7 +148,7 @@ class EmailService(
             """.trimIndent()
     }
 
-    private data class Attachment(
+    data class Attachment(
         val fileName: String,
         val file: InputStreamSource,
         val contentType: String,
