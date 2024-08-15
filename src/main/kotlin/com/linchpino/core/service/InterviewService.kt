@@ -15,7 +15,6 @@ import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
-import com.linchpino.core.repository.InterviewLogRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
@@ -111,10 +110,9 @@ class InterviewService(
     }
 
     @Transactional(readOnly = true)
-    fun checkValidity(id: Long): InterviewValidityResponse {
+    fun checkValidity(id: Long, authentication: Authentication): InterviewValidityResponse {
         val start = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC)
         val end = start.plusMinutes(5)
-        val authentication = SecurityContextHolder.getContextHolderStrategy().context.authentication
         val email = authentication.email()
         val interview = interviewRepository.findByInterviewIdAndAccountEmail(id, email) ?: throw LinchpinException(
             ErrorCode.ENTITY_NOT_FOUND,

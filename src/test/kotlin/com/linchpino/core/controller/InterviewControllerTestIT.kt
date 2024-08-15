@@ -12,8 +12,10 @@ import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.repository.AccountRepository
+import com.linchpino.core.repository.InterviewLogRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
@@ -22,6 +24,8 @@ import com.linchpino.core.service.CalendarService
 import com.linchpino.core.service.EmailService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,16 +39,12 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -77,6 +77,9 @@ class InterviewControllerTestIT {
 
     @MockBean
     private lateinit var calendarService: CalendarService
+
+    @Autowired
+    private lateinit var logRepository: InterviewLogRepository
 
 
     @BeforeEach
@@ -153,10 +156,10 @@ class InterviewControllerTestIT {
             john.email
         )
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         ).andExpect(status().isCreated)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(jsonPath("$.timeSlotId").value(request.timeSlotId))
@@ -176,6 +179,10 @@ class InterviewControllerTestIT {
         assertThat(interview.mentorAccount?.email).isEqualTo("john.smith@example.com")
         assertThat(interview.jobPosition?.title).isEqualTo("Test Job")
         assertThat(interview.interviewType?.name).isEqualTo("Test Interview Type")
+
+        val logs = logRepository.findAll()
+        assertThat(logs.count()).isEqualTo(1)
+        assertThat(logs[0].type).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
@@ -188,7 +195,7 @@ class InterviewControllerTestIT {
             "zsdvfzsxd"
         )
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         ).andExpect(status().isBadRequest)
     }
@@ -210,10 +217,10 @@ class InterviewControllerTestIT {
         )
 
         mockMvc.perform(
-            MockMvcRequestBuilders.post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         ).andExpect(status().isCreated)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(jsonPath("$.timeSlotId").value(request.timeSlotId))
@@ -233,6 +240,10 @@ class InterviewControllerTestIT {
         assertThat(interview.mentorAccount?.email).isEqualTo("john.smith@example.com")
         assertThat(interview.jobPosition?.title).isEqualTo("Test Job")
         assertThat(interview.interviewType?.name).isEqualTo("Test Interview Type")
+
+        val logs = logRepository.findAll()
+        assertThat(logs.count()).isEqualTo(1)
+        assertThat(logs[0].type).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
@@ -353,7 +364,7 @@ class InterviewControllerTestIT {
         username = "john.doe@example.com",
         roles = [AccountTypeEnum.JOB_SEEKER]
     )
-    fun `test interview validity returns valid interview response for job seeker`() {
+    fun `test interview validity returns valid interview response for job seeker if the interview starts within 5 minutes`() {
         // get required data set in before each
         val interviews = saveInterviewData()
         val interview = interviews[2]
@@ -370,6 +381,10 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
             .andExpect(jsonPath("$.verifyStatus").value(true))
             .andExpect(jsonPath("$.link").value("https://meet.google.com/abc-efg-hij"))
+
+        val logs = logRepository.findAll()
+        assertThat(logs.count()).isEqualTo(1)
+        assertThat(logs[0].type).isEqualTo(InterviewLogType.JOINED)
     }
 
     @Test
@@ -377,7 +392,7 @@ class InterviewControllerTestIT {
         username = "jane.smith@example.com",
         roles = [AccountTypeEnum.JOB_SEEKER]
     )
-    fun `test interview validity returns invalid interview response for job seeker`() {
+    fun `test interview validity returns invalid interview response for job seeker if the interview does not start within 5 minutes`() {
         // get required data set in before each
         val interviews = saveInterviewData()
         val interview = interviews[1]
@@ -395,6 +410,9 @@ class InterviewControllerTestIT {
             .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
             .andExpect(jsonPath("$.verifyStatus").value(false))
             .andExpect(jsonPath("$.link").value(""))
+
+        val logs = logRepository.findAll()
+        assertThat(logs.count()).isEqualTo(0)
     }
 
     @Test
