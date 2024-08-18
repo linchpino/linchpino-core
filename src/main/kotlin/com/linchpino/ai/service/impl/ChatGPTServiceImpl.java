@@ -1,5 +1,6 @@
 package com.linchpino.ai.service.impl;
 
+import com.linchpino.ai.service.AIService;
 import com.linchpino.ai.service.domain.Prompt;
 import com.linchpino.ai.service.domain.RequestDetail;
 import org.springframework.ai.client.AiClient;
