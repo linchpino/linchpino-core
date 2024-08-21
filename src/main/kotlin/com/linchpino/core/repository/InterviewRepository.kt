@@ -18,7 +18,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.jobSeekerAccount.id,
-            concat(i.jobSeekerAccount.firstName, ' ', i.jobSeekerAccount.lastName),
+            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
@@ -39,7 +39,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.jobSeekerAccount.id,
-            concat(i.jobSeekerAccount.firstName, ' ', i.jobSeekerAccount.lastName),
+            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
@@ -61,7 +61,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.mentorAccount.id,
-            concat(i.mentorAccount.firstName, ' ', i.mentorAccount.lastName),
+            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
@@ -82,7 +82,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.mentorAccount.id,
-            concat(i.mentorAccount.firstName, ' ', i.mentorAccount.lastName),
+            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
