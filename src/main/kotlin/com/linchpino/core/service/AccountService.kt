@@ -24,6 +24,7 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
@@ -33,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.springframework.security.core.Authentication
 
 @Service
 @Transactional
@@ -44,7 +44,8 @@ class AccountService(
     private val roleRepository: RoleRepository,
     private val emailService: EmailService,
     private val storageService: StorageService,
-    private val linkedInService: LinkedInService
+    private val linkedInService: LinkedInService,
+    private val paymentService: PaymentService
 ) {
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
@@ -97,7 +98,8 @@ class AccountService(
             AccountStatusEnum.ACTIVATED,
             request.interviewTypeIDs,
             request.detailsOfExpertise,
-            request.linkedInUrl
+            request.linkedInUrl,
+            request.paymentMethodRequest
         )
         val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
         registeredMentor.firstName?.let { firstName ->
@@ -135,6 +137,7 @@ class AccountService(
             externalId = UUID.randomUUID().toString()
         }
         try {
+            paymentService.savePaymentMethod(request.paymentMethodRequest, account)
             repository.save(account)
         } catch (ex: DataIntegrityViolationException) {
             throw LinchpinException("unique email constraint violation", ex, ErrorCode.DUPLICATE_EMAIL)
@@ -191,7 +194,7 @@ class AccountService(
 
     fun profile(authentication: Authentication): AccountSummary {
         val account = repository.findByEmailIgnoreCase(authentication.email())
-        if(authentication is BearerTokenAuthentication && account == null){
+        if (authentication is BearerTokenAuthentication && account == null) {
             val userInfo = linkedInService.userInfo((authentication.credentials as OAuth2AccessToken).tokenValue)
             return saveAccount(
                 SaveAccountRequest(
@@ -202,9 +205,9 @@ class AccountService(
                     listOf(AccountTypeEnum.JOB_SEEKER.value)
                 )
             ).toSummary()
-        }else if(account != null){
+        } else if (account != null) {
             return account.toSummary()
         }
-        throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND,"account not found")
+        throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
     }
 }

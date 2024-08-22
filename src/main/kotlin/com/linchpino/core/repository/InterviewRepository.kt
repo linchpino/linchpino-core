@@ -61,7 +61,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.mentorAccount.id,
-            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
+            concat(coalesce(i.mentorAccount.firstName, ''), ' ', coalesce(i.mentorAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
@@ -82,7 +82,7 @@ interface InterviewRepository : JpaRepository<Interview, Long> {
         """
          select NEW com.linchpino.core.dto.InterviewListResponse(
             i.mentorAccount.id,
-            concat(coalesce(i.jobSeekerAccount.firstName, ''), ' ', coalesce(i.jobSeekerAccount.lastName, '')),
+            concat(coalesce(i.mentorAccount.firstName, ''), ' ', coalesce(i.mentorAccount.lastName, '')),
             i.timeSlot.fromTime,
             i.timeSlot.toTime,
             i.interviewType.name
