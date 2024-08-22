@@ -30,7 +30,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-    #only used for dev and staging branches
+    #only used for dev and staging branches too
       - ./PostgresData:/var/lib/postgresql/data
       - ./initscripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
