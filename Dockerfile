@@ -6,5 +6,5 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -Dmaven.test.skip=true
-
+#expose desired ports
 EXPOSE 8081
