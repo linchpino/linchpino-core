@@ -58,6 +58,7 @@ jobs:
             ALLMYSECRETS: ${{ toJson(secrets) }}
             ALLMYVARS: ${{ toJSON(vars) }}
           run: |
+            echo "hi amin jan"
             echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
             echo $ALLMYVARS > /opt/.linchpino-core-vars
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets && sudo sed -i "s/^ //g" /opt/.linchpino-core-secrets 
