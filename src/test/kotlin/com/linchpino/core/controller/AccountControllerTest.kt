@@ -149,7 +149,8 @@ class AccountControllerTest {
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
-            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
 
         val expectedResponse = RegisterMentorResult(

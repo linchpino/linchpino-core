@@ -51,6 +51,9 @@ class Account : AbstractEntity() {
     @Column(name = "avatar")
     var avatar: String? = null
 
+    @Column(name = "iban")
+    var iban: String? = null
+
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)
