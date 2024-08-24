@@ -1,4 +1,4 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.service.model;
 
 public class Prompt {
 
@@ -35,6 +35,9 @@ public class Prompt {
     }
 
     public static Prompt of(RequestDetail requestDetail) {
+        if(requestDetail == null) {
+            throw new IllegalArgumentException("Request detail cannot be null");
+        }
         return new Prompt(requestDetail);
     }
 

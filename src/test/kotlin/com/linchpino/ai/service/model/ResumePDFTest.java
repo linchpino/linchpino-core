@@ -1,6 +1,8 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.service.model;
 
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
@@ -10,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResumePDFTest {
 
-    private final ResumePDF resumePDF = new ResumePDF("ai/pdf/linkedin-profile.pdf");
+    private final ResumePDF resumePDF = new ResumePDF(readResumeFile());
 
     @Test
     void getFullText() {
         // sanity check
-        assertThrows(IllegalArgumentException.class, () -> new ResumePDF(""));
+        assertThrows(IllegalArgumentException.class, () -> new ResumePDF(null));
         // test: get full text
         String fullText = resumePDF.getFullText();
         assertTrue(fullText.contains("Mohammad Masoomi"));
@@ -37,5 +39,9 @@ class ResumePDFTest {
         assertThat(experience, containsStringIgnoringCase("Software Engineer"));
         assertThat(experience, containsStringIgnoringCase("Java Software Developer"));
         assertFalse(experience.contains("Mohammad Masoomi"));
+    }
+
+    private File readResumeFile() {
+        return new File(getClass().getClassLoader().getResource("ai/pdf/linkedin-profile.pdf").getFile());
     }
 }

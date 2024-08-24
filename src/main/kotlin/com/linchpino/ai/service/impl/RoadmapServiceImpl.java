@@ -2,8 +2,8 @@ package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.AIService;
 import com.linchpino.ai.service.RoadmapService;
-import com.linchpino.ai.service.domain.AIServiceName;
-import com.linchpino.ai.service.domain.RequestDetail;
+import com.linchpino.ai.service.model.AIServiceName;
+import com.linchpino.ai.service.model.RequestDetail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;

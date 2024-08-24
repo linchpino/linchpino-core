@@ -1,6 +1,8 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.service.model;
 
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -8,7 +10,7 @@ class PromptTest {
 
     @Test
     void getDefaultRoadmapPrompt() {
-        String DEFAULT_ROADMAP_PROMPT = """
+        String defaultRoadmapPrompt = """
             I want to have a roadmap to reach to level {Senior Data Scientist}.
             Could you please give me a roadmap to reach level {Senior Data Scientist}
             Please give me road map in json format like below
@@ -33,6 +35,10 @@ class PromptTest {
             }
             Provide me response in json without any other information.
             """;
-        assertEquals(DEFAULT_ROADMAP_PROMPT, Prompt.of(RequestDetail.getDefaultRequestDetail()).toString());
+        assertEquals(defaultRoadmapPrompt, Prompt.of(RequestDetail.of("Senior Data Scientist", readResumeFile())).toString());
+    }
+
+    private File readResumeFile() {
+        return new File(getClass().getClassLoader().getResource("ai/pdf/linkedin-profile.pdf").getFile());
     }
 }
