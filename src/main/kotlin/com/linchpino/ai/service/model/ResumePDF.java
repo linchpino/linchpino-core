@@ -29,11 +29,11 @@ public class ResumePDF {
 
     private List<String> readLines(File file) {
         try (PDDocument document = Loader.loadPDF(file)) {
+            logger.info("Reading the file: {}", file.getName());
             PDFTextStripper textStripper = new PDFTextStripper();
             return new ArrayList<>(Arrays.asList(textStripper.getText(document).split("\n")));
         } catch (IOException e) {
-            logger.error("Error occurred while reading the file!", e);
-            return new ArrayList<>();
+            throw new RuntimeException("Error occurred while reading the file!", e);
         }
     }
 

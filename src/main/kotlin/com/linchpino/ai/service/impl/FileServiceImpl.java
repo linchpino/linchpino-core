@@ -16,7 +16,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public File saveFile(MultipartFile file) {
-        File convFile = new File(fileUploadDir + file.getOriginalFilename());
+        File convFile = new File(fileUploadDir + File.separator + file.getOriginalFilename());
         try {
             file.transferTo(convFile);
         } catch (IOException e) {
