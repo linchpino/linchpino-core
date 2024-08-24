@@ -1,4 +1,4 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.service.model;
 
 import com.linchpino.ai.service.impl.ChatGPTServiceImpl;
 import com.linchpino.ai.service.impl.GeminiServiceImpl;

@@ -89,3 +89,6 @@ admin:
 gcp:
   bucket: ${BUCKET_NAME:linchpino_profile_image}
   projectId: ${PROJECT_ID:ardent-window-404920}
+
+file:
+    upload-dir: ${UPLOAD_DIR:/tmp}
