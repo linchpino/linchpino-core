@@ -1,6 +1,7 @@
 package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.FileService;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +17,8 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public File saveFile(MultipartFile file) {
-        File convFile = new File(fileUploadDir + File.separator + file.getOriginalFilename());
+        String originalFilename = FilenameUtils.getName(file.getOriginalFilename());
+        File convFile = new File(fileUploadDir + File.separator + originalFilename);
         try {
             file.transferTo(convFile);
         } catch (IOException e) {
