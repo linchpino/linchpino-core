@@ -1,4 +1,4 @@
-package com.linchpino.ai.service.impl;
+package com.linchpino.ai.service;
 
 import com.linchpino.ai.service.domain.RequestDetail;
 
