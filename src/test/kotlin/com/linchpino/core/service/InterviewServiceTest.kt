@@ -14,6 +14,7 @@ import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
@@ -25,6 +26,7 @@ import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.WithMockJwtSecurityContextFactory
+import com.linchpino.core.security.email
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -78,6 +80,9 @@ class InterviewServiceTest {
 
     @Mock
     private lateinit var calendarService: CalendarService
+
+    @Mock
+    private lateinit var interviewLogService: InterviewLogService
 
     @Test
     fun `test create new interview when account exists`() {
@@ -140,6 +145,9 @@ class InterviewServiceTest {
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
 
+        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
@@ -161,6 +169,7 @@ class InterviewServiceTest {
             timeSlotStatusCaptor.captureNonNullable()
         )
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
 
         assertEquals(createInterviewResult, result)
         val savedInterview = captor.value
@@ -180,6 +189,12 @@ class InterviewServiceTest {
 
         val times = timeCaptor.value
         assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
+
+        val id = idCaptor.value
+        val logType = logTypeCaptor.value
+
+        assertThat(id).isEqualTo(1)
+        assertThat(logType).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
@@ -228,6 +243,10 @@ class InterviewServiceTest {
         val titleCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
+        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+
+
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
             typeInterview.id!!,
@@ -270,6 +289,7 @@ class InterviewServiceTest {
             timeSlotStatusCaptor.captureNonNullable()
         )
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.value)
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -294,6 +314,12 @@ class InterviewServiceTest {
 
         val times = timeCaptor.value
         assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
+
+        val id = idCaptor.value
+        val logType = logTypeCaptor.value
+
+        assertThat(id).isEqualTo(1)
+        assertThat(logType).isEqualTo(InterviewLogType.CREATED)
     }
 
     @Test
@@ -432,18 +458,87 @@ class InterviewServiceTest {
     @Test
     fun `test interview validity throws not found exception if there is no interview with provided id or account email`() {
         // Given
-        SecurityContextHolder.getContextHolderStrategy().context =
-            WithMockJwtSecurityContextFactory().createSecurityContext(WithMockJwt("john.doe@example.com"))
+        val authentication = WithMockJwt.mockAuthentication()
 
         `when`(interviewRepository.findByInterviewIdAndAccountEmail(anyLong(), anyString())).thenReturn(null)
 
         val exception = Assertions.assertThrows(LinchpinException::class.java) {
-            service.checkValidity(5)
+            service.checkValidity(5, authentication)
         }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
     }
 
+    @Test
+    fun `test interview validity returns status true and google meet link, also a log for join event is saved`() {
+
+        // Given
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@example.com"
+            firstName = "John"
+            lastName = "Doe"
+        }
+        val id = 1L
+        val email = "john.doe@example.com"
+        val meetCode = "abc-efg-hij"
+        val authentication = WithMockJwt.mockAuthentication(email)
+
+        val timeSlot = MentorTimeSlot().apply {
+            fromTime = ZonedDateTime.now().plusMinutes(2)
+            toTime = ZonedDateTime.now().plusMinutes(60)
+            status = MentorTimeSlotEnum.ALLOCATED
+        }
+
+        val interview = Interview().apply {
+            this.timeSlot = timeSlot
+            this.meetCode = meetCode
+        }
+        `when`(accountRepository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
+
+        // When
+        val response = service.checkValidity(id, authentication)
+
+        // Then
+        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
+        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
+        assertThat(response.verifyStatus).isEqualTo(true)
+        assertThat(response.link).isEqualTo("https://meet.google.com/$meetCode")
+
+        verify(interviewLogService, times(1)).save(InterviewLogType.JOINED,account.id)
+    }
+
+    @Test
+    fun `test interview validity returns false status when timeslot starts more than 5 min from now`() {
+
+        // Given
+        val id = 1L
+        val email = "john.doe@example.com"
+        val meetCode = "abc-efg-hij"
+        val authentication = WithMockJwt.mockAuthentication(email)
+
+        val timeSlot = MentorTimeSlot().apply {
+            fromTime = ZonedDateTime.now().plusMinutes(6)
+            toTime = ZonedDateTime.now().plusMinutes(60)
+            status = MentorTimeSlotEnum.ALLOCATED
+        }
+
+        val interview = Interview().apply {
+            this.timeSlot = timeSlot
+            this.meetCode = meetCode
+        }
+        `when`(interviewRepository.findByInterviewIdAndAccountEmail(id, email)).thenReturn(interview)
+
+        // When
+        val response = service.checkValidity(id, authentication)
+
+        // Then
+        assertThat(response.interviewDateTimeStart).isEqualTo(interview.timeSlot?.fromTime)
+        assertThat(response.interviewDateTimeEnd).isEqualTo(interview.timeSlot?.toTime)
+        assertThat(response.verifyStatus).isEqualTo(false)
+        assertThat(response.link).isEqualTo("")
+    }
 
     @Test
     fun `test upcoming interviews for job seeker`() {
