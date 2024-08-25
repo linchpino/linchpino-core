@@ -8,16 +8,17 @@ import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,6 +31,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {
@@ -146,7 +148,8 @@ class AccountControllerTest {
             password = "password",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "http://linkedin.com/johndoe"
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
         )
 
         val expectedResponse = RegisterMentorResult(

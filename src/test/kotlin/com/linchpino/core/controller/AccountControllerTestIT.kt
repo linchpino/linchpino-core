@@ -7,15 +7,18 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.LinkedInUserInfoResponse
+import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
+import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.entity.Role
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.security.WithMockBearerToken
@@ -100,6 +103,15 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.id").isNumber())
             .andExpect(jsonPath("$.type").value("JOB_SEEKER"))
             .andExpect(jsonPath("$.status").value(AccountStatusEnum.ACTIVATED.name))
+
+        // verify payment method
+        val paymentMethod = entityManager.find(
+            PaymentMethod::class.java,
+            accountRepository.findByEmailIgnoreCase(createAccountRequest.email)!!.id
+        )
+
+        assertThat(paymentMethod.account?.email).isEqualTo(createAccountRequest.email)
+        assertThat(paymentMethod.type).isEqualTo(PaymentMethodType.FREE)
     }
 
     @Test
@@ -417,6 +429,11 @@ class AccountControllerTestIT {
         val it1 = InterviewType().apply { name = "type1" }
         val it2 = InterviewType().apply { name = "type2" }
         val interviewTypes = interviewTypeRepository.saveAll(listOf(it1, it2))
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.PAY_AS_YOU_GO,
+            minPayment = 10.0,
+            maxPayment = 25.0
+        )
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -424,7 +441,8 @@ class AccountControllerTestIT {
             password = "@secret1",
             interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "https://www.linkedin.com/in/johndoe"
+            linkedInUrl = "https://www.linkedin.com/in/johndoe",
+            paymentMethodRequest = paymentMethodRequest
         )
 
         mockMvc.perform(
@@ -449,6 +467,17 @@ class AccountControllerTestIT {
             request.lastName,
             request.email
         )
+
+        // verify payment method
+        val paymentMethod = entityManager.find(
+            PaymentMethod::class.java,
+            accountRepository.findByEmailIgnoreCase(request.email)!!.id
+        )
+
+        assertThat(paymentMethod.account?.email).isEqualTo(request.email)
+        assertThat(paymentMethod.type).isEqualTo(PaymentMethodType.PAY_AS_YOU_GO)
+        assertThat(paymentMethod.minPayment).isEqualTo(paymentMethodRequest.minPayment)
+        assertThat(paymentMethod.maxPayment).isEqualTo(paymentMethodRequest.maxPayment)
     }
 
     @Test
@@ -461,7 +490,8 @@ class AccountControllerTestIT {
             password = "@secret1",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "https://www.linkedin.com/in/johndoe"
+            linkedInUrl = "https://www.linkedin.com/in/johndoe",
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
         )
         //
         mockMvc.perform(
@@ -484,7 +514,8 @@ class AccountControllerTestIT {
             password = "password",
             interviewTypeIDs = listOf(),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "https://linkedin.com/johndoe"
+            linkedInUrl = "https://linkedin.com/johndoe",
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
         )
 
         mockMvc.perform(
