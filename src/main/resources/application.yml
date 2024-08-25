@@ -8,6 +8,14 @@ spring:
       api-key: ${OPEN_AI_API_KEY:api-key}
     gemini:
       api-key: ${GEMINI_API_KEY:api-key}
+    vertex:
+      ai:
+        gemini:
+          project-id: ${GCP_PROJECT_ID:persian-java-talk}
+          location: ${REGION:us-central1}
+          chat:
+            options:
+              functions: getProfileInfo
 
   datasource:
     driverClassName: org.postgresql.Driver

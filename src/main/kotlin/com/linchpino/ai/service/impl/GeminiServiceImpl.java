@@ -7,8 +7,13 @@ import com.linchpino.ai.service.domain.Prompt;
 import com.linchpino.ai.service.domain.RequestDetail;
 import com.linchpino.core.exception.ErrorCode;
 import com.linchpino.core.exception.LinchpinException;
+import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,13 +28,20 @@ public class GeminiServiceImpl implements AIService {
     private String geminiApiKey;
 
     private final RestTemplate restTemplate;
+    private final VertexAiGeminiChatModel vertexAiGemini;
 
-    public GeminiServiceImpl() {
+    public GeminiServiceImpl(VertexAiGeminiChatModel vertexAiGemini) {
+        this.vertexAiGemini = vertexAiGemini;
         this.restTemplate = new RestTemplate();
     }
 
     @Override
     public String talkToAI(RequestDetail requestDetail) {
+//        return callGeminiByRest(requestDetail);
+        return functionCall(requestDetail);
+    }
+
+    private String callGeminiByRest(RequestDetail requestDetail) {
         try {
             String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
             // Set the headers
@@ -50,7 +62,11 @@ public class GeminiServiceImpl implements AIService {
         }
     }
 
-    private String getPromptRequest(String prompt) {
+    private String functionCall(RequestDetail requestDetail) {
+        return vertexAiGemini.call(getPromptRequest(Prompt.of(requestDetail).toString()));
+    }
+
+    private static String getPromptRequest(String prompt) {
         ObjectMapper mapper = new ObjectMapper();
         String promptRequest = "";
         ObjectNode contentsJson = mapper.createObjectNode();
@@ -71,6 +87,7 @@ public class GeminiServiceImpl implements AIService {
         return promptRequest;
     }
 
+    // region Records
     public record Part(String text) {
     }
 
@@ -88,4 +105,5 @@ public class GeminiServiceImpl implements AIService {
 
     public record JsonData(List<Candidate> candidates, UsageMetadata usageMetadata) {
     }
+    // endregion
 }
