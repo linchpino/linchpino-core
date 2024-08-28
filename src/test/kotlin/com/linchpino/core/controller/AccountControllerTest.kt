@@ -8,12 +8,14 @@ import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
@@ -146,7 +148,8 @@ class AccountControllerTest {
             password = "password",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "http://linkedin.com/johndoe"
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
         )
 
         val expectedResponse = RegisterMentorResult(

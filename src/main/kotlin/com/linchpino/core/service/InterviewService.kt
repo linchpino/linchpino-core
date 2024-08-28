@@ -11,6 +11,7 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.interviewPartiesFullName
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
@@ -40,7 +40,8 @@ class InterviewService(
     private val accountService: AccountService,
     private val emailService: EmailService,
     private val calendarService: CalendarService,
-    private val scheduleService: ScheduleService
+    private val scheduleService: ScheduleService,
+    private val interviewLogService: InterviewLogService
 ) {
 
 
@@ -62,7 +63,7 @@ class InterviewService(
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
         emailService.sendingInterviewInvitationEmailToJobSeeker(interview)
-
+        interviewLogService.save(InterviewLogType.CREATED,jobSeekerAccount.id)
         return interview.toCreateInterviewResult()
     }
 
@@ -101,11 +102,9 @@ class InterviewService(
         return interviewRepository.findPastInterviews(authentication.email(), page)
     }
 
-    @Transactional(readOnly = true)
-    fun checkValidity(id: Long): InterviewValidityResponse {
+    fun checkValidity(id: Long, authentication: Authentication): InterviewValidityResponse {
         val start = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC)
         val end = start.plusMinutes(5)
-        val authentication = SecurityContextHolder.getContextHolderStrategy().context.authentication
         val email = authentication.email()
         val interview = interviewRepository.findByInterviewIdAndAccountEmail(id, email) ?: throw LinchpinException(
             ErrorCode.ENTITY_NOT_FOUND,
@@ -117,6 +116,9 @@ class InterviewService(
             if (it?.fromTime?.isBefore(start) == true || it?.fromTime?.isAfter(end) == true) {
                 InterviewValidityResponse(it.fromTime, it.toTime, false, "")
             } else {
+                accountRepository.findByEmailIgnoreCase(email)?.id?.let {
+                    id -> interviewLogService.save(InterviewLogType.JOINED,id)
+                }
                 InterviewValidityResponse(
                     it?.fromTime, it?.toTime, true, "https://meet.google.com/${interview.meetCode}"
                 )

@@ -22,14 +22,14 @@ annotation class WithMockJwt(
     val roles: Array<AccountTypeEnum> = [AccountTypeEnum.GUEST]
 ) {
     companion object {
-        fun mockAuthentication(): Authentication = JwtAuthenticationToken(
+        fun mockAuthentication(email: String? = null): Authentication = JwtAuthenticationToken(
             Jwt(
                 "token",
                 Instant.now(),
                 Instant.now().plusSeconds(3600),
                 mapOf("alg" to "none"),
                 mapOf(
-                    "sub" to "fake@example.com",
+                    "sub" to (email ?: "fake@example.com"),
                     "scope" to listOf<String>()
                 )
             ), listOf()

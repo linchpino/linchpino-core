@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.security.PasswordPolicy
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -31,6 +32,7 @@ data class SaveAccountRequest(
     val interviewTypeIDs: List<Long> = listOf(),
     val detailsOfExpertise: String? = null,
     val linkedInUrl: String? = null,
+    val paymentMethodRequest: PaymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
 )
 
 data class UpdateAccountRequest(
@@ -96,7 +98,8 @@ data class RegisterMentorRequest(
     @field:PasswordPolicy val password: String,
     @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
     val detailsOfExpertise:String?,
-    @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?
+    @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?,
+    @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest
 )
 
 fun Account.toRegisterMentorResult():RegisterMentorResult{
