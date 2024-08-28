@@ -11,13 +11,17 @@ import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.PaymentMethodType
+import com.linchpino.core.enums.RecurrenceType
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -31,6 +35,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
@@ -44,6 +49,9 @@ class AccountControllerTest {
 
     @InjectMocks
     private lateinit var accountController: AccountController
+
+    @Mock
+    private lateinit var scheduleService: ScheduleService
 
     @Test
     fun `test create account`() {
@@ -231,9 +239,9 @@ class AccountControllerTest {
         // Given
         val file = MockMultipartFile("file", "fileName", "image/jpeg", "test image content".toByteArray())
         val authentication = WithMockJwt.mockAuthentication()
-        `when`(accountService.uploadProfileImage( file, authentication)).thenReturn(AddProfileImageResponse("fileName"))
+        `when`(accountService.uploadProfileImage(file, authentication)).thenReturn(AddProfileImageResponse("fileName"))
         // When
-        val result = accountController.uploadProfileImage(file,authentication)
+        val result = accountController.uploadProfileImage(file, authentication)
 
         // Then
         verify(accountService).uploadProfileImage(file, authentication)
@@ -241,13 +249,47 @@ class AccountControllerTest {
     }
 
     @Test
-    fun `test profile returns successfully`(){
-        val summary = AccountSummary(1,"john","doe","john@example.com", listOf(),AccountStatusEnum.ACTIVATED,null)
+    fun `test profile returns successfully`() {
+        val summary = AccountSummary(1, "john", "doe", "john@example.com", listOf(), AccountStatusEnum.ACTIVATED, null)
         val authentication = WithMockJwt.mockAuthentication()
 
         `when`(accountService.profile(authentication)).thenReturn(summary)
         val result = accountController.profile(authentication)
         verify(accountService, times(1)).profile(authentication)
         assertThat(result).isEqualTo(summary)
+    }
+
+    @Test
+    fun `test adding schedule for mentors`() {
+        // Given
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+        val authentication = WithMockJwt.mockAuthentication()
+
+        val response = ScheduleResponse(
+            1,
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            1,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+        )
+
+        // When
+        `when`(scheduleService.addSchedule(scheduleRequest, authentication)).thenReturn(response)
+
+        val result = accountController.addScheduleForMentor(scheduleRequest, authentication)
+
+        // Then
+        verify(scheduleService, times(1)).addSchedule(scheduleRequest, authentication)
+        assertThat(result).isEqualTo(response)
     }
 }

@@ -44,8 +44,8 @@ data class ScheduleResponse(
     val recurrenceType: RecurrenceType?,
     val interval: Int?,
     val endTime: ZonedDateTime?,
-    val weekDays: MutableList<DayOfWeek> = mutableListOf(),
-    val monthDays: MutableList<Int> = mutableListOf(),
+    val weekDays: List<DayOfWeek> = listOf(),
+    val monthDays: List<Int> = listOf(),
 )
 
 fun Schedule.toResponse() = ScheduleResponse(

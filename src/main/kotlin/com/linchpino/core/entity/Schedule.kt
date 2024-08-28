@@ -62,7 +62,8 @@ class Schedule {
         startTime: ZonedDateTime,
         targetTime: ZonedDateTime
     ): ValidWindow? {
-        if (targetTime > endTime) return null
+        if (targetTime > endTime)
+            return null
         return when (recurrenceType) {
             RecurrenceType.DAILY -> timeSlotDaily(startTime, targetTime)
             RecurrenceType.WEEKLY -> timeSlotWeekly(startTime, targetTime)
@@ -108,7 +109,7 @@ class Schedule {
         startTarget: ZonedDateTime,
         endTarget: ZonedDateTime
     ): ValidWindow? {
-        if (!monthDays.contains(endTarget.dayOfMonth))
+        if (!monthDays.contains(endTarget.dayOfMonth) || !monthDays.contains(startTarget.dayOfMonth))
             return null
         val firstDayOfFirstMonth = this.startTime?.withDayOfMonth(1)
         val firstDayOfSelectedMonth = startTarget.withDayOfMonth(1)
@@ -118,7 +119,7 @@ class Schedule {
         if (!isValidMonth)
             return null
 
-        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(startTarget, endTarget))
+        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(this.startTime, startTarget))
         val validEndTime = validStartTime?.plusMinutes(duration.toLong())
 
         return validWindow(validStartTime, validEndTime, startTarget, endTarget)

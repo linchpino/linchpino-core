@@ -25,7 +25,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
@@ -46,10 +45,12 @@ import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
-class AccountController(private val accountService: AccountService, private val timeSlotService: TimeSlotService) {
+class AccountController(
+    private val accountService: AccountService,
+    private val timeSlotService: TimeSlotService,
+    private val scheduleService: ScheduleService
+) {
 
-    @Autowired
-    private lateinit var scheduleService: ScheduleService
 
     @Operation(summary = "Create a new account")
     @ResponseStatus(HttpStatus.CREATED)
@@ -152,8 +153,8 @@ class AccountController(private val accountService: AccountService, private val 
 
 
     @PostMapping("/mentors/schedule")
-    fun addScheduleForMentor(@Valid @RequestBody request:ScheduleRequest,auth: Authentication): ScheduleResponse {
-        return scheduleService.addSchedule(request,auth)
+    fun addScheduleForMentor(@Valid @RequestBody request: ScheduleRequest, auth: Authentication): ScheduleResponse {
+        return scheduleService.addSchedule(request, auth)
     }
 
     @GetMapping("/search")
@@ -184,8 +185,8 @@ class AccountController(private val accountService: AccountService, private val 
             password,
             AccountTypeEnum.ADMIN.value
         )
-        val admins = accountService.searchAccountByNameOrRole(null,AccountTypeEnum.ADMIN.value)
-        if(admins.isEmpty()) {
+        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value)
+        if (admins.isEmpty()) {
             createAccount(request)
         }
     }
