@@ -6,7 +6,6 @@ import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.repository.JobPositionRepository
-import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -14,7 +13,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Captor
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -22,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 class JobPositionServiceTest {

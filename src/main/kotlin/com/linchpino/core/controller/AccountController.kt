@@ -9,9 +9,12 @@ import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -22,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import java.time.ZonedDateTime
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
@@ -39,10 +42,14 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
 class AccountController(private val accountService: AccountService, private val timeSlotService: TimeSlotService) {
+
+    @Autowired
+    private lateinit var scheduleService: ScheduleService
 
     @Operation(summary = "Create a new account")
     @ResponseStatus(HttpStatus.CREATED)
@@ -141,6 +148,12 @@ class AccountController(private val accountService: AccountService, private val 
     )
     fun addTimeSlotsForMentor(@Valid @RequestBody request: AddTimeSlotsRequest) {
         timeSlotService.addTimeSlots(request)
+    }
+
+
+    @PostMapping("/mentors/schedule")
+    fun addScheduleForMentor(@Valid @RequestBody request:ScheduleRequest,auth: Authentication): ScheduleResponse {
+        return scheduleService.addSchedule(request,auth)
     }
 
     @GetMapping("/search")

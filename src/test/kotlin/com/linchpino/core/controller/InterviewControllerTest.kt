@@ -37,7 +37,9 @@ class InterviewControllerTest {
 
     @Test
     fun `test create new interview`() {
-        val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
+        val startTime = ZonedDateTime.now()
+        val endTime = startTime.plusMinutes(45)
+        val createInterviewRequest = CreateInterviewRequest(1, 1, startTime, endTime, 1, "john.doe@example.com")
         val expectedResponse = CreateInterviewResult(
             1,
             1,

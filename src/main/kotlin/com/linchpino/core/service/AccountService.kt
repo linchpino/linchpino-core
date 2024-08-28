@@ -24,6 +24,7 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
@@ -33,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.springframework.security.core.Authentication
 
 @Service
 @Transactional

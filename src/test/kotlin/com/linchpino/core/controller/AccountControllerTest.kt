@@ -17,7 +17,6 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.TimeSlotService
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,6 +29,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {

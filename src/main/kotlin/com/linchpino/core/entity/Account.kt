@@ -9,6 +9,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 
 @Table(name = "ACCOUNT")
@@ -50,6 +51,9 @@ class Account : AbstractEntity() {
 
     @Column(name = "avatar")
     var avatar: String? = null
+
+    @OneToOne(mappedBy = "account", cascade = [CascadeType.ALL])
+    var schedule: Schedule? = null
 
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)

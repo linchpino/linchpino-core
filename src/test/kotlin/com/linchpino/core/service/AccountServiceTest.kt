@@ -23,6 +23,7 @@ import com.linchpino.core.security.email
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
@@ -34,14 +35,13 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.multipart.MultipartFile
-import java.time.ZonedDateTime
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
+import org.springframework.web.multipart.MultipartFile
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {

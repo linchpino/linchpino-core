@@ -11,14 +11,12 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.interviewPartiesFullName
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.data.domain.Page
@@ -39,12 +37,12 @@ class InterviewService(
     private val accountRepository: AccountRepository,
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
-    private val mentorTimeSlotRepository: MentorTimeSlotRepository,
     private val accountService: AccountService,
-    private val timeSlotService: TimeSlotService,
     private val emailService: EmailService,
-    private val calendarService: CalendarService
+    private val calendarService: CalendarService,
+    private val scheduleService: ScheduleService
 ) {
+
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
@@ -63,9 +61,6 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        interview.timeSlot?.let {
-            timeSlotService.updateTimeSlotStatus(it, MentorTimeSlotEnum.ALLOCATED)
-        }
         emailService.sendingInterviewInvitationEmailToJobSeeker(interview)
 
         return interview.toCreateInterviewResult()
@@ -78,17 +73,13 @@ class InterviewService(
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
-        val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
+        val mentorTimeSlot = scheduleService.availableTimeSlot(mentorAcc, createInterviewRequest)
+
         val googleMeetCode = calendarService.googleMeetCode(
             listOf(mentorAcc.email, jobSeekerAcc.email),
             "${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAcc.firstName ?: "jobseeker"}",
             Pair(mentorTimeSlot.fromTime, mentorTimeSlot.toTime)
         )
-        if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
-            throw LinchpinException(
-                ErrorCode.TIMESLOT_IS_BOOKED,
-                "this time slot is already booked : ${createInterviewRequest.timeSlotId}"
-            )
 
         return Interview().apply {
             jobPosition = position

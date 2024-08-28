@@ -23,8 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import java.io.InputStream
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertThrows
 
 @ExtendWith(MockitoExtension::class)
 class StorageServiceTest {

@@ -3,7 +3,6 @@ package com.linchpino.core.service
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.model.ConferenceData
 import com.google.api.services.calendar.model.Event
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +17,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.springframework.core.io.Resource
+import java.time.ZonedDateTime
 
 class CalendarServiceTest {
 
