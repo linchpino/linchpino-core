@@ -52,6 +52,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
                 it.requestMatchers("/api/accounts/profile").authenticated()
+                it.requestMatchers("/api/accounts/mentors/schedule").hasAnyAuthority("SCOPE_MENTOR")
                 it.requestMatchers("/api/accounts/search").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/admin/**").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/interviews/*/validity").authenticated()

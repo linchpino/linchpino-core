@@ -151,7 +151,16 @@ class AccountController(
         timeSlotService.addTimeSlots(request)
     }
 
-
+    @Operation(summary = "Add schedule for mentor")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "Added schedule for mentor successfully"),
+            ApiResponse(responseCode = "400", description = "Invalid request body"),
+            ApiResponse(responseCode = "401", description = "Not authenticated"),
+            ApiResponse(responseCode = "403", description = "Not authorized")
+        ]
+    )
     @PostMapping("/mentors/schedule")
     fun addScheduleForMentor(@Valid @RequestBody request: ScheduleRequest, auth: Authentication): ScheduleResponse {
         return scheduleService.addSchedule(request, auth)

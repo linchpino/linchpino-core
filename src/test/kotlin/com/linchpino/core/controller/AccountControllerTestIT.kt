@@ -9,6 +9,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
@@ -19,6 +20,7 @@ import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
 import com.linchpino.core.enums.PaymentMethodType
+import com.linchpino.core.enums.RecurrenceType
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.security.WithMockBearerToken
@@ -50,6 +52,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -57,10 +60,12 @@ import java.util.UUID
 @AutoConfigureMockMvc
 @Transactional // Ensure rollback after each test
 @Import(PostgresContainerConfig::class)
-@TestPropertySource(properties = [
-    "admin.username=testAdmin",
-    "admin.password=testPassword"
-])
+@TestPropertySource(
+    properties = [
+        "admin.username=testAdmin",
+        "admin.password=testPassword"
+    ]
+)
 class AccountControllerTestIT {
 
     @Autowired
@@ -720,7 +725,7 @@ class AccountControllerTestIT {
         // When
         mockMvc.perform(
             get("/api/accounts/search")
-                .param("name","doe")
+                .param("name", "doe")
                 .param("role", "3")
         )
             .andExpect(status().isOk)
@@ -738,7 +743,7 @@ class AccountControllerTestIT {
         // When
         mockMvc.perform(
             get("/api/accounts/search")
-                .param("name","ohn")
+                .param("name", "ohn")
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].firstName").value("John"))
@@ -755,7 +760,7 @@ class AccountControllerTestIT {
         // When
         mockMvc.perform(
             get("/api/accounts/search")
-                .param("name","smith")
+                .param("name", "smith")
                 .param("role", "3")
         )
             .andExpect(status().isOk)
@@ -780,13 +785,16 @@ class AccountControllerTestIT {
 
     }
 
-    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.GUEST,AccountTypeEnum.MENTOR,AccountTypeEnum.JOB_SEEKER])
+    @WithMockJwt(
+        username = "john.doe@example.com",
+        roles = [AccountTypeEnum.GUEST, AccountTypeEnum.MENTOR, AccountTypeEnum.JOB_SEEKER]
+    )
     @Test
     fun `test search account by role or name throws 403 if user is not admin`() {
         // When
         mockMvc.perform(
             get("/api/accounts/search")
-                .param("name","smith")
+                .param("name", "smith")
                 .param("role", "3")
         )
             .andExpect(status().isForbidden)
@@ -801,14 +809,14 @@ class AccountControllerTestIT {
         assertThat(admin?.email).isEqualTo("testAdmin")
         assertThat(admin?.roles()?.map { it.title }).contains(AccountTypeEnum.ADMIN)
 
-        accountController.adminAccountRunner("testAdmin2","secret")
-        val admins = accountRepository.searchByNameOrRole(null,AccountTypeEnum.ADMIN)
+        accountController.adminAccountRunner("testAdmin2", "secret")
+        val admins = accountRepository.searchByNameOrRole(null, AccountTypeEnum.ADMIN)
         assertThat(admins.size).isEqualTo(1)
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
     @Test
-    fun `test profile throws not found exception if logged in user is not from linkedin and is not present in database`(){
+    fun `test profile throws not found exception if logged in user is not from linkedin and is not present in database`() {
         // When & Then
         mockMvc.perform(
             get("/api/accounts/profile")
@@ -818,7 +826,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
     @Test
-    fun `test profile returns account summary if user is logged in with Linchpino jwt and exists in database`(){
+    fun `test profile returns account summary if user is logged in with Linchpino jwt and exists in database`() {
         // Given
         saveAccountsWithRole()
 
@@ -834,11 +842,17 @@ class AccountControllerTestIT {
 
     @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
     @Test
-    fun `test profile returns account summary if user is logged in with LinkedIn and exists in database`(){
+    fun `test profile returns account summary if user is logged in with LinkedIn and exists in database`() {
         // Given
         saveAccountsWithRole()
 
-        `when`(linkedInService.userInfo("dummy token")).thenReturn(LinkedInUserInfoResponse("johndoe@gmail.com","John","Doe"))
+        `when`(linkedInService.userInfo("dummy token")).thenReturn(
+            LinkedInUserInfoResponse(
+                "johndoe@gmail.com",
+                "John",
+                "Doe"
+            )
+        )
 
         // When & Then
         mockMvc.perform(
@@ -852,9 +866,15 @@ class AccountControllerTestIT {
 
     @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
     @Test
-    fun `test profile saves user and returns summary if user is logged in with LinkedIn and does not exist in database`(){
+    fun `test profile saves user and returns summary if user is logged in with LinkedIn and does not exist in database`() {
         // Given
-        `when`(linkedInService.userInfo("dummy token")).thenReturn(LinkedInUserInfoResponse("johndoe@gmail.com","John","Doe"))
+        `when`(linkedInService.userInfo("dummy token")).thenReturn(
+            LinkedInUserInfoResponse(
+                "johndoe@gmail.com",
+                "John",
+                "Doe"
+            )
+        )
 
         // When & Then
         mockMvc.perform(
@@ -868,6 +888,87 @@ class AccountControllerTestIT {
         val savedAccount = accountRepository.findByEmailIgnoreCase("johndoe@gmail.com")
         assertThat(savedAccount).isNotNull
     }
+
+    @WithMockJwt(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `test adding schedule for mentor`() {
+        // Given
+        saveAccountsWithRole()
+
+        val request = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:00+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:00+03:00"),
+            listOf(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.id").isNumber)
+            .andExpect(jsonPath("$.startTime").value("2024-08-28T09:30:00Z"))
+            .andExpect(jsonPath("$.duration").value(60))
+            .andExpect(jsonPath("$.accountId").isNumber)
+            .andExpect(jsonPath("$.recurrenceType").value("WEEKLY"))
+            .andExpect(jsonPath("$.interval").value(3))
+            .andExpect(jsonPath("$.endTime").value("2024-12-30T10:30:00Z"))
+            .andExpect(jsonPath("$.weekDays[0]").value("FRIDAY"))
+            .andExpect(jsonPath("$.weekDays[1]").value("SUNDAY"))
+    }
+
+    @Test
+    fun `test adding schedule throws 401 if user not authenticated`() {
+        // Given
+        saveAccountsWithRole()
+
+        val request = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:00+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:00+03:00"),
+            listOf(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @WithMockJwt(username = "janesmith@gmail.com", roles = [AccountTypeEnum.GUEST, AccountTypeEnum.JOB_SEEKER])
+    @Test
+    fun `test adding schedule throws 403 if user is not mentor`() {
+        // Given
+        saveAccountsWithRole()
+
+        val request = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:00+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:00+03:00"),
+            listOf(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(status().isForbidden)
+    }
+
 
     private fun saveAccountsWithRole() {
         val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
