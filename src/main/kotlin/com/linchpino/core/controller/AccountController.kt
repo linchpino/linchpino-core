@@ -6,6 +6,7 @@ import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
@@ -66,6 +67,7 @@ class AccountController(
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
+/*
     @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
     @ApiResponses(
         value = [
@@ -100,6 +102,45 @@ class AccountController(
         val result = accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
         return ResponseEntity.ok(result)
     }
+*/
+
+
+    @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Found mentors with available timeslots for provided interviewTypeId and data"
+            ),
+            ApiResponse(responseCode = "400", description = "Invalid query parameter")
+        ]
+    )
+    @Parameters(
+        value = [
+            Parameter(
+                name = "interviewTypeId",
+                description = "ID of interview type",
+                `in` = ParameterIn.QUERY,
+                required = true
+            ),
+            Parameter(
+                name = "date",
+                description = "zoned date time in ISO-8601 format YYYY-MM-ddTHH:mm:ssXXX, example 2024-03-26T00:00:00+03:30",
+                `in` = ParameterIn.QUERY,
+                required = true
+            )
+        ]
+    )
+    @GetMapping("/mentors/search", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun findMentorsByInterviewTypeAndDate(
+        @RequestParam(value = "interviewTypeId", required = true) interviewTypeId: Long,
+        @RequestParam(value = "date", required = true) date: ZonedDateTime
+    ): ResponseEntity<List<MentorWithClosestSchedule>> {
+        val result = accountService.findMentorsWithClosestScheduleBy(date, interviewTypeId)
+        return ResponseEntity.ok(result)
+    }
+
+
 
     @Operation(summary = "Activate Job Seeker Account", description = "Activates a job seeker account")
     @ApiResponse(

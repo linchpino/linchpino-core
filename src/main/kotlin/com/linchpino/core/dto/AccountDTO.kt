@@ -70,6 +70,13 @@ data class MentorWithClosestTimeSlot(
     val to: ZonedDateTime
 )
 
+data class MentorWithClosestSchedule(
+    val mentorId: Long?,
+    val mentorFirstName: String?,
+    val mentorLastName: String?,
+    val scheduleResponse: ScheduleResponse?
+)
+
 data class ActivateJobSeekerAccountRequest(
     @field:NotBlank(message = "external id is required") val externalId: String,
     @field:NotBlank(message = "firstname is required") val firstName: String,

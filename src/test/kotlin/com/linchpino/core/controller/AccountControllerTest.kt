@@ -7,7 +7,7 @@ import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
@@ -15,6 +15,9 @@ import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.toResponse
+import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.PaymentMethodType
@@ -23,6 +26,8 @@ import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -35,8 +40,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {
@@ -78,37 +81,73 @@ class AccountControllerTest {
     @Test
     fun `test search mentors by interviewTypeId and date`() {
         // Given
-        val interviewTypeId = 5L
-        val date = ZonedDateTime.parse("2024-03-29T12:30:45+00:00")
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule1 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+
+        val schedule2 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        }
+        val selectedDay = ZonedDateTime.parse("2024-09-09T10:00:00+03:00")
+        val interviewTypeId = 1L
+
+        val account1 = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            schedule = schedule1
+        }
+
+        val account2 = Account().apply {
+            id = 2
+            firstName = "josh"
+            lastName = "long"
+            schedule = schedule2
+        }
 
         val expectedResponse = listOf(
-            MentorWithClosestTimeSlot(
-                interviewTypeId,
-                "John",
-                "Doe",
-                3,
-                ZonedDateTime.parse("2024-03-29T13:00:00+00:00"),
-                ZonedDateTime.parse("2024-03-29T14:00:00+00:00")
-            )
+            MentorWithClosestSchedule(
+                account1.id,
+                account1.firstName,
+                account1.lastName,
+                account1.schedule?.toResponse()
+            ),
+            MentorWithClosestSchedule(
+                account2.id,
+                account2.firstName,
+                account2.lastName,
+                account2.schedule?.toResponse()
+            ),
         )
         val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
         val dateCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         `when`(
-            accountService.findMentorsWithClosestTimeSlotsBy(
+            accountService.findMentorsWithClosestScheduleBy(
                 dateCaptor.captureNonNullable(),
                 idCaptor.capture()
             )
         ).thenReturn(expectedResponse)
 
         // When
-        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId, date)
+        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId, selectedDay)
 
         // Then
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expectedResponse)
-        assertThat(dateCaptor.value).isEqualTo(date)
+        assertThat(dateCaptor.value).isEqualTo(selectedDay)
         assertThat(idCaptor.value).isEqualTo(interviewTypeId)
-        verify(accountService, times(1)).findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
+        verify(accountService, times(1)).findMentorsWithClosestScheduleBy(selectedDay, interviewTypeId)
     }
 
     @Test

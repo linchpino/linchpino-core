@@ -54,6 +54,24 @@ interface AccountRepository : JpaRepository<Account, Long> {
         status: MentorTimeSlotEnum = MentorTimeSlotEnum.AVAILABLE
     ): List<MentorWithClosestTimeSlot>
 
+    @Query("""
+        select a from Account a
+        join
+            a.roles role
+        join
+            a.interviewTypes it
+        join
+            a.schedule s
+        where
+            role.title = :type
+            and it.id = :interviewTypeId
+            and :from BETWEEN s.startTime and s.endTime
+    """)
+    fun closestMentorSchedule( from: ZonedDateTime,
+                               interviewTypeId: Long,
+                               type: AccountTypeEnum = AccountTypeEnum.MENTOR):List<Account>
+
+
     @Query(
         """
         select a from Account a join a.roles role where a.externalId = :externalId and role.title = :type

@@ -16,6 +16,7 @@ import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.entity.Role
+import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
@@ -29,6 +30,9 @@ import com.linchpino.core.service.EmailService
 import com.linchpino.core.service.LinkedInService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasItems
@@ -52,9 +56,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
-import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -238,104 +239,69 @@ class AccountControllerTestIT {
     }
 
     @Test
-    fun `test search for mentors by date and interviewType returns only one time slot per matched mentor`() {
-        // Given
-        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+    fun `test search for mentors by date and interviewType returns mentors with matched schedule`() {
+        saveFakeMentorsWithSchedule()
         val id = entityManager.createQuery(
             "select id from InterviewType where name = 'System Design'",
             Long::class.java
         ).singleResult
 
-        // Perform GET request and verify response
         mockMvc.perform(
             get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
-                .param("date", "2024-03-26T00:00:00+00:00")
+                .param("date", "2024-09-09T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
-            .andExpect(jsonPath("$.[0].mentorFirstName").value("John"))
-            .andExpect(jsonPath("$.[0].mentorLastName").value("Doe"))
-            .andExpect(jsonPath("$.[0].from").value("2024-03-26T13:00:00Z"))
-            .andExpect(jsonPath("$.[0].to").value("2024-03-26T14:00:00Z"))
-            .andExpect(jsonPath("$.[1].mentorFirstName").value("Jane"))
-            .andExpect(jsonPath("$.[1].mentorLastName").value("Smith"))
-            .andExpect(jsonPath("$.[1].from").value("2024-03-26T09:00:00Z"))
-            .andExpect(jsonPath("$.[1].to").value("2024-03-26T10:00:00Z"))
+            .andExpect(jsonPath("$.[0].mentorFirstName").value("john"))
+            .andExpect(jsonPath("$.[0].mentorLastName").value("doe"))
+            .andExpect(jsonPath("$.[1].mentorFirstName").value("josh"))
+            .andExpect(jsonPath("$.[1].mentorLastName").value("long"))
     }
 
     @Test
-    fun `test search for mentors by date and interviewType returns only one time slot per matched mentor with timezone applied`() {
-        // Given
-        saveFakeMentorsWithInterviewTypeAndTimeSlots()
+    fun `test search for mentors by date and interviewType returns empty list with matched schedule and wrong interviewType`() {
+        saveFakeMentorsWithSchedule()
+        val id = entityManager.createQuery(
+            "select id from InterviewType where name = 'Kotlin Dev'",
+            Long::class.java
+        ).singleResult
+
+        mockMvc.perform(
+            get("/api/accounts/mentors/search")
+                .param("interviewTypeId", id.toString())
+                .param("date", "2024-09-09T00:00:00+00:00")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$").isArray)
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
+    }
+
+    @Test
+    fun `test search for mentors by date and interviewType returns empty list with matched interviewType but selected date is not schedule`() {
+        saveFakeMentorsWithSchedule()
         val id = entityManager.createQuery(
             "select id from InterviewType where name = 'System Design'",
             Long::class.java
         ).singleResult
 
-        // Perform GET request and verify response
         mockMvc.perform(
             get("/api/accounts/mentors/search")
                 .param("interviewTypeId", id.toString())
-                .param("date", "2024-03-27T00:00:00+10:00")
+                .param("date", "2024-09-10T00:00:00+00:00")
                 .contentType(MediaType.APPLICATION_JSON)
         )
             .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isArray)
-            .andExpect(jsonPath("$").value(hasSize<Int>(2)))
-            .andExpect(jsonPath("$.[0].mentorFirstName").value("John"))
-            .andExpect(jsonPath("$.[0].mentorLastName").value("Doe"))
-            .andExpect(jsonPath("$.[0].from").value("2024-03-26T16:00:00Z"))
-            .andExpect(jsonPath("$.[0].to").value("2024-03-26T17:00:00Z"))
-            .andExpect(jsonPath("$.[1].mentorFirstName").value("Jane"))
-            .andExpect(jsonPath("$.[1].mentorLastName").value("Smith"))
-            .andExpect(jsonPath("$.[1].from").value("2024-03-26T20:00:00Z"))
-            .andExpect(jsonPath("$.[1].to").value("2024-03-26T21:00:00Z"))
+            .andExpect(jsonPath("$").value(hasSize<Int>(0)))
     }
 
-    @Test
-    fun `test search for mentors by date and interviewType returns empty list when interviewType matches the provided interviewTypeId`() {
-        // Given
-        saveFakeMentorsWithInterviewTypeAndTimeSlots()
-
-        // Perform GET request and verify response
-        mockMvc.perform(
-            get("/api/accounts/mentors/search")
-                .param("interviewTypeId", (-1).toString())
-                .param("date", "2024-03-26T00:00:00+00:00")
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$").isArray)
-            .andExpect(jsonPath("$").isEmpty)
-    }
-
-    @Test
-    fun `test search for mentors by date and interviewType returns empty list when no mentor is available on the provided date`() {
-        // Given
-        saveFakeMentorsWithInterviewTypeAndTimeSlots()
-        val id = entityManager.createQuery(
-            "select id from InterviewType where name = 'System Design'",
-            Long::class.java
-        ).singleResult
-
-        // Perform GET request and verify response
-        mockMvc.perform(
-            get("/api/accounts/mentors/search")
-                .param("interviewTypeId", id.toString())
-                .param("date", "2024-03-28T00:00:00+00:00")
-                .contentType(MediaType.APPLICATION_JSON)
-        )
-            .andExpect(status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$").isArray)
-            .andExpect(jsonPath("$").isEmpty)
-    }
 
     @Test
     fun `test search for mentors by date and interviewType returns bad request when interviewTypeId not provided`() {
@@ -1009,6 +975,82 @@ class AccountControllerTestIT {
         val jobSeekerRole = entityManager.find(Role::class.java, AccountTypeEnum.JOB_SEEKER.value)
         john.addRole(jobSeekerRole)
         accountRepository.save(john)
+    }
+
+    private fun saveFakeMentorsWithSchedule() {
+        // Given
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule1 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+
+        val schedule2 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        }
+        val schedule3 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.MONTHLY
+            monthDays = mutableListOf(15, 25)
+        }
+
+        val account1 = Account().apply {
+            firstName = "john"
+            lastName = "doe"
+            email = "john.doe@example.com"
+        }
+        val systemDesign = InterviewType().apply {
+            this.name = "System Design"
+        }
+        account1.addInterviewType(systemDesign)
+
+        val account2 = Account().apply {
+            firstName = "josh"
+            lastName = "long"
+            email = "jlong@example.com"
+        }
+        account2.addInterviewType(systemDesign)
+
+        val account3 = Account().apply {
+            firstName = "jane"
+            lastName = "smith"
+            email = "jane.smith@example.com"
+        }
+        account3.addInterviewType(InterviewType().apply {
+            name = "Kotlin Dev"
+        })
+        val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
+        account1.addRole(mentorRole)
+        account2.addRole(mentorRole)
+        account3.addRole(mentorRole)
+
+        accountRepository.save(account1).also {
+            schedule1.account = it
+            entityManager.persist(schedule1)
+            it.schedule = schedule1
+        }
+        accountRepository.save(account2).also {
+            schedule2.account = it
+            entityManager.persist(schedule2)
+            it.schedule = schedule2
+        }
+        accountRepository.save(account3).also {
+            schedule3.account = it
+            entityManager.persist(schedule3)
+            it.schedule = schedule3
+        }
     }
 
     private fun saveFakeMentorsWithInterviewTypeAndTimeSlots() {
