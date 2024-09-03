@@ -97,7 +97,8 @@ class Schedule {
         startTarget: ZonedDateTime,
         endTarget: ZonedDateTime
     ): ValidWindow? {
-        val daysBetween = ChronoUnit.DAYS.between(startTime, startTarget)
+        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
+        val daysBetween = ChronoUnit.DAYS.between(beginningOfStartTimeDay, startTarget)
         val isValidDay = daysBetween % interval == 0L
         if (!isValidDay) return null
         val validStartTime = startTime?.plusDays(daysBetween)
@@ -131,8 +132,8 @@ class Schedule {
         if (!weekDays.contains(startTarget.dayOfWeek) || !weekDays.contains(endTarget.dayOfWeek))
             return null
 
-        val firstDayOfFirstWeek = this.startTime?.with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
-        val firstDayOfSelectedWeek = startTarget.with(TemporalAdjusters.previous(DayOfWeek.MONDAY))
+        val firstDayOfFirstWeek = this.startTime?.with(LocalTime.MIN)?.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val firstDayOfSelectedWeek = startTarget.with(LocalTime.MIN).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
         val weeksBetween = ChronoUnit.WEEKS.between(firstDayOfFirstWeek, firstDayOfSelectedWeek)
         val isValidWeek = weeksBetween % interval == 0L
