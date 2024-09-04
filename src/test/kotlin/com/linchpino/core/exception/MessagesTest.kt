@@ -1,10 +1,10 @@
 package com.linchpino.core.exception
 
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.context.MessageSource
 import org.springframework.context.support.ReloadableResourceBundleMessageSource
-import java.util.Locale
 
 class MessagesTest {
 

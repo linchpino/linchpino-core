@@ -14,7 +14,6 @@ import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toRegisterMentorResult
-import com.linchpino.core.dto.toResponse
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
@@ -72,8 +71,9 @@ class AccountService(
     fun findMentorsWithClosestScheduleBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestSchedule> {
         val selectedTime = date.withZoneSameInstant(ZoneOffset.UTC)
         val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
-            .filter { it.schedule?.doesMatchesSelectedDay(selectedTime) ?: false }
-            .map { MentorWithClosestSchedule(it.id, it.firstName, it.lastName, it.schedule?.toResponse()) }
+            .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
+            .filter { it.second != null }
+            .map { MentorWithClosestSchedule(it.first.id, it.first.firstName, it.first.lastName, it.second) }
         return mentors
     }
 

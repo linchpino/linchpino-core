@@ -15,7 +15,7 @@ import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
-import com.linchpino.core.dto.toResponse
+import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
@@ -121,13 +121,13 @@ class AccountControllerTest {
                 account1.id,
                 account1.firstName,
                 account1.lastName,
-                account1.schedule?.toResponse()
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
             ),
             MentorWithClosestSchedule(
                 account2.id,
                 account2.firstName,
                 account2.lastName,
-                account2.schedule?.toResponse()
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
             ),
         )
         val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)

@@ -1,6 +1,7 @@
 package com.linchpino.core.security
 
 import com.linchpino.core.enums.AccountTypeEnum
+import java.time.Instant
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContext
@@ -12,7 +13,6 @@ import org.springframework.security.oauth2.server.resource.introspection.OAuth2I
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithSecurityContext
 import org.springframework.security.test.context.support.WithSecurityContextFactory
-import java.time.Instant
 
 @Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

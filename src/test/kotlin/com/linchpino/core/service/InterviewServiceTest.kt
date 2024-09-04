@@ -27,6 +27,9 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -45,9 +48,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import java.time.DayOfWeek
-import java.time.Instant
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewServiceTest {

@@ -73,29 +73,18 @@ class Schedule {
         }
     }
 
-    fun doesMatchesSelectedDay(selectedDay: ZonedDateTime): Boolean {
+    fun doesMatchesSelectedDay(selectedDay: ZonedDateTime): ValidWindow? {
         return when (recurrenceType) {
-            RecurrenceType.DAILY -> matchesDailySchedule(selectedDay)
-            RecurrenceType.WEEKLY -> matchesWeeklySchedule(selectedDay)
-            RecurrenceType.MONTHLY -> matchesMonthlySchedule(selectedDay)
-            else -> false
+            RecurrenceType.DAILY -> timeSlotDaily(selectedDay)
+            RecurrenceType.WEEKLY -> timeSlotWeekly(selectedDay)
+            RecurrenceType.MONTHLY -> timeSlotMonthly(selectedDay)
+            else -> null
         }
-    }
-
-    private fun matchesDailySchedule(
-        selectedTime: ZonedDateTime,
-    ): Boolean {
-        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
-        val daysBetween = ChronoUnit.DAYS.between(beginningOfStartTimeDay, selectedTime)
-        val isValidDay = daysBetween % interval == 0L
-        if (!isValidDay) return false
-        val validStartTime = startTime?.plusDays(daysBetween)
-        return validStartTime?.isAfter(selectedTime) ?: false
     }
 
     private fun timeSlotDaily(
         startTarget: ZonedDateTime,
-        endTarget: ZonedDateTime
+        endTarget: ZonedDateTime? = null
     ): ValidWindow? {
         val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
         val daysBetween = ChronoUnit.DAYS.between(beginningOfStartTimeDay, startTarget)
@@ -104,70 +93,62 @@ class Schedule {
         val validStartTime = startTime?.plusDays(daysBetween)
         val validEndTime = validStartTime?.plusMinutes(duration.toLong())
 
-        return validWindow(validStartTime, validEndTime, startTarget, endTarget)
-    }
+        return when {
+            endTarget != null -> {
+                validWindow(validStartTime, validEndTime, startTarget, endTarget)
+            }
+            validStartTime != null && validStartTime.isAfter(startTarget) -> {
+                ValidWindow(validStartTime, validEndTime!!)
+            }
+            else -> null
+        }
 
-    private fun matchesWeeklySchedule(
-        selectedTime: ZonedDateTime,
-    ): Boolean {
-        if (!weekDays.contains(selectedTime.dayOfWeek))
-            return false
-
-        val firstDayOfFirstWeek = this.startTime?.with(LocalTime.MIN)?.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        val firstDayOfSelectedWeek = selectedTime.with(LocalTime.MIN).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-
-        val weeksBetween = ChronoUnit.WEEKS.between(firstDayOfFirstWeek, firstDayOfSelectedWeek)
-        val isValidWeek = weeksBetween % interval == 0L
-        if (!isValidWeek) return false
-
-        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
-        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(beginningOfStartTimeDay, selectedTime))
-        return validStartTime?.isAfter(selectedTime) ?: false
     }
 
     private fun timeSlotWeekly(
         startTarget: ZonedDateTime,
-        endTarget: ZonedDateTime
+        endTarget: ZonedDateTime? = null
     ): ValidWindow? {
-        if (!weekDays.contains(startTarget.dayOfWeek) || !weekDays.contains(endTarget.dayOfWeek))
+        if (!weekDays.contains(startTarget.dayOfWeek))
             return null
-
-        val firstDayOfFirstWeek = this.startTime?.with(LocalTime.MIN)?.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        val firstDayOfSelectedWeek = startTarget.with(LocalTime.MIN).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        if (endTarget != null && !weekDays.contains(endTarget.dayOfWeek))
+            return null
+        val firstDayOfFirstWeek =
+            this.startTime?.with(LocalTime.MIN)?.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val firstDayOfSelectedWeek =
+            startTarget.with(LocalTime.MIN).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
         val weeksBetween = ChronoUnit.WEEKS.between(firstDayOfFirstWeek, firstDayOfSelectedWeek)
         val isValidWeek = weeksBetween % interval == 0L
         if (!isValidWeek) return null
 
-        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(this.startTime, startTarget))
+        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
+        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(beginningOfStartTimeDay, startTarget))
         val validEndTime = validStartTime?.plusMinutes(duration.toLong())
 
-        return validWindow(validStartTime, validEndTime, startTarget, endTarget)
-    }
-
-    private fun matchesMonthlySchedule(
-        selectedTime: ZonedDateTime,
-    ): Boolean {
-        if (!monthDays.contains(selectedTime.dayOfMonth))
-            return false
-        val firstDayOfFirstMonth = this.startTime?.withDayOfMonth(1)
-        val firstDayOfSelectedMonth = selectedTime.withDayOfMonth(1)
-
-        val monthsBetween = ChronoUnit.MONTHS.between(firstDayOfFirstMonth, firstDayOfSelectedMonth)
-        val isValidMonth = monthsBetween % interval == 0L
-        if (!isValidMonth)
-            return false
-        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
-        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(beginningOfStartTimeDay, selectedTime))
-        return validStartTime?.isAfter(selectedTime) ?: false
+        return when {
+            endTarget != null -> {
+                validWindow(validStartTime, validEndTime, startTarget, endTarget)
+            }
+            validStartTime != null && validStartTime.isAfter(startTarget) -> {
+                ValidWindow(validStartTime, validEndTime!!)
+            }
+            else -> {
+                null
+            }
+        }
     }
 
     private fun timeSlotMonthly(
         startTarget: ZonedDateTime,
-        endTarget: ZonedDateTime
+        endTarget: ZonedDateTime? = null
     ): ValidWindow? {
-        if (!monthDays.contains(endTarget.dayOfMonth) || !monthDays.contains(startTarget.dayOfMonth))
+        if (!monthDays.contains(startTarget.dayOfMonth))
             return null
+        if (endTarget != null && !monthDays.contains(endTarget.dayOfMonth)) {
+            return null
+        }
+
         val firstDayOfFirstMonth = this.startTime?.withDayOfMonth(1)
         val firstDayOfSelectedMonth = startTarget.withDayOfMonth(1)
 
@@ -176,10 +157,21 @@ class Schedule {
         if (!isValidMonth)
             return null
 
-        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(this.startTime, startTarget))
+        val beginningOfStartTimeDay = this.startTime?.with(LocalTime.MIN)
+        val validStartTime = this.startTime?.plusDays(ChronoUnit.DAYS.between(beginningOfStartTimeDay, startTarget))
         val validEndTime = validStartTime?.plusMinutes(duration.toLong())
 
-        return validWindow(validStartTime, validEndTime, startTarget, endTarget)
+        return when {
+            endTarget != null -> {
+                validWindow(validStartTime, validEndTime, startTarget, endTarget)
+            }
+            validStartTime != null && validStartTime.isAfter(startTarget) -> {
+                ValidWindow(validStartTime, validEndTime!!)
+            }
+            else -> {
+                null
+            }
+        }
     }
 
     private fun validWindow(

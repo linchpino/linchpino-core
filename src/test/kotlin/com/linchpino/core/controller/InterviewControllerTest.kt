@@ -8,6 +8,8 @@ import com.linchpino.core.dto.InterviewValidityResponse
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.FeedbackService
 import com.linchpino.core.service.InterviewService
+import java.time.Instant
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -22,8 +24,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import java.time.Instant
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewControllerTest {

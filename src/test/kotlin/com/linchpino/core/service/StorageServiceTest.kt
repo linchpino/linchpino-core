@@ -7,6 +7,7 @@ import com.google.cloud.storage.Storage
 import com.linchpino.core.entity.Account
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
+import java.io.InputStream
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,7 +23,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
-import java.io.InputStream
 
 @ExtendWith(MockitoExtension::class)
 class StorageServiceTest {

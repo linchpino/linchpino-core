@@ -15,6 +15,8 @@ import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -28,8 +30,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.dao.DataIntegrityViolationException
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class ScheduleServiceTest {

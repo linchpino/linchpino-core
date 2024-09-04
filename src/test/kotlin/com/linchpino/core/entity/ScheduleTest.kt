@@ -1,5 +1,6 @@
 package com.linchpino.core.entity
 
+import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.enums.RecurrenceType
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
@@ -298,7 +299,12 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-01T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-01T12:30:00+03:00").plusMinutes(60)
+            )
+        )
     }
 
     @Test
@@ -319,7 +325,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
 
     @Test
@@ -340,7 +346,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
 
 
@@ -363,7 +369,12 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+            )
+        )
     }
 
 
@@ -386,7 +397,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
 
     @Test
@@ -408,7 +419,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
 
 
@@ -431,7 +442,12 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isTrue()
+        assertThat(result).isEqualTo(
+            ValidWindow(
+                ZonedDateTime.parse("2024-11-25T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-11-25T12:30:00+03:00").plusMinutes(60)
+            )
+        )
     }
 
     @Test
@@ -453,7 +469,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
 
     @Test
@@ -475,8 +491,7 @@ class ScheduleTest {
         val result = schedule.doesMatchesSelectedDay(selectedDay)
 
         // Then
-        assertThat(result).isFalse()
+        assertThat(result).isNull()
     }
-
 
 }
