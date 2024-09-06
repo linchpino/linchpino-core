@@ -1,14 +1,10 @@
 package com.linchpino.core.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
-import com.linchpino.core.dto.JobPositionCreateRequest
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
-import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.security.WithMockJwt
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,11 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional

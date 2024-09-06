@@ -11,10 +11,10 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
-import java.time.ZonedDateTime
 import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.format.annotation.DateTimeFormat
+import java.time.ZonedDateTime
 
 @Table(name = "INTERVIEW_LOG")
 @Entity

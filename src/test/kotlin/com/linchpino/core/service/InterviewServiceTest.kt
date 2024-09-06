@@ -12,45 +12,46 @@ import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Role
+import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.enums.RecurrenceType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
-import com.linchpino.core.security.WithMockJwtSecurityContextFactory
 import com.linchpino.core.security.email
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import java.time.Instant
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewServiceTest {
+
     @InjectMocks
     private lateinit var service: InterviewService
 
@@ -67,19 +68,19 @@ class InterviewServiceTest {
     private lateinit var interviewTypeRepository: InterviewTypeRepository
 
     @Mock
-    private lateinit var mentorTimeSlotRepository: MentorTimeSlotRepository
-
-    @Mock
     private lateinit var accountService: AccountService
-
-    @Mock
-    private lateinit var timeSlotService: TimeSlotService
 
     @Mock
     private lateinit var emailService: EmailService
 
     @Mock
     private lateinit var calendarService: CalendarService
+
+    @Mock
+    private lateinit var scheduleService: ScheduleService
+
+    private val startTime = ZonedDateTime.now()
+    private val endTime = startTime.plusMinutes(45)
 
     @Mock
     private lateinit var interviewLogService: InterviewLogService
@@ -96,7 +97,7 @@ class InterviewServiceTest {
         val jobSeekerRole = Role().apply { title = AccountTypeEnum.JOB_SEEKER }
         jobSeekerAccount.addRole(jobSeekerRole)
 
-        val mentorAcc = Account().apply {
+        val mentorAccount = Account().apply {
             id = 2
             firstName = "Mentor"
             lastName = "Mentoriii"
@@ -104,15 +105,27 @@ class InterviewServiceTest {
             password = "password_Mentoriii"
         }
         val mentorRole = Role().apply { title = AccountTypeEnum.MENTOR }
-        mentorAcc.addRole(mentorRole)
+        mentorAccount.addRole(mentorRole)
 
         val mentorTimeSlot = MentorTimeSlot().apply {
             id = 1
-            account = mentorAcc
-            fromTime = ZonedDateTime.now()
-            toTime = ZonedDateTime.now()
+            account = mentorAccount
+            fromTime = ZonedDateTime.parse("2018-12-25T12:30:00.000+01:00")
+            toTime = ZonedDateTime.parse("2018-12-25T12:30:00.000+01:00")
             status = MentorTimeSlotEnum.AVAILABLE
         }
+
+        val schedule = Schedule().apply {
+            id = 1
+            startTime = ZonedDateTime.parse("2018-12-25T12:30:00.000+01:00")
+            endTime = ZonedDateTime.parse("2018-12-25T12:30:00.000+01:00")
+            recurrenceType = RecurrenceType.WEEKLY
+            interval = 1
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+            account = mentorAccount
+        }
+
+        mentorAccount.schedule = schedule
 
         val position = JobPosition().apply {
             id = 1
@@ -124,20 +137,18 @@ class InterviewServiceTest {
             name = "Test Interview Type"
         }
         jobSeekerAccount.addInterviewType(typeInterview)
-        mentorAcc.addInterviewType(typeInterview)
+        mentorAccount.addInterviewType(typeInterview)
         position.addInterviewType(typeInterview)
 
+
         val createInterviewRequest = CreateInterviewRequest(
-            1, 1, 1, 2, "john.doe@example.com"
+            1, 1, startTime, endTime, 2, "john.doe@example.com"
         )
         val createInterviewResult = CreateInterviewResult(
             null, 1, 1, 1, 2, "john.doe@example.com"
         )
 
-        val captor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
-        val timeSlotCaptor: ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
-        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
-            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
+        val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
         val attendeeCaptor: ArgumentCaptor<List<String>> =
             ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<String>>
@@ -145,14 +156,14 @@ class InterviewServiceTest {
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
 
-        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
-        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
+        val logTypeCaptor: ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
 
         `when`(accountRepository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(jobSeekerAccount)
-        `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAcc)
+        `when`(accountRepository.getReferenceById(2)).thenReturn(mentorAccount)
         `when`(jobPositionRepository.getReferenceById(1)).thenReturn(position)
         `when`(interviewTypeRepository.getReferenceById(1)).thenReturn(typeInterview)
-        `when`(mentorTimeSlotRepository.getReferenceById(1)).thenReturn(mentorTimeSlot)
+        `when`(scheduleService.availableTimeSlot(mentorAccount, createInterviewRequest)).thenReturn(mentorTimeSlot)
         `when`(
             calendarService.googleMeetCode(
                 attendeeCaptor.captureNonNullable(),
@@ -163,32 +174,28 @@ class InterviewServiceTest {
 
         val result = service.createInterview(createInterviewRequest)
 
-        verify(interviewRepository, times(1)).save(captor.capture())
-        verify(timeSlotService, times(1)).updateTimeSlotStatus(
-            timeSlotCaptor.captureNonNullable(),
-            timeSlotStatusCaptor.captureNonNullable()
-        )
-        verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(captor.value)
-        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
+        verify(interviewRepository, times(1)).save(interviewCaptor.capture())
+
+        verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.value)
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(), idCaptor.captureNonNullable())
 
         assertEquals(createInterviewResult, result)
-        val savedInterview = captor.value
+        val savedInterview = interviewCaptor.value
         assertEquals("john.doe@example.com", savedInterview.jobSeekerAccount?.email)
         assertEquals("Mentor.Mentoriii@example.com", savedInterview.mentorAccount?.email)
         assertEquals(AccountStatusEnum.ACTIVATED, savedInterview.jobSeekerAccount?.status)
 
-        assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
-        assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
         assertThat(savedInterview.meetCode).isEqualTo("fake-meet-code")
 
         val attendees = attendeeCaptor.value
-        assertThat(attendees).isEqualTo(listOf(mentorAcc.email, jobSeekerAccount.email))
+        assertThat(attendees).isEqualTo(listOf(mentorAccount.email, jobSeekerAccount.email))
 
         val meetTitle = titleCaptor.value
-        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAccount.firstName}")
+        assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAccount.firstName} and ${jobSeekerAccount.firstName}")
 
         val times = timeCaptor.value
-        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
+        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime, mentorTimeSlot.toTime))
+        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime, mentorTimeSlot.toTime))
 
         val id = idCaptor.value
         val logType = logTypeCaptor.value
@@ -234,27 +241,22 @@ class InterviewServiceTest {
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
         val createAccountRequestCaptor: ArgumentCaptor<CreateAccountRequest> =
             ArgumentCaptor.forClass(CreateAccountRequest::class.java)
-        val timeSlotCaptor: ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
-        val timeSlotStatusCaptor: ArgumentCaptor<MentorTimeSlotEnum> =
-            ArgumentCaptor.forClass(MentorTimeSlotEnum::class.java)
 
         val attendeeCaptor: ArgumentCaptor<List<String>> =
             ArgumentCaptor.forClass(List::class.java) as ArgumentCaptor<List<String>>
         val titleCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
         val timeCaptor: ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>> =
             ArgumentCaptor.forClass(Pair::class.java) as ArgumentCaptor<Pair<ZonedDateTime, ZonedDateTime>>
-        val logTypeCaptor:ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
-        val idCaptor:ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
-
-
+        val logTypeCaptor: ArgumentCaptor<InterviewLogType> = ArgumentCaptor.forClass(InterviewLogType::class.java)
+        val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
             typeInterview.id!!,
-            mentorTimeSlot.id!!,
+            startTime,
+            endTime,
             mentorAccount.id!!,
             jobSeekerAccount.email
         )
-
         `when`(accountRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(null)
         `when`(accountRepository.getReferenceById(jobSeekerAccount.id!!)).thenReturn(jobSeekerAccount)
         `when`(accountRepository.getReferenceById(createInterviewRequest.mentorAccountId)).thenReturn(mentorAccount)
@@ -262,7 +264,8 @@ class InterviewServiceTest {
         `when`(interviewTypeRepository.getReferenceById(createInterviewRequest.interviewTypeId)).thenReturn(
             typeInterview
         )
-        `when`(mentorTimeSlotRepository.getReferenceById(createInterviewRequest.timeSlotId)).thenReturn(mentorTimeSlot)
+        `when`(scheduleService.availableTimeSlot(mentorAccount, createInterviewRequest)).thenReturn(mentorTimeSlot)
+
         `when`(
             accountService.createAccount(
                 createAccountRequestCaptor.captureNonNullable()
@@ -284,12 +287,8 @@ class InterviewServiceTest {
         service.createInterview(createInterviewRequest)
 
         verify(interviewRepository, times(1)).save(interviewCaptor.capture())
-        verify(timeSlotService, times(1)).updateTimeSlotStatus(
-            timeSlotCaptor.captureNonNullable(),
-            timeSlotStatusCaptor.captureNonNullable()
-        )
         verify(emailService, times(1)).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.value)
-        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(),idCaptor.captureNonNullable())
+        verify(interviewLogService, times(1)).save(logTypeCaptor.captureNonNullable(), idCaptor.captureNonNullable())
 
         val newAccount = createAccountRequestCaptor.value
         assertThat(newAccount.email).isEqualTo("test@example.com")
@@ -303,8 +302,6 @@ class InterviewServiceTest {
         assertThat(interview.jobPosition).isEqualTo(position)
         assertThat(interview.meetCode).isEqualTo("fake-meet-code")
 
-        assertThat(timeSlotStatusCaptor.value).isEqualTo(MentorTimeSlotEnum.ALLOCATED)
-        assertThat(timeSlotCaptor.value).isEqualTo(mentorTimeSlot)
 
         val attendees = attendeeCaptor.value
         assertThat(attendees).isEqualTo(listOf(mentorAccount.email, jobSeekerAccount.email))
@@ -313,8 +310,7 @@ class InterviewServiceTest {
         assertThat(meetTitle).isEqualTo("${typeInterview.name} with ${mentorAccount.firstName} and jobseeker")
 
         val times = timeCaptor.value
-        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime,mentorTimeSlot.toTime))
-
+        assertThat(times).isEqualTo(Pair(mentorTimeSlot.fromTime, mentorTimeSlot.toTime))
         val id = idCaptor.value
         val logType = logTypeCaptor.value
 
@@ -376,13 +372,6 @@ class InterviewServiceTest {
             password = "password_Mentoriii"
         }
 
-        val mentorTimeSlot = MentorTimeSlot().apply {
-            id = 1
-            account = mentorAcc
-            fromTime = ZonedDateTime.now()
-            toTime = ZonedDateTime.now()
-            status = MentorTimeSlotEnum.ALLOCATED
-        }
 
         val position = JobPosition().apply {
             id = 1
@@ -397,7 +386,8 @@ class InterviewServiceTest {
         val createInterviewRequest = CreateInterviewRequest(
             position.id!!,
             typeInterview.id!!,
-            mentorTimeSlot.id!!,
+            startTime,
+            endTime,
             mentorAcc.id!!,
             "john.doe@example.com"
         )
@@ -408,13 +398,17 @@ class InterviewServiceTest {
         `when`(interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)).thenReturn(
             typeInterview
         )
-        `when`(mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)).thenReturn(mentorTimeSlot)
+        `when`(scheduleService.availableTimeSlot(mentorAcc, createInterviewRequest)).thenThrow(
+            LinchpinException(
+                ErrorCode.TIMESLOT_IS_BOOKED,
+                ""
+            )
+        )
 
 
         val exception = Assertions.assertThrows(LinchpinException::class.java) {
             service.createInterview(createInterviewRequest)
         }
-
         assertThat(exception.errorCode).isEqualTo(ErrorCode.TIMESLOT_IS_BOOKED)
     }
 
@@ -506,7 +500,7 @@ class InterviewServiceTest {
         assertThat(response.verifyStatus).isEqualTo(true)
         assertThat(response.link).isEqualTo("https://meet.google.com/$meetCode")
 
-        verify(interviewLogService, times(1)).save(InterviewLogType.JOINED,account.id)
+        verify(interviewLogService, times(1)).save(InterviewLogType.JOINED, account.id)
     }
 
     @Test
@@ -577,7 +571,7 @@ class InterviewServiceTest {
     }
 
     @Test
-    fun `test past interviews for job seeker`(){
+    fun `test past interviews for job seeker`() {
         // Given
         val expected = PageImpl(
             mutableListOf(
@@ -614,13 +608,18 @@ class InterviewServiceTest {
     }
 
     @Test
-    fun `test reminder`(){
-        val fromCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
-        val toCaptor:ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+    fun `test reminder`() {
+        val fromCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
+        val toCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
 
         val from = ZonedDateTime.now()
         val to = from.plusMinutes(30)
-        `when`(interviewRepository.findInterviewsWithin(fromCaptor.captureNonNullable(), toCaptor.captureNonNullable())).thenReturn(
+        `when`(
+            interviewRepository.findInterviewsWithin(
+                fromCaptor.captureNonNullable(),
+                toCaptor.captureNonNullable()
+            )
+        ).thenReturn(
             listOf(Interview().apply {
                 mentorAccount = Account().apply {
                     firstName = "john"

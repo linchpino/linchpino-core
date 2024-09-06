@@ -10,6 +10,7 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.FeedbackRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.findReferenceById
+import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -26,7 +27,6 @@ import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import java.time.Instant
 
 @ExtendWith(MockitoExtension::class)
 class FeedbackServiceTest {

@@ -4,6 +4,11 @@ import com.linchpino.core.enums.AccountTypeEnum
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
+import java.security.KeyPairGenerator
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.TemporalUnitWithinOffset
 import org.junit.jupiter.api.Test
@@ -11,11 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
-import java.security.KeyPairGenerator
-import java.security.interfaces.RSAPrivateKey
-import java.security.interfaces.RSAPublicKey
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 
 class JWTServiceTest {

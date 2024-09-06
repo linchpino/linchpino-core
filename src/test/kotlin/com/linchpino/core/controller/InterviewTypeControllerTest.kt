@@ -1,7 +1,6 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
-import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.service.InterviewTypeService
 import org.assertj.core.api.Assertions.assertThat

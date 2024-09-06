@@ -2,10 +2,10 @@ package com.linchpino.core.dto
 
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
 
 class TimeSlotTest{
 
