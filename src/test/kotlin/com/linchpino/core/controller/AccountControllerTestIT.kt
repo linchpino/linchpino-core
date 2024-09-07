@@ -810,6 +810,10 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.firstName").value("John"))
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$.avatar").value("avatar image id"))
+            .andExpect(jsonPath("$.detailsOfExpertise").value("test expertise"))
+            .andExpect(jsonPath("$.linkedInUrl").value("https://linkedin.com/john"))
+            .andExpect(jsonPath("$.iban").value("GB82WEST12345698765432"))
     }
 
     @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
@@ -952,6 +956,10 @@ class AccountControllerTestIT {
             email = "johndoe@gmail.com"
             password = "secret"
             status = AccountStatusEnum.ACTIVATED
+            detailsOfExpertise = "test expertise"
+            linkedInUrl = "https://linkedin.com/john"
+            iban = "GB82WEST12345698765432"
+            avatar = "avatar image id"
         }
 
         val jane = Account().apply {
