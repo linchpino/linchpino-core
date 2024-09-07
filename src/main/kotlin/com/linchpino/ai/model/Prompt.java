@@ -1,4 +1,4 @@
-package com.linchpino.ai.service.model;
+package com.linchpino.ai.model;
 
 public class Prompt {
 
@@ -45,8 +45,8 @@ public class Prompt {
     public String toString() {
         return Prompt.ROADMAP_PROMPT
             .replace("_targetLevel_", requestDetail.getTargetLevel())
-            .replace("_summary_", requestDetail.getResumePDF().getSummary())
-            .replace("_experience_", requestDetail.getResumePDF().getExperience());
+            .replace("_summary_", requestDetail.getResume().getSummary())
+            .replace("_experience_", requestDetail.getResume().getExperience());
     }
 
 }
