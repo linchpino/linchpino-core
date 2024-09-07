@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PromptTest {
+class PromptTest extends ResumeMockData {
 
     @Test
     void getDefaultRoadmapPrompt() {
@@ -37,6 +37,6 @@ class PromptTest {
             }
             Provide me response in json without any other information.
             """;
-        assertEquals(defaultRoadmapPrompt, Prompt.of(new RequestDetail("Senior Data Scientist", new Resume(null, null))).toString());
+        assertEquals(defaultRoadmapPrompt, Prompt.of(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
     }
 }

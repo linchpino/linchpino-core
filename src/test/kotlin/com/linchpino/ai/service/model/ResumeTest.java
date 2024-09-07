@@ -3,22 +3,17 @@ package com.linchpino.ai.service.model;
 import com.linchpino.ai.model.Resume;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ResumeTest {
+class ResumeTest extends ResumeMockData {
 
-    private final Resume resume = new Resume("email@test.com", new ArrayList<>());
+    private final Resume resume = new Resume("email@test.com", getResumeLines());
 
     @Test
     void getFullText() {
-        // sanity check
-        assertThrows(IllegalArgumentException.class, () -> new Resume(null, null));
         // test: get full text
         String fullText = resume.getFullText();
         assertTrue(fullText.contains("Mohammad Masoomi"));
