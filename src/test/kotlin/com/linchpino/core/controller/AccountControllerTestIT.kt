@@ -802,6 +802,24 @@ class AccountControllerTestIT {
         // Given
         saveAccountsWithRole()
 
+
+        val request = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:00+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:00+03:00"),
+            listOf(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+
+
         // When & Then
         mockMvc.perform(
             get("/api/accounts/profile")

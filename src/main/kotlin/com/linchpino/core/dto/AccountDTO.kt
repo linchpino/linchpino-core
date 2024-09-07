@@ -98,6 +98,7 @@ data class AccountSummary(
     val detailsOfExpertise: String? = null,
     val linkedInUrl: String? = null,
     val iban: String? = null,
+    val schedule: ScheduleResponse? = null
 )
 
 fun Account.toSummary() = AccountSummary(
@@ -111,7 +112,8 @@ fun Account.toSummary() = AccountSummary(
     avatar,
     detailsOfExpertise,
     linkedInUrl,
-    iban
+    iban,
+    schedule?.toResponse()
 )
 
 data class RegisterMentorRequest(
