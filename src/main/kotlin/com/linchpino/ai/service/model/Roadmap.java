@@ -1,4 +1,4 @@
-package com.linchpino.ai.service.domain;
+package com.linchpino.ai.service.model;
 
 import java.util.List;
 
