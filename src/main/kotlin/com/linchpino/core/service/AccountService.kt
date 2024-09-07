@@ -5,6 +5,7 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
@@ -65,6 +66,16 @@ class AccountService(
         val from = date.withZoneSameInstant(ZoneOffset.UTC)
         val to = from.plusHours(24)
         return repository.closestMentorTimeSlots(from, to, interviewTypeId)
+    }
+
+
+    fun findMentorsWithClosestScheduleBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestSchedule> {
+        val selectedTime = date.withZoneSameInstant(ZoneOffset.UTC)
+        val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
+            .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
+            .filter { it.second != null }
+            .map { MentorWithClosestSchedule(it.first.id, it.first.firstName, it.first.lastName, it.second) }
+        return mentors
     }
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {

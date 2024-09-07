@@ -11,21 +11,19 @@ import com.linchpino.core.entity.Interview
 import com.linchpino.core.entity.interviewPartiesFullName
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
-import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.enums.InterviewLogType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
-import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.Serializable
@@ -39,12 +37,13 @@ class InterviewService(
     private val accountRepository: AccountRepository,
     private val jobPositionRepository: JobPositionRepository,
     private val interviewTypeRepository: InterviewTypeRepository,
-    private val mentorTimeSlotRepository: MentorTimeSlotRepository,
     private val accountService: AccountService,
-    private val timeSlotService: TimeSlotService,
     private val emailService: EmailService,
-    private val calendarService: CalendarService
+    private val calendarService: CalendarService,
+    private val scheduleService: ScheduleService,
+    private val interviewLogService: InterviewLogService
 ) {
+
 
     fun createInterview(request: CreateInterviewRequest): CreateInterviewResult {
         val jobSeekerAccount = accountRepository.findByEmailIgnoreCase(request.jobSeekerEmail)
@@ -63,11 +62,8 @@ class InterviewService(
 
         val interview = populateInterviewObject(request, jobSeekerAccount)
         interviewRepository.save(interview)
-        interview.timeSlot?.let {
-            timeSlotService.updateTimeSlotStatus(it, MentorTimeSlotEnum.ALLOCATED)
-        }
         emailService.sendingInterviewInvitationEmailToJobSeeker(interview)
-
+        interviewLogService.save(InterviewLogType.CREATED,jobSeekerAccount.id)
         return interview.toCreateInterviewResult()
     }
 
@@ -78,17 +74,13 @@ class InterviewService(
         val position = jobPositionRepository.findReferenceById(createInterviewRequest.jobPositionId)
         val mentorAcc = accountRepository.findReferenceById(createInterviewRequest.mentorAccountId)
         val typeInterview = interviewTypeRepository.findReferenceById(createInterviewRequest.interviewTypeId)
-        val mentorTimeSlot = mentorTimeSlotRepository.findReferenceById(createInterviewRequest.timeSlotId)
+        val mentorTimeSlot = scheduleService.availableTimeSlot(mentorAcc, createInterviewRequest)
+
         val googleMeetCode = calendarService.googleMeetCode(
             listOf(mentorAcc.email, jobSeekerAcc.email),
             "${typeInterview.name} with ${mentorAcc.firstName} and ${jobSeekerAcc.firstName ?: "jobseeker"}",
             Pair(mentorTimeSlot.fromTime, mentorTimeSlot.toTime)
         )
-        if (mentorTimeSlot.status == MentorTimeSlotEnum.ALLOCATED)
-            throw LinchpinException(
-                ErrorCode.TIMESLOT_IS_BOOKED,
-                "this time slot is already booked : ${createInterviewRequest.timeSlotId}"
-            )
 
         return Interview().apply {
             jobPosition = position
@@ -110,11 +102,9 @@ class InterviewService(
         return interviewRepository.findPastInterviews(authentication.email(), page)
     }
 
-    @Transactional(readOnly = true)
-    fun checkValidity(id: Long): InterviewValidityResponse {
+    fun checkValidity(id: Long, authentication: Authentication): InterviewValidityResponse {
         val start = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC)
         val end = start.plusMinutes(5)
-        val authentication = SecurityContextHolder.getContextHolderStrategy().context.authentication
         val email = authentication.email()
         val interview = interviewRepository.findByInterviewIdAndAccountEmail(id, email) ?: throw LinchpinException(
             ErrorCode.ENTITY_NOT_FOUND,
@@ -126,6 +116,9 @@ class InterviewService(
             if (it?.fromTime?.isBefore(start) == true || it?.fromTime?.isAfter(end) == true) {
                 InterviewValidityResponse(it.fromTime, it.toTime, false, "")
             } else {
+                accountRepository.findByEmailIgnoreCase(email)?.id?.let {
+                    id -> interviewLogService.save(InterviewLogType.JOINED,id)
+                }
                 InterviewValidityResponse(
                     it?.fromTime, it?.toTime, true, "https://meet.google.com/${interview.meetCode}"
                 )

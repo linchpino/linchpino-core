@@ -1,0 +1,45 @@
+package com.linchpino.ai.service.model;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.junit.jupiter.api.Assertions.*;
+
+class ResumePDFTest {
+
+    private final ResumePDF resumePDF = new ResumePDF(readResumeFile());
+
+    @Test
+    void getFullText() {
+        // sanity check
+        assertThrows(IllegalArgumentException.class, () -> new ResumePDF(null));
+        // test: get full text
+        String fullText = resumePDF.getFullText();
+        assertTrue(fullText.contains("Mohammad Masoomi"));
+        assertFalse(fullText.contains("Senior Data Scientist"));
+    }
+
+    @Test
+    void getSummary() {
+        // test: get summary
+        String summary = resumePDF.getSummary();
+        assertThat(summary, containsStringIgnoringCase("I am a java developer. Besides, I am an easy-going person and have a sense of humor."));
+        assertFalse(summary.contains("Mohammad Masoomi"));
+    }
+
+    @Test
+    void getExperience() {
+        // test: get experience
+        String experience = resumePDF.getExperience();
+        assertThat(experience, containsStringIgnoringCase("Software Engineer"));
+        assertThat(experience, containsStringIgnoringCase("Java Software Developer"));
+        assertFalse(experience.contains("Mohammad Masoomi"));
+    }
+
+    private File readResumeFile() {
+        return new File(getClass().getClassLoader().getResource("ai/pdf/linkedin-profile.pdf").getFile());
+    }
+}

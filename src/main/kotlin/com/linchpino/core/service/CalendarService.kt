@@ -12,12 +12,12 @@ import com.google.api.services.calendar.model.EventAttendee
 import com.google.api.services.calendar.model.EventDateTime
 import com.google.auth.http.HttpCredentialsAdapter
 import com.google.auth.oauth2.GoogleCredentials
-import java.time.ZonedDateTime
-import java.util.Date
-import java.util.UUID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
+import java.time.ZonedDateTime
+import java.util.Date
+import java.util.UUID
 
 @Service
 class CalendarService(

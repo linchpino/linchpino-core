@@ -7,6 +7,8 @@ import com.google.apps.meet.v2.CreateSpaceRequest
 import com.google.apps.meet.v2.Space
 import com.google.apps.meet.v2.SpacesServiceClient
 import com.google.apps.meet.v2.stub.SpacesServiceStub
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -14,8 +16,6 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockitoExtension::class)
 class MeetServiceTest {

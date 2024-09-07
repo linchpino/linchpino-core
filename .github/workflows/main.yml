@@ -1,6 +1,5 @@
-
 name: Build and Deploy Current Branch to linchpino-core-dev server
-
+run-name: Deploying to Development server
 on:
   pull_request:
       branches: ['**']

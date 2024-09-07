@@ -6,12 +6,16 @@ import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -42,7 +46,12 @@ import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
-class AccountController(private val accountService: AccountService, private val timeSlotService: TimeSlotService) {
+class AccountController(
+    private val accountService: AccountService,
+    private val timeSlotService: TimeSlotService,
+    private val scheduleService: ScheduleService
+) {
+
 
     @Operation(summary = "Create a new account")
     @ResponseStatus(HttpStatus.CREATED)
@@ -58,6 +67,7 @@ class AccountController(private val accountService: AccountService, private val 
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
 
+/*
     @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
     @ApiResponses(
         value = [
@@ -92,6 +102,45 @@ class AccountController(private val accountService: AccountService, private val 
         val result = accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
         return ResponseEntity.ok(result)
     }
+*/
+
+
+    @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Found mentors with available timeslots for provided interviewTypeId and data"
+            ),
+            ApiResponse(responseCode = "400", description = "Invalid query parameter")
+        ]
+    )
+    @Parameters(
+        value = [
+            Parameter(
+                name = "interviewTypeId",
+                description = "ID of interview type",
+                `in` = ParameterIn.QUERY,
+                required = true
+            ),
+            Parameter(
+                name = "date",
+                description = "zoned date time in ISO-8601 format YYYY-MM-ddTHH:mm:ssXXX, example 2024-03-26T00:00:00+03:30",
+                `in` = ParameterIn.QUERY,
+                required = true
+            )
+        ]
+    )
+    @GetMapping("/mentors/search", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun findMentorsByInterviewTypeAndDate(
+        @RequestParam(value = "interviewTypeId", required = true) interviewTypeId: Long,
+        @RequestParam(value = "date", required = true) date: ZonedDateTime
+    ): ResponseEntity<List<MentorWithClosestSchedule>> {
+        val result = accountService.findMentorsWithClosestScheduleBy(date, interviewTypeId)
+        return ResponseEntity.ok(result)
+    }
+
+
 
     @Operation(summary = "Activate Job Seeker Account", description = "Activates a job seeker account")
     @ApiResponse(
@@ -143,6 +192,21 @@ class AccountController(private val accountService: AccountService, private val 
         timeSlotService.addTimeSlots(request)
     }
 
+    @Operation(summary = "Add schedule for mentor")
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "201", description = "Added schedule for mentor successfully"),
+            ApiResponse(responseCode = "400", description = "Invalid request body"),
+            ApiResponse(responseCode = "401", description = "Not authenticated"),
+            ApiResponse(responseCode = "403", description = "Not authorized")
+        ]
+    )
+    @PostMapping("/mentors/schedule")
+    fun addScheduleForMentor(@Valid @RequestBody request: ScheduleRequest, auth: Authentication): ScheduleResponse {
+        return scheduleService.addSchedule(request, auth)
+    }
+
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     @ApiResponses(
@@ -171,8 +235,8 @@ class AccountController(private val accountService: AccountService, private val 
             password,
             AccountTypeEnum.ADMIN.value
         )
-        val admins = accountService.searchAccountByNameOrRole(null,AccountTypeEnum.ADMIN.value)
-        if(admins.isEmpty()) {
+        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value)
+        if (admins.isEmpty()) {
             createAccount(request)
         }
     }

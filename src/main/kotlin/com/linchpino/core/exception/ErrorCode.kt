@@ -14,4 +14,5 @@ enum class ErrorCode(val status: HttpStatus) {
     INVALID_ACCOUNT_ROLE(HttpStatus.BAD_REQUEST),
     MIME_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST),
     SMALL_FILE_SIZE(HttpStatus.BAD_REQUEST),
+    DUPLICATE_SCHEDULE(HttpStatus.BAD_REQUEST),
 }

@@ -6,16 +6,14 @@ import com.google.cloud.storage.Storage
 import com.linchpino.core.entity.Account
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
-import java.io.BufferedInputStream
-import java.io.InputStream
-import java.util.UUID
 import org.apache.tika.Tika
 import org.apache.tika.metadata.Metadata
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import kotlin.concurrent.thread
+import java.io.BufferedInputStream
+import java.util.UUID
 
 
 @Service
