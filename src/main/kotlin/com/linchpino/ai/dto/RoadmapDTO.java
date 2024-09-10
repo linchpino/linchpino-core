@@ -1,7 +1,7 @@
-package com.linchpino.ai.controller.dto;
+package com.linchpino.ai.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.linchpino.ai.service.model.Roadmap;
+import com.linchpino.ai.model.Roadmap;
 
 import java.io.Serializable;
 import java.util.List;
@@ -108,7 +108,7 @@ public class RoadmapDTO implements Serializable {
         return roadmapDTO;
     }
 
-    private static List<Step> getSteps(List<com.linchpino.ai.service.model.Roadmap.Step> steps) {
+    private static List<Step> getSteps(List<Roadmap.Step> steps) {
         return steps.stream()
             .map(step -> {
                 Step stepDTO = new Step();

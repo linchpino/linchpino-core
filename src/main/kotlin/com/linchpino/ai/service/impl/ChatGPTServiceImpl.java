@@ -1,8 +1,8 @@
 package com.linchpino.ai.service.impl;
 
 import com.linchpino.ai.service.AIService;
-import com.linchpino.ai.service.model.Prompt;
-import com.linchpino.ai.service.model.RequestDetail;
+import com.linchpino.ai.model.Prompt;
+import com.linchpino.ai.model.RequestDetail;
 import org.springframework.ai.client.AiClient;
 import org.springframework.stereotype.Component;
 

@@ -1,12 +1,13 @@
 package com.linchpino.ai.service.model;
 
+import com.linchpino.ai.model.Prompt;
+import com.linchpino.ai.model.RequestDetail;
+import com.linchpino.ai.model.Resume;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PromptTest {
+class PromptTest extends ResumeMockData {
 
     @Test
     void getDefaultRoadmapPrompt() {
@@ -36,10 +37,6 @@ class PromptTest {
             }
             Provide me response in json without any other information.
             """;
-        assertEquals(defaultRoadmapPrompt, Prompt.of(RequestDetail.of("Senior Data Scientist", readResumeFile())).toString());
-    }
-
-    private File readResumeFile() {
-        return new File(getClass().getClassLoader().getResource("ai/pdf/linkedin-profile.pdf").getFile());
+        assertEquals(defaultRoadmapPrompt, Prompt.of(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
     }
 }

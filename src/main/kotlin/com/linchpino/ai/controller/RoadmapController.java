@@ -1,7 +1,6 @@
 package com.linchpino.ai.controller;
 
 import com.linchpino.ai.service.RoadmapService;
-import com.linchpino.ai.service.model.RequestDetail;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,7 +23,7 @@ public class RoadmapController {
 
     @PostMapping(produces = "application/json")
     public String getRoadmap(@RequestParam("target") String target, @RequestParam("file") MultipartFile file) {
-        return roadmapService.getRoadmap(RequestDetail.of(target, convert(file)));
+        return roadmapService.getRoadmap(target, convert(file));
     }
 
     private File convert(MultipartFile file) {
@@ -36,6 +35,7 @@ public class RoadmapController {
             if (convFile.createNewFile()) {
                 FileOutputStream fos = new FileOutputStream(convFile);
                 fos.write(file.getBytes());
+                fos.close();
             }
         } catch (IOException e) {
             throw new IllegalStateException("Error in converting file: " + e.getMessage(), e);
