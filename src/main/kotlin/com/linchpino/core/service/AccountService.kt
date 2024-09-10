@@ -13,6 +13,7 @@ import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.toCreateAccountResult
+import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
@@ -110,7 +111,8 @@ class AccountService(
             request.interviewTypeIDs,
             request.detailsOfExpertise,
             request.linkedInUrl,
-            request.paymentMethodRequest
+            request.paymentMethodRequest,
+            request.iban?.toIBAN()
         )
         val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
         registeredMentor.firstName?.let { firstName ->
@@ -146,6 +148,7 @@ class AccountService(
             detailsOfExpertise = request.detailsOfExpertise
             linkedInUrl = request.linkedInUrl
             externalId = UUID.randomUUID().toString()
+            iban = request.iban?.number()
         }
         try {
             paymentService.savePaymentMethod(request.paymentMethodRequest, account)

@@ -55,6 +55,9 @@ class Account : AbstractEntity() {
     @OneToOne(mappedBy = "account", cascade = [CascadeType.ALL])
     var schedule: Schedule? = null
 
+    @Column(name = "iban")
+    var iban: String? = null
+
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)

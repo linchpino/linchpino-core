@@ -244,7 +244,8 @@ class AccountServiceTest {
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
-            paymentMethodRequest = paymentMethodRequest
+            paymentMethodRequest = paymentMethodRequest,
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
 
         val i1 = InterviewType().apply {
@@ -285,7 +286,7 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
-
+        assertThat(savedAccount.iban).isEqualTo(request.iban?.trim()?.replace(" ",""))
         verify(paymentService, times(1)).savePaymentMethod(paymentMethodRequest, savedAccount)
     }
 

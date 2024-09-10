@@ -413,8 +413,10 @@ class AccountControllerTestIT {
             interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
-            paymentMethodRequest = paymentMethodRequest
+            paymentMethodRequest = paymentMethodRequest,
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
+        val expectedIBAN = request.iban?.trim()?.replace(" ","")?.uppercase()
 
         mockMvc.perform(
             post("/api/accounts/mentors")
@@ -440,15 +442,17 @@ class AccountControllerTestIT {
         )
 
         // verify payment method
+        val savedAccount = accountRepository.findByEmailIgnoreCase(request.email)
         val paymentMethod = entityManager.find(
             PaymentMethod::class.java,
-            accountRepository.findByEmailIgnoreCase(request.email)!!.id
+            savedAccount!!.id
         )
 
         assertThat(paymentMethod.account?.email).isEqualTo(request.email)
         assertThat(paymentMethod.type).isEqualTo(PaymentMethodType.PAY_AS_YOU_GO)
         assertThat(paymentMethod.minPayment).isEqualTo(paymentMethodRequest.minPayment)
         assertThat(paymentMethod.maxPayment).isEqualTo(paymentMethodRequest.maxPayment)
+        assertThat(savedAccount.iban).isEqualTo(expectedIBAN)
     }
 
     @Test
@@ -462,7 +466,8 @@ class AccountControllerTestIT {
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
-            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
         //
         mockMvc.perform(
@@ -486,7 +491,8 @@ class AccountControllerTestIT {
             interviewTypeIDs = listOf(),
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://linkedin.com/johndoe",
-            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE)
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+            iban = "GB82 WEST 1234 5698 7654 33"
         )
 
         mockMvc.perform(

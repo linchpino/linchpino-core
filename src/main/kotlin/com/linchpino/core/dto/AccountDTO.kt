@@ -33,6 +33,7 @@ data class SaveAccountRequest(
     val detailsOfExpertise: String? = null,
     val linkedInUrl: String? = null,
     val paymentMethodRequest: PaymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+    val iban: IBAN? = null,
 )
 
 data class UpdateAccountRequest(
@@ -106,7 +107,8 @@ data class RegisterMentorRequest(
     @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
     val detailsOfExpertise:String?,
     @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?,
-    @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest
+    @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest,
+    @field:NotBlank(message = "iban must not be null") @field:ValidIBAN val iban:String?
 )
 
 fun Account.toRegisterMentorResult():RegisterMentorResult{
