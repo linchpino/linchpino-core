@@ -94,27 +94,11 @@ data class AccountSummary(
     val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum,
     val externalId: String?,
-    val avatar: String? = null,
-    val detailsOfExpertise: String? = null,
-    val linkedInUrl: String? = null,
-    val iban: String? = null,
-    val schedule: ScheduleResponse? = null
+    val avatar: String? = null
 )
 
-fun Account.toSummary() = AccountSummary(
-    id,
-    firstName,
-    lastName,
-    email,
-    roles().map { it.title },
-    status,
-    externalId,
-    avatar,
-    detailsOfExpertise,
-    linkedInUrl,
-    iban,
-    schedule?.toResponse()
-)
+fun Account.toSummary() =
+    AccountSummary(id, firstName, lastName, email, roles().map { it.title }, status, externalId, avatar)
 
 data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,

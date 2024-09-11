@@ -1,7 +1,7 @@
 package com.linchpino.ai.service;
 
-import com.linchpino.ai.service.model.RequestDetail;
+import java.io.File;
 
 public interface RoadmapService {
-    String getRoadmap(RequestDetail requestDetail);
+    String getRoadmap(String targetLevel, File resumeFile);
 }
