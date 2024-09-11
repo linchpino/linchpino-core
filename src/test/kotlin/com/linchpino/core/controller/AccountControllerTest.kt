@@ -339,8 +339,8 @@ class AccountControllerTest {
     fun `test reset password calls service with provided arguments`(){
         val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
         val request = ResetPasswordRequest("old","new")
-        accountController.resetPassword(authentication,request)
+        accountController.changePassword(authentication,request)
 
-        verify(accountService, times(1)).resetPassword(authentication,request)
+        verify(accountService, times(1)).changePassword(authentication,request)
     }
 }

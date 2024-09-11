@@ -227,7 +227,7 @@ class AccountService(
     }
 
 
-    fun resetPassword(authentication: Authentication, resetPassword: ResetPasswordRequest) {
+    fun changePassword(authentication: Authentication, resetPassword: ResetPasswordRequest) {
         val account = repository.findByEmailIgnoreCase(authentication.email())
             ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
         if (!passwordEncoder.matches(resetPassword.currentPassword, account.password)) {

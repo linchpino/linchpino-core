@@ -981,7 +981,7 @@ class AccountControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            put("/api/accounts/profile/password")
+            put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
@@ -1004,7 +1004,7 @@ class AccountControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            put("/api/accounts/profile/password")
+            put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
@@ -1029,7 +1029,7 @@ class AccountControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            put("/api/accounts/profile/password")
+            put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )
@@ -1053,7 +1053,7 @@ class AccountControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            put("/api/accounts/profile/password")
+            put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(request))
         )

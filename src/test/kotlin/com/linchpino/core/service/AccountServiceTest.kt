@@ -31,7 +31,6 @@ import java.time.DayOfWeek
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -46,7 +45,6 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.core.GrantedAuthority
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
@@ -556,7 +554,7 @@ class AccountServiceTest {
         `when`(passwordEncoder.matches(request.currentPassword,account.password)).thenReturn(true)
         `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
 
-        accountService.resetPassword(authentication,request)
+        accountService.changePassword(authentication,request)
 
         verify(repository, times(1)).save(accountCaptor.capture())
         val password = accountCaptor.value.password
@@ -582,7 +580,7 @@ class AccountServiceTest {
         `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
 
         val ex = assertThrows(LinchpinException::class.java){
-            accountService.resetPassword(authentication, request)
+            accountService.changePassword(authentication, request)
         }
 
         assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_PASSWORD)
