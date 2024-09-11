@@ -4,7 +4,10 @@ import com.linchpino.core.service.LinkedInService
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
+import com.nimbusds.jwt.JWTParser
 import jakarta.servlet.http.HttpServletRequest
+import java.net.URI
+import java.text.ParseException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,7 +23,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.oauth2.jwt.JwtException
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider
@@ -36,7 +38,6 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import java.net.URI
 
 @Configuration
 @EnableMethodSecurity
@@ -51,7 +52,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
             .cors { it.configurationSource(corsConfigurationSource()) }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
-                it.requestMatchers("/api/accounts/profile").authenticated()
+                it.requestMatchers("/api/accounts/profile/**").authenticated()
                 it.requestMatchers("/api/accounts/mentors/schedule").hasAnyAuthority("SCOPE_MENTOR")
                 it.requestMatchers("/api/accounts/search").hasAnyAuthority("SCOPE_ADMIN")
                 it.requestMatchers("/api/admin/**").hasAnyAuthority("SCOPE_ADMIN")
@@ -86,9 +87,9 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
 
     private fun isJwtFormat(token: String): Boolean {
         return try {
-            jwtDecoder().decode(token)
+            JWTParser.parse(token)
             true
-        }catch (ex: JwtException){
+        }catch (ex: ParseException){
             false
         }
     }

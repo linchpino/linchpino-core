@@ -9,6 +9,7 @@ import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.entity.Account
@@ -47,6 +48,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -961,6 +963,101 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isForbidden)
+    }
+
+
+    @WithMockJwt(username = "johndoe@gmail.com")
+    @Test
+    fun `test reset password resets password successfully`(){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = BCryptPasswordEncoder().encode("secret")
+        }
+        accountRepository.save(john)
+
+        val request = ResetPasswordRequest("secret","secret2")
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+
+    }
+
+    @WithMockJwt(username = "johndoe@gmail.com")
+    @Test
+    fun `test reset password throws exception if new password does not meet password policy`(){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = BCryptPasswordEncoder().encode("secret")
+        }
+        accountRepository.save(john)
+
+        val request = ResetPasswordRequest("secret","s2")
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid Param"))
+            .andExpect(jsonPath("$.validationErrorMap[0].field").value("newPassword"))
+    }
+
+    @WithMockJwt(username = "johndoe@gmail.com")
+    @Test
+    fun `test reset password throws exception if currentPassword does not match currentPassword in the request`(){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = BCryptPasswordEncoder().encode("secret")
+        }
+        accountRepository.save(john)
+
+        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid password"))
+    }
+
+
+    @Test
+    fun `test reset password can not be called without authentication`(){
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "johndoe@gmail.com"
+            password = BCryptPasswordEncoder().encode("secret")
+        }
+        accountRepository.save(john)
+
+        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isUnauthorized)
     }
 
 

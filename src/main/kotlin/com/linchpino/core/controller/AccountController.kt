@@ -10,6 +10,7 @@ import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
@@ -255,5 +256,10 @@ class AccountController(
     @GetMapping("/profile")
     fun profile(authentication: Authentication): AccountSummary {
         return accountService.profile(authentication)
+    }
+
+    @PutMapping("/profile/password")
+    fun resetPassword(authentication: Authentication, @Valid @RequestBody resetPassword: ResetPasswordRequest){
+        accountService.resetPassword(authentication,resetPassword)
     }
 }

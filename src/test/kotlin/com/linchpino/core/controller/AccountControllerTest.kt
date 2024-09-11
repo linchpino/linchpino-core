@@ -11,6 +11,7 @@ import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
@@ -332,5 +333,14 @@ class AccountControllerTest {
         // Then
         verify(scheduleService, times(1)).addSchedule(scheduleRequest, authentication)
         assertThat(result).isEqualTo(response)
+    }
+
+    @Test
+    fun `test reset password calls service with provided arguments`(){
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = ResetPasswordRequest("old","new")
+        accountController.resetPassword(authentication,request)
+
+        verify(accountService, times(1)).resetPassword(authentication,request)
     }
 }

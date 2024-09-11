@@ -16,4 +16,5 @@ enum class ErrorCode(val status: HttpStatus) {
     SMALL_FILE_SIZE(HttpStatus.BAD_REQUEST),
     DUPLICATE_SCHEDULE(HttpStatus.BAD_REQUEST),
     TOO_MANY_ATTEMPT(HttpStatus.TOO_MANY_REQUESTS),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST),
 }

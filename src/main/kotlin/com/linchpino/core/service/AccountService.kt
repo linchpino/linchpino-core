@@ -9,6 +9,7 @@ import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
@@ -223,5 +224,16 @@ class AccountService(
             return account.toSummary()
         }
         throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
+    }
+
+
+    fun resetPassword(authentication: Authentication, resetPassword: ResetPasswordRequest) {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
+        if (!passwordEncoder.matches(resetPassword.currentPassword, account.password)) {
+            throw LinchpinException(ErrorCode.INVALID_PASSWORD, "currentPassword does not match")
+        }
+        account.password = passwordEncoder.encode(resetPassword.newPassword)
+        repository.save(account)
     }
 }
