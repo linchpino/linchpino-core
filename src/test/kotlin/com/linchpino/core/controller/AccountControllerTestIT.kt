@@ -802,6 +802,24 @@ class AccountControllerTestIT {
         // Given
         saveAccountsWithRole()
 
+
+        val request = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:00+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:00+03:00"),
+            listOf(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+        )
+
+
         // When & Then
         mockMvc.perform(
             get("/api/accounts/profile")
@@ -810,6 +828,10 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.firstName").value("John"))
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$.avatar").value("avatar image id"))
+            .andExpect(jsonPath("$.detailsOfExpertise").value("test expertise"))
+            .andExpect(jsonPath("$.linkedInUrl").value("https://linkedin.com/john"))
+            .andExpect(jsonPath("$.iban").value("GB82WEST12345698765432"))
     }
 
     @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
@@ -952,6 +974,10 @@ class AccountControllerTestIT {
             email = "johndoe@gmail.com"
             password = "secret"
             status = AccountStatusEnum.ACTIVATED
+            detailsOfExpertise = "test expertise"
+            linkedInUrl = "https://linkedin.com/john"
+            iban = "GB82WEST12345698765432"
+            avatar = "avatar image id"
         }
 
         val jane = Account().apply {

@@ -207,7 +207,8 @@ class AccountControllerTest {
             email = request.email,
             interviewTypeIDs = request.interviewTypeIDs,
             detailsOfExpertise = request.detailsOfExpertise,
-            linkedInUrl = request.linkedInUrl
+            linkedInUrl = request.linkedInUrl,
+            iban = request.iban?.replace(" ","")
         )
 
 
