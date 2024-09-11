@@ -3,6 +3,7 @@ spring:
     name: linchpino-service
 
   ai:
+    roadmap-attempt-limit: ${AI_ROADMAP_ATTEMPT_LIMIT:3}
     default-service-provider: ${DEFAULT_AI_SERVICE_PROVIDER:gemini}
     openai:
       api-key: ${OPEN_AI_API_KEY:api-key}
@@ -89,3 +90,6 @@ admin:
 gcp:
   bucket: ${BUCKET_NAME:linchpino_profile_image}
   projectId: ${PROJECT_ID:ardent-window-404920}
+
+file:
+    upload-dir: ${UPLOAD_DIR:/tmp}

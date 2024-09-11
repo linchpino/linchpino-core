@@ -3,12 +3,19 @@ package com.linchpino.ai.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.linchpino.ai.service.domain.Prompt;
-import com.linchpino.ai.service.domain.RequestDetail;
+import com.linchpino.ai.model.Prompt;
+import com.linchpino.ai.model.RequestDetail;
+import com.linchpino.ai.service.AIService;
 import com.linchpino.core.exception.ErrorCode;
 import com.linchpino.core.exception.LinchpinException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,6 +23,8 @@ import java.util.List;
 
 @Component("gemini")
 public class GeminiServiceImpl implements AIService {
+
+    private final Logger logger = LoggerFactory.getLogger(GeminiServiceImpl.class);
 
     public static final String COMPONENT_NAME = "gemini";
 
@@ -36,7 +45,7 @@ public class GeminiServiceImpl implements AIService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             // Create the request entity
-            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(Prompt.of(requestDetail).toString()), headers);
+            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(getPrompt(requestDetail)), headers);
             // Make the POST request
             ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
             JsonData responseJson = response.getBody();
@@ -48,6 +57,12 @@ public class GeminiServiceImpl implements AIService {
         } catch (Exception e) {
             throw new LinchpinException(ErrorCode.SERVER_ERROR, "Error in generating response from Gemini AI with error: " + e.getMessage(), e);
         }
+    }
+
+    private String getPrompt(RequestDetail requestDetail) {
+        String prompt = Prompt.of(requestDetail).toString();
+        logger.info("Prompt: {}", prompt);
+        return prompt;
     }
 
     private String getPromptRequest(String prompt) {

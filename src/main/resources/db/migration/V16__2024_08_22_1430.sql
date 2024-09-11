@@ -1,0 +1,9 @@
+CREATE TABLE PAYMENT_METHOD
+(
+    account_id  BIGINT   NOT NULL PRIMARY KEY,
+    type        SMALLINT NOT NULL,
+    min_payment NUMERIC(10, 2),
+    max_payment NUMERIC(10, 2),
+    fix_rate    NUMERIC(10, 2),
+    CONSTRAINT FK_PAYMENT_METHOD_ON_ACCOUNT FOREIGN KEY (account_id) REFERENCES ACCOUNT (id)
+);

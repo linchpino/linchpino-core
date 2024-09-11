@@ -1,35 +1,25 @@
 package com.linchpino.core.security
 
 import com.linchpino.core.dto.LinkedInUserInfoResponse
-import com.linchpino.core.entity.Role
-import com.linchpino.core.enums.AccountStatusEnum
-import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.LinkedInService
 import jakarta.servlet.FilterChain
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.eq
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.http.HttpHeaders
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
-import org.springframework.web.client.RestClient
 
 
 @ExtendWith(MockitoExtension::class)

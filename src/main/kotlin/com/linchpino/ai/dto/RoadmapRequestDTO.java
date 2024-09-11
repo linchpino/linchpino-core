@@ -1,4 +1,4 @@
-package com.linchpino.ai.controller.dto;
+package com.linchpino.ai.dto;
 
 import java.io.Serializable;
 

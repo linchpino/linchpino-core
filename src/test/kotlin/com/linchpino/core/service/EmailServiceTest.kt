@@ -6,6 +6,8 @@ import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import jakarta.mail.Session
 import jakarta.mail.internet.MimeMessage
+import java.time.ZonedDateTime
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,8 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.mail.javamail.JavaMailSender
 import org.thymeleaf.context.Context
 import org.thymeleaf.spring6.SpringTemplateEngine
-import java.time.ZonedDateTime
-import java.util.Properties
 
 @ExtendWith(MockitoExtension::class)
 class EmailServiceTest {

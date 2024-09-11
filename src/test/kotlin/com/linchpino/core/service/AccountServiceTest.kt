@@ -5,14 +5,20 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.LinkedInUserInfoResponse
+import com.linchpino.core.dto.MentorWithClosestSchedule
+import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.Role
+import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.MentorTimeSlotEnum
+import com.linchpino.core.enums.PaymentMethodType
+import com.linchpino.core.enums.RecurrenceType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
@@ -20,9 +26,13 @@ import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
+import java.time.DayOfWeek
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
@@ -34,14 +44,12 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.multipart.MultipartFile
-import java.time.ZonedDateTime
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
+import org.springframework.web.multipart.MultipartFile
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {
@@ -69,6 +77,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var linkedInService: LinkedInService
+
+    @Mock
+    private lateinit var paymentService: PaymentService
 
     @Test
     fun `test creating account`() {
@@ -113,6 +124,8 @@ class AccountServiceTest {
         assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
         assertEquals(AccountStatusEnum.ACTIVATED, savedAccount.status)
         assertThat(savedAccount.roles()).containsExactly(jobSeekerRole)
+
+        verify(paymentService, times(1)).savePaymentMethod(PaymentMethodRequest(PaymentMethodType.FREE), savedAccount)
     }
 
     @Test
@@ -219,6 +232,10 @@ class AccountServiceTest {
 
     @Test
     fun `test register mentor`() {
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.FIX_PRICE,
+            fixRate = 10.0
+        )
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -226,7 +243,9 @@ class AccountServiceTest {
             password = "password",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "http://linkedin.com/johndoe"
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
 
         val i1 = InterviewType().apply {
@@ -267,6 +286,8 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
+        assertThat(savedAccount.iban).isEqualTo(request.iban?.trim()?.replace(" ",""))
+        verify(paymentService, times(1)).savePaymentMethod(paymentMethodRequest, savedAccount)
     }
 
     @Test
@@ -293,7 +314,9 @@ class AccountServiceTest {
                 SearchAccountResult(
                     account.firstName,
                     account.lastName,
-                    account.roles().map { it.title.name })))
+                    account.roles().map { it.title.name })
+            )
+        )
 
     }
 
@@ -323,7 +346,7 @@ class AccountServiceTest {
 
 
     @Test
-    fun `test profile returns account summary when token is jwt`(){
+    fun `test profile returns account summary when token is jwt`() {
         val account = Account().apply {
             id = 1
             email = "johndoe@example.com"
@@ -341,7 +364,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test profile returns account summary when token is bearer token`(){
+    fun `test profile returns account summary when token is bearer token`() {
         val account = Account().apply {
             id = 1
             email = "johndoe@example.com"
@@ -368,10 +391,10 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test profile saves account and returns summary when token is bearer token and user does not exist`(){
+    fun `test profile saves account and returns summary when token is bearer token and user does not exist`() {
         // Given
-        val account = LinkedInUserInfoResponse("john@example.com","john","doe")
-        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val account = LinkedInUserInfoResponse("john@example.com", "john", "doe")
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val mockedAuth = BearerTokenAuthentication(
             OAuth2IntrospectionAuthenticatedPrincipal(
                 account.email,
@@ -383,7 +406,12 @@ class AccountServiceTest {
         )
         `when`(linkedInService.userInfo("token")).thenReturn(account)
         `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(null)
-        `when`(roleRepository.findAll()).thenReturn(listOf(Role().apply { title = AccountTypeEnum.MENTOR },Role().apply { title = AccountTypeEnum.JOB_SEEKER },Role().apply { title = AccountTypeEnum.ADMIN }))
+        `when`(roleRepository.findAll()).thenReturn(
+            listOf(
+                Role().apply { title = AccountTypeEnum.MENTOR },
+                Role().apply { title = AccountTypeEnum.JOB_SEEKER },
+                Role().apply { title = AccountTypeEnum.ADMIN })
+        )
         // When
         val result = accountService.profile(mockedAuth)
 
@@ -401,15 +429,107 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test profile throws exception if account does not exist and authentication is jwt`(){
+    fun `test profile throws exception if account does not exist and authentication is jwt`() {
 
         val mockedAuth = WithMockJwt.mockAuthentication()
 
         `when`(repository.findByEmailIgnoreCase(mockedAuth.email())).thenReturn(null)
 
-        val ex = assertThrows(LinchpinException::class.java){
+        val ex = assertThrows(LinchpinException::class.java) {
             accountService.profile(mockedAuth)
         }
         assertThat(ex.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
+    }
+
+    @Test
+    fun `mentors with closest schedule must return list of mentors`() {
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule1 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+
+        val schedule2 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        }
+
+        val schedule3 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.MONTHLY
+            monthDays = mutableListOf(15, 25)
+        }
+
+        val schedule4 = Schedule().apply {
+            startTime = start.plusDays(7)
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+        val selectedDay = ZonedDateTime.parse("2024-09-09T10:00:00+03:00")
+        val interviewTypeId = 1L
+        val account1 = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            schedule = schedule1
+        }
+
+        val account2 = Account().apply {
+            id = 2
+            firstName = "josh"
+            lastName = "long"
+            schedule = schedule2
+        }
+
+        val account3 = Account().apply {
+            id = 3
+            firstName = "jane"
+            lastName = "smith"
+            schedule = schedule3
+        }
+
+        val account4 = Account().apply {
+            id = 4
+            firstName = "kent"
+            lastName = "beck"
+            schedule = schedule4
+        }
+
+        val expected1 = MentorWithClosestSchedule(
+            account1.id,
+            account1.firstName,
+            account1.lastName,
+            ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+        )
+        val expected2 = MentorWithClosestSchedule(
+            account2.id,
+            account2.firstName,
+            account2.lastName,
+            ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+        )
+
+        `when`(
+            repository.closestMentorSchedule(
+                selectedDay.withZoneSameInstant(ZoneOffset.UTC),
+                interviewTypeId
+            )
+        ).thenReturn(listOf(account1, account2, account3, account4))
+
+        val result = accountService.findMentorsWithClosestScheduleBy(selectedDay, interviewTypeId)
+
+        assertThat(result).containsExactly(expected1, expected2)
     }
 }

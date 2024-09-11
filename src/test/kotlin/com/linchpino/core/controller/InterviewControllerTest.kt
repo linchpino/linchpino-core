@@ -5,8 +5,11 @@ import com.linchpino.core.dto.CreateInterviewResult
 import com.linchpino.core.dto.InterviewFeedBackRequest
 import com.linchpino.core.dto.InterviewListResponse
 import com.linchpino.core.dto.InterviewValidityResponse
+import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.FeedbackService
 import com.linchpino.core.service.InterviewService
+import java.time.Instant
+import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,8 +24,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
-import java.time.Instant
-import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class InterviewControllerTest {
@@ -37,7 +38,9 @@ class InterviewControllerTest {
 
     @Test
     fun `test create new interview`() {
-        val createInterviewRequest = CreateInterviewRequest(1, 1, 1, 1, "john.doe@example.com")
+        val startTime = ZonedDateTime.now()
+        val endTime = startTime.plusMinutes(45)
+        val createInterviewRequest = CreateInterviewRequest(1, 1, startTime, endTime, 1, "john.doe@example.com")
         val expectedResponse = CreateInterviewResult(
             1,
             1,
@@ -124,15 +127,19 @@ class InterviewControllerTest {
     @Test
     fun `test interview validity calls service`() {
         // Given
+        val authentication = WithMockJwt.mockAuthentication()
         val expected =
             InterviewValidityResponse(ZonedDateTime.now(), ZonedDateTime.now().plusMinutes(60), true, "meet link")
-        `when`(service.checkValidity(1)).thenReturn(expected)
+        `when`(service.checkValidity(1, authentication)).thenReturn(expected)
 
         // When
-        val result = controller.checkInterviewValidity(1)
+        val result = controller.checkInterviewValidity(1,authentication)
 
         // Then
-        verify(service, times(1)).checkValidity(1)
+        verify(service, times(1)).checkValidity(
+            1,
+            authentication
+        )
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expected)
     }

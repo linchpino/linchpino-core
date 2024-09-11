@@ -4,6 +4,7 @@ import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.TokenResponse
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.security.JWTService
+import java.time.Instant
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -18,7 +19,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import java.time.Instant
 
 @ExtendWith(MockitoExtension::class)
 class AuthenticationControllerTest {

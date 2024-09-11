@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.linchpino.core.entity.Account
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.security.PasswordPolicy
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -31,6 +32,8 @@ data class SaveAccountRequest(
     val interviewTypeIDs: List<Long> = listOf(),
     val detailsOfExpertise: String? = null,
     val linkedInUrl: String? = null,
+    val paymentMethodRequest: PaymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+    val iban: IBAN? = null,
 )
 
 data class UpdateAccountRequest(
@@ -68,6 +71,13 @@ data class MentorWithClosestTimeSlot(
     val to: ZonedDateTime
 )
 
+data class MentorWithClosestSchedule(
+    val mentorId: Long?,
+    val mentorFirstName: String?,
+    val mentorLastName: String?,
+    val validWindow: ValidWindow?
+)
+
 data class ActivateJobSeekerAccountRequest(
     @field:NotBlank(message = "external id is required") val externalId: String,
     @field:NotBlank(message = "firstname is required") val firstName: String,
@@ -84,10 +94,11 @@ data class AccountSummary(
     val type: List<AccountTypeEnum>,
     val status: AccountStatusEnum,
     val externalId: String?,
-    val avatar:String? = null
+    val avatar: String? = null
 )
 
-fun Account.toSummary() = AccountSummary(id, firstName, lastName, email, roles().map { it.title }, status, externalId,avatar)
+fun Account.toSummary() =
+    AccountSummary(id, firstName, lastName, email, roles().map { it.title }, status, externalId, avatar)
 
 data class RegisterMentorRequest(
     @field:NotBlank(message = "firstname is required") val firstName: String,
@@ -95,11 +106,16 @@ data class RegisterMentorRequest(
     @field:Email(message = "email is not valid") val email: String,
     @field:PasswordPolicy val password: String,
     @field:NotEmpty(message = "interviewTypeIDs are required") val interviewTypeIDs: List<Long>,
-    val detailsOfExpertise:String?,
-    @field:Pattern(regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$", message = "Invalid LinkedIn URL") val linkedInUrl:String?
+    val detailsOfExpertise: String?,
+    @field:Pattern(
+        regexp = "^https?://(www\\.)?linkedin\\.com/in/[a-zA-Z0-9_-]+$",
+        message = "Invalid LinkedIn URL"
+    ) val linkedInUrl: String?,
+    @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest,
+    @field:NotBlank(message = "iban must not be null") @field:ValidIBAN val iban: String?
 )
 
-fun Account.toRegisterMentorResult():RegisterMentorResult{
+fun Account.toRegisterMentorResult(): RegisterMentorResult {
     return RegisterMentorResult(
         this.id,
         this.firstName,
@@ -107,7 +123,8 @@ fun Account.toRegisterMentorResult():RegisterMentorResult{
         this.email,
         this.interviewTypeIDs(),
         this.detailsOfExpertise,
-        this.linkedInUrl
+        this.linkedInUrl,
+        this.iban
     )
 }
 
@@ -118,7 +135,8 @@ data class RegisterMentorResult(
     val email: String,
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise: String?,
-    val linkedInUrl: String?
+    val linkedInUrl: String?,
+    val iban: String?
 )
 
 data class SearchAccountResult(
@@ -127,6 +145,10 @@ data class SearchAccountResult(
     val roles: List<String>,
 )
 
-data class AddProfileImageResponse(val imageUrl:String)
+data class AddProfileImageResponse(val imageUrl: String)
 
-data class LinkedInUserInfoResponse(val email: String, @JsonProperty("given_name")val firstName: String?, @JsonProperty("family_name") val lastName: String?)
+data class LinkedInUserInfoResponse(
+    val email: String,
+    @JsonProperty("given_name") val firstName: String?,
+    @JsonProperty("family_name") val lastName: String?
+)

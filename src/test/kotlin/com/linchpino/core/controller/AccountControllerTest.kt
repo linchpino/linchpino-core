@@ -7,16 +7,26 @@ import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
-import com.linchpino.core.dto.MentorWithClosestTimeSlot
+import com.linchpino.core.dto.MentorWithClosestSchedule
+import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.ValidWindow
+import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
+import com.linchpino.core.enums.RecurrenceType
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
+import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
+import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -43,6 +53,9 @@ class AccountControllerTest {
     @InjectMocks
     private lateinit var accountController: AccountController
 
+    @Mock
+    private lateinit var scheduleService: ScheduleService
+
     @Test
     fun `test create account`() {
         // Given
@@ -68,37 +81,73 @@ class AccountControllerTest {
     @Test
     fun `test search mentors by interviewTypeId and date`() {
         // Given
-        val interviewTypeId = 5L
-        val date = ZonedDateTime.parse("2024-03-29T12:30:45+00:00")
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule1 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+
+        val schedule2 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        }
+        val selectedDay = ZonedDateTime.parse("2024-09-09T10:00:00+03:00")
+        val interviewTypeId = 1L
+
+        val account1 = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            schedule = schedule1
+        }
+
+        val account2 = Account().apply {
+            id = 2
+            firstName = "josh"
+            lastName = "long"
+            schedule = schedule2
+        }
 
         val expectedResponse = listOf(
-            MentorWithClosestTimeSlot(
-                interviewTypeId,
-                "John",
-                "Doe",
-                3,
-                ZonedDateTime.parse("2024-03-29T13:00:00+00:00"),
-                ZonedDateTime.parse("2024-03-29T14:00:00+00:00")
-            )
+            MentorWithClosestSchedule(
+                account1.id,
+                account1.firstName,
+                account1.lastName,
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+            ),
+            MentorWithClosestSchedule(
+                account2.id,
+                account2.firstName,
+                account2.lastName,
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+            ),
         )
         val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)
         val dateCaptor: ArgumentCaptor<ZonedDateTime> = ArgumentCaptor.forClass(ZonedDateTime::class.java)
         `when`(
-            accountService.findMentorsWithClosestTimeSlotsBy(
+            accountService.findMentorsWithClosestScheduleBy(
                 dateCaptor.captureNonNullable(),
                 idCaptor.capture()
             )
         ).thenReturn(expectedResponse)
 
         // When
-        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId, date)
+        val result = accountController.findMentorsByInterviewTypeAndDate(interviewTypeId, selectedDay)
 
         // Then
         assertThat(result.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(result.body).isEqualTo(expectedResponse)
-        assertThat(dateCaptor.value).isEqualTo(date)
+        assertThat(dateCaptor.value).isEqualTo(selectedDay)
         assertThat(idCaptor.value).isEqualTo(interviewTypeId)
-        verify(accountService, times(1)).findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
+        verify(accountService, times(1)).findMentorsWithClosestScheduleBy(selectedDay, interviewTypeId)
     }
 
     @Test
@@ -146,7 +195,9 @@ class AccountControllerTest {
             password = "password",
             interviewTypeIDs = listOf(1L, 2L),
             detailsOfExpertise = "Some expertise",
-            linkedInUrl = "http://linkedin.com/johndoe"
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
+            iban = "GB82 WEST 1234 5698 7654 32"
         )
 
         val expectedResponse = RegisterMentorResult(
@@ -156,7 +207,8 @@ class AccountControllerTest {
             email = request.email,
             interviewTypeIDs = request.interviewTypeIDs,
             detailsOfExpertise = request.detailsOfExpertise,
-            linkedInUrl = request.linkedInUrl
+            linkedInUrl = request.linkedInUrl,
+            iban = request.iban?.replace(" ","")
         )
 
 
@@ -228,9 +280,9 @@ class AccountControllerTest {
         // Given
         val file = MockMultipartFile("file", "fileName", "image/jpeg", "test image content".toByteArray())
         val authentication = WithMockJwt.mockAuthentication()
-        `when`(accountService.uploadProfileImage( file, authentication)).thenReturn(AddProfileImageResponse("fileName"))
+        `when`(accountService.uploadProfileImage(file, authentication)).thenReturn(AddProfileImageResponse("fileName"))
         // When
-        val result = accountController.uploadProfileImage(file,authentication)
+        val result = accountController.uploadProfileImage(file, authentication)
 
         // Then
         verify(accountService).uploadProfileImage(file, authentication)
@@ -238,13 +290,47 @@ class AccountControllerTest {
     }
 
     @Test
-    fun `test profile returns successfully`(){
-        val summary = AccountSummary(1,"john","doe","john@example.com", listOf(),AccountStatusEnum.ACTIVATED,null)
+    fun `test profile returns successfully`() {
+        val summary = AccountSummary(1, "john", "doe", "john@example.com", listOf(), AccountStatusEnum.ACTIVATED, null)
         val authentication = WithMockJwt.mockAuthentication()
 
         `when`(accountService.profile(authentication)).thenReturn(summary)
         val result = accountController.profile(authentication)
         verify(accountService, times(1)).profile(authentication)
         assertThat(result).isEqualTo(summary)
+    }
+
+    @Test
+    fun `test adding schedule for mentors`() {
+        // Given
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+        val authentication = WithMockJwt.mockAuthentication()
+
+        val response = ScheduleResponse(
+            1,
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            1,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+        )
+
+        // When
+        `when`(scheduleService.addSchedule(scheduleRequest, authentication)).thenReturn(response)
+
+        val result = accountController.addScheduleForMentor(scheduleRequest, authentication)
+
+        // Then
+        verify(scheduleService, times(1)).addSchedule(scheduleRequest, authentication)
+        assertThat(result).isEqualTo(response)
     }
 }

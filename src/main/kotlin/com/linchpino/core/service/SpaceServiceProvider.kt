@@ -6,10 +6,10 @@ import com.google.apps.meet.v2.SpacesServiceSettings
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
-import org.springframework.stereotype.Service
-import java.io.IOException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
+import org.springframework.stereotype.Service
+import java.io.IOException
 
 @Service
 class SpaceServiceProvider(

@@ -71,8 +71,8 @@ class InterviewController(private val service: InterviewService, private val fee
     }
 
     @GetMapping("/{id}/validity")
-    fun checkInterviewValidity(@PathVariable id: Long): ResponseEntity<InterviewValidityResponse> {
-        val result = service.checkValidity(id)
+    fun checkInterviewValidity(@PathVariable id: Long,authentication: Authentication): ResponseEntity<InterviewValidityResponse> {
+        val result = service.checkValidity(id, authentication)
         return ResponseEntity.ok(result)
     }
 
