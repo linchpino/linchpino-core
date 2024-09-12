@@ -26,9 +26,13 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -42,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
@@ -66,43 +69,6 @@ class AccountController(
         val result = accountService.createAccount(createAccountRequest)
         return ResponseEntity.status(HttpStatus.CREATED).body(result)
     }
-
-/*
-    @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Found mentors with available timeslots for provided interviewTypeId and data"
-            ),
-            ApiResponse(responseCode = "400", description = "Invalid query parameter")
-        ]
-    )
-    @Parameters(
-        value = [
-            Parameter(
-                name = "interviewTypeId",
-                description = "ID of interview type",
-                `in` = ParameterIn.QUERY,
-                required = true
-            ),
-            Parameter(
-                name = "date",
-                description = "zoned date time in ISO-8601 format YYYY-MM-ddTHH:mm:ssXXX, example 2024-03-26T00:00:00+03:30",
-                `in` = ParameterIn.QUERY,
-                required = true
-            )
-        ]
-    )
-    @GetMapping("/mentors/search", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun findMentorsByInterviewTypeAndDate(
-        @RequestParam(value = "interviewTypeId", required = true) interviewTypeId: Long,
-        @RequestParam(value = "date", required = true) date: ZonedDateTime
-    ): ResponseEntity<List<MentorWithClosestTimeSlot>> {
-        val result = accountService.findMentorsWithClosestTimeSlotsBy(date, interviewTypeId)
-        return ResponseEntity.ok(result)
-    }
-*/
 
 
     @Operation(summary = "Search mentors with available timeslots based on date and interviewTypeId")
@@ -139,7 +105,6 @@ class AccountController(
         val result = accountService.findMentorsWithClosestScheduleBy(date, interviewTypeId)
         return ResponseEntity.ok(result)
     }
-
 
 
     @Operation(summary = "Activate Job Seeker Account", description = "Activates a job seeker account")
@@ -218,9 +183,10 @@ class AccountController(
     )
     fun searchAccounts(
         @RequestParam(required = false) name: String?,
-        @RequestParam(required = false) role: Int?
-    ): List<SearchAccountResult> {
-        return accountService.searchAccountByNameOrRole(name, role)
+        @RequestParam(required = false) role: Int?,
+        page: Pageable
+    ): Page<SearchAccountResult> {
+        return accountService.searchAccountByNameOrRole(name, role, page)
     }
 
     @Bean
@@ -235,8 +201,8 @@ class AccountController(
             password,
             AccountTypeEnum.ADMIN.value
         )
-        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value)
-        if (admins.isEmpty()) {
+        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value,PageRequest.of(0,20))
+        if (admins.isEmpty) {
             createAccount(request)
         }
     }
@@ -258,7 +224,7 @@ class AccountController(
     }
 
     @PutMapping("/profile/change-password")
-    fun changePassword(authentication: Authentication, @Valid @RequestBody resetPassword: ResetPasswordRequest){
-        accountService.changePassword(authentication,resetPassword)
+    fun changePassword(authentication: Authentication, @Valid @RequestBody resetPassword: ResetPasswordRequest) {
+        accountService.changePassword(authentication, resetPassword)
     }
 }

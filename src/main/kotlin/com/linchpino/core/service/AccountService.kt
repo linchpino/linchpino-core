@@ -37,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 @Service
 @Transactional
@@ -201,9 +203,9 @@ class AccountService(
     }
 
     @Transactional(readOnly = true)
-    fun searchAccountByNameOrRole(name: String?, role: Int?): List<SearchAccountResult> {
+    fun searchAccountByNameOrRole(name: String?, role: Int?, page: Pageable): Page<SearchAccountResult> {
         val accountType = AccountTypeEnum.entries.firstOrNull { it.value == role }
-        return repository.searchByNameOrRole(name, accountType)
+        return repository.searchByNameOrRole(name, accountType, page)
             .map {
                 SearchAccountResult(
                     it.firstName,

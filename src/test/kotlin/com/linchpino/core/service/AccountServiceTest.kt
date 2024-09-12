@@ -44,6 +44,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
@@ -305,21 +307,30 @@ class AccountServiceTest {
             email = "johndoe@example.com"
             avatar = "avatar.png"
         }
-        `when`(repository.searchByNameOrRole("john", AccountTypeEnum.MENTOR)).thenReturn(listOf(account))
+        val page = Pageable.ofSize(10)
+        `when`(
+            repository.searchByNameOrRole(
+                "john",
+                AccountTypeEnum.MENTOR,
+                page
+            )
+        ).thenReturn(PageImpl(listOf(account)))
 
         // When
-        val result = accountService.searchAccountByNameOrRole("john", 3)
+        val result = accountService.searchAccountByNameOrRole("john", 3, page)
 
         // Then
-        verify(repository, times(1)).searchByNameOrRole("john", AccountTypeEnum.MENTOR)
+        verify(repository, times(1)).searchByNameOrRole("john", AccountTypeEnum.MENTOR, page)
         assertThat(result).isEqualTo(
-            listOf(
-                SearchAccountResult(
-                    account.firstName,
-                    account.lastName,
-                    account.roles().map { it.title.name },
-                    account.email,
-                    account.avatar
+            PageImpl(
+                listOf(
+                    SearchAccountResult(
+                        account.firstName,
+                        account.lastName,
+                        account.roles().map { it.title.name },
+                        account.email,
+                        account.avatar
+                    )
                 )
             )
         )
@@ -518,8 +529,6 @@ class AccountServiceTest {
             firstName = "kent"
             lastName = "beck"
             schedule = schedule4
-            email = "account4@example.com"
-            avatar = "avatar4.png"
         }
 
         val expected1 = MentorWithClosestSchedule(
