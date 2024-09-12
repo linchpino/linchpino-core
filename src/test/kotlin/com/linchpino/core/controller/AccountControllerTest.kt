@@ -225,7 +225,7 @@ class AccountControllerTest {
             interviewTypeIDs = request.interviewTypeIDs,
             detailsOfExpertise = request.detailsOfExpertise,
             linkedInUrl = request.linkedInUrl,
-            iban = request.iban?.replace(" ", "")
+            iban = request.iban?.replace(" ","")
         )
 
 

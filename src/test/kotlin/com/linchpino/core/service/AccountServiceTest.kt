@@ -529,8 +529,6 @@ class AccountServiceTest {
             firstName = "kent"
             lastName = "beck"
             schedule = schedule4
-            email = "account4@example.com"
-            avatar = "avatar4.png"
         }
 
         val expected1 = MentorWithClosestSchedule(
