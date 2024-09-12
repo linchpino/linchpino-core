@@ -259,7 +259,9 @@ class AccountControllerTest {
         val expectedResult = listOf(
             SearchAccountResult(
                 "John", "Doe",
-                listOf("MENTOR")
+                listOf("MENTOR"),
+                "johndoe@example.com",
+                "avatar.png"
             )
         )
 

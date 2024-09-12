@@ -160,6 +160,8 @@ data class SearchAccountResult(
     val firstName: String?,
     val lastName: String?,
     val roles: List<String>,
+    val email: String,
+    val avatar: String?
 )
 
 data class AddProfileImageResponse(val imageUrl: String)

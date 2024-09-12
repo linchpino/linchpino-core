@@ -195,7 +195,7 @@ class AccountService(
     fun searchAccountByNameOrRole(name: String?, role: Int?): List<SearchAccountResult> {
         val accountType = AccountTypeEnum.entries.firstOrNull { it.value == role }
         return repository.searchByNameOrRole(name, accountType)
-            .map { SearchAccountResult(it.firstName, it.lastName, it.roles().map { r -> r.title.name }) }
+            .map { SearchAccountResult(it.firstName, it.lastName, it.roles().map { r -> r.title.name },it.email,it.avatar) }
     }
 
 
