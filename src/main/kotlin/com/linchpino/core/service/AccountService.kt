@@ -9,6 +9,7 @@ import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
@@ -25,6 +26,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.Authentication
@@ -253,6 +255,12 @@ class AccountService(
             throw LinchpinException(ErrorCode.INVALID_PASSWORD, "currentPassword does not match")
         }
         account.password = passwordEncoder.encode(resetPassword.newPassword)
+        repository.save(account)
+    }
+
+    fun resetAccountPasswordByAdmin(request: ResetAccountPasswordRequest) {
+        val account = repository.findReferenceById(request.accountId)
+        account.password = passwordEncoder.encode(request.newPassword)
         repository.save(account)
     }
 }

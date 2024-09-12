@@ -8,6 +8,7 @@ import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.ValidWindow
@@ -25,6 +26,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
 import java.time.DayOfWeek
@@ -618,6 +620,28 @@ class AccountServiceTest {
         }
 
         assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_PASSWORD)
+    }
+
+    @Test
+    fun `test reset password by admin`(){
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@gmail.com"
+            firstName = "john"
+            lastName = "doe"
+            password = "secret"
+        }
+        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+
+        val request = ResetAccountPasswordRequest(1,"newPassword")
+
+        `when`(passwordEncoder.encode(request.newPassword)).thenReturn("encryptedNewPassword")
+        `when`(repository.findReferenceById(1)).thenReturn(account)
+        accountService.resetAccountPasswordByAdmin(request)
+
+        verify(repository).save(accountCaptor.capture())
+        val result = accountCaptor.value
+        assertThat(result.password).isEqualTo("encryptedNewPassword")
     }
 
 }
