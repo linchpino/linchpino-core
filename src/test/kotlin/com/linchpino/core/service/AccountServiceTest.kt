@@ -11,6 +11,7 @@ import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
@@ -623,7 +624,7 @@ class AccountServiceTest {
     }
 
     @Test
-    fun `test reset password by admin`(){
+    fun `test reset password by admin`() {
         val account = Account().apply {
             id = 1
             email = "john.doe@gmail.com"
@@ -631,9 +632,9 @@ class AccountServiceTest {
             lastName = "doe"
             password = "secret"
         }
-        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
-        val request = ResetAccountPasswordRequest(1,"newPassword")
+        val request = ResetAccountPasswordRequest(1, "newPassword")
 
         `when`(passwordEncoder.encode(request.newPassword)).thenReturn("encryptedNewPassword")
         `when`(repository.findReferenceById(1)).thenReturn(account)
@@ -643,5 +644,43 @@ class AccountServiceTest {
         val result = accountCaptor.value
         assertThat(result.password).isEqualTo("encryptedNewPassword")
     }
+
+
+    @Test
+    fun `test admin can update roles and status of any account`() {
+        // Given
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@gmail.com"
+            firstName = "john"
+            lastName = "doe"
+            password = "secret"
+            status = AccountStatusEnum.ACTIVATED
+        }
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val roles = listOf(
+            Role().apply { title = AccountTypeEnum.ADMIN },
+            Role().apply { title = AccountTypeEnum.GUEST },
+            Role().apply { title = AccountTypeEnum.MENTOR },
+            Role().apply { title = AccountTypeEnum.JOB_SEEKER }
+        )
+        account.addRole(roles[2])
+
+        val request = UpdateAccountRequestByAdmin(1, listOf(1, 2), 2)
+
+        `when`(roleRepository.findAll()).thenReturn(roles)
+        `when`(repository.findReferenceById(1)).thenReturn(account)
+
+        // When
+        accountService.updateAccountByAdmin(request)
+
+        // Then
+        verify(repository, times(1)).save(accountCaptor.capture())
+        val savedAccount = accountCaptor.value
+
+        assertThat(savedAccount.roles().map { it.title }).containsExactlyInAnyOrderElementsOf(listOf(AccountTypeEnum.GUEST, AccountTypeEnum.JOB_SEEKER))
+        assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.DEACTIVATED)
+    }
+
 
 }

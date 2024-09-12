@@ -14,6 +14,7 @@ import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
+import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
@@ -261,6 +262,19 @@ class AccountService(
     fun resetAccountPasswordByAdmin(request: ResetAccountPasswordRequest) {
         val account = repository.findReferenceById(request.accountId)
         account.password = passwordEncoder.encode(request.newPassword)
+        repository.save(account)
+    }
+
+    fun updateAccountByAdmin(request: UpdateAccountRequestByAdmin) {
+        val account = repository.findReferenceById(request.accountId)
+        account.roles().forEach { account.removeRole(it) }
+        roleRepository.findAll()
+            .filter { request.roles.contains(it.id) }
+            .forEach { account.addRole(it) }
+
+        request.status?.let {
+            account.status = AccountStatusEnum.entries.first { status -> status.value == it  }
+        }
         repository.save(account)
     }
 }
