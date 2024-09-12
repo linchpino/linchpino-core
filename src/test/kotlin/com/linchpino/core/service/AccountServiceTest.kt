@@ -8,6 +8,7 @@ import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
+import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
@@ -30,7 +31,6 @@ import java.time.DayOfWeek
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -50,6 +50,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.web.multipart.MultipartFile
+
 
 @ExtendWith(MockitoExtension::class)
 class AccountServiceTest {
@@ -199,7 +200,7 @@ class AccountServiceTest {
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(null)
 
-        val exception = Assertions.assertThrows(LinchpinException::class.java) {
+        val exception = assertThrows(LinchpinException::class.java) {
             accountService.activeJobSeekerAccount(request)
         }
         assertThat(exception.errorCode).isEqualTo(ErrorCode.ACCOUNT_NOT_FOUND)
@@ -223,7 +224,7 @@ class AccountServiceTest {
 
         `when`(repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)).thenReturn(account)
 
-        val exception = Assertions.assertThrows(LinchpinException::class.java) {
+        val exception = assertThrows(LinchpinException::class.java) {
             accountService.activeJobSeekerAccount(request)
         }
 
@@ -532,4 +533,57 @@ class AccountServiceTest {
 
         assertThat(result).containsExactly(expected1, expected2)
     }
+
+
+    @Test
+    fun `reset password update account password`(){
+        val authentication = WithMockJwt.mockAuthentication(email = "john.doe@gmail.com")
+        val request = ResetPasswordRequest("secret","secret1")
+
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@gmail.com"
+            firstName = "john"
+            lastName = "doe"
+            password = request.currentPassword
+        }
+        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+
+
+        `when`(passwordEncoder.encode(request.newPassword)).thenReturn("newPasswordEncoded")
+        `when`(passwordEncoder.matches(request.currentPassword,account.password)).thenReturn(true)
+        `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+
+        accountService.changePassword(authentication,request)
+
+        verify(repository, times(1)).save(accountCaptor.capture())
+        val password = accountCaptor.value.password
+        assertThat(password).isEqualTo("newPasswordEncoded")
+    }
+
+
+    @Test
+    fun `reset password throws invalid password error if current password does not match requested current password`(){
+        val authentication = WithMockJwt.mockAuthentication(email = "john.doe@gmail.com")
+        val request = ResetPasswordRequest("secret", "secret1")
+
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@gmail.com"
+            firstName = "john"
+            lastName = "doe"
+            password = request.currentPassword
+        }
+
+
+        `when`(passwordEncoder.matches(request.currentPassword, account.password)).thenReturn(false)
+        `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+
+        val ex = assertThrows(LinchpinException::class.java){
+            accountService.changePassword(authentication, request)
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_PASSWORD)
+    }
+
 }
