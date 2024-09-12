@@ -287,7 +287,7 @@ class AccountServiceTest {
         assertThat(result.interviewTypeIDs).isEqualTo(request.interviewTypeIDs)
         val savedAccount = accountCaptor.value
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
-        assertThat(savedAccount.iban).isEqualTo(request.iban?.trim()?.replace(" ",""))
+        assertThat(savedAccount.iban).isEqualTo(request.iban?.trim()?.replace(" ", ""))
         verify(paymentService, times(1)).savePaymentMethod(paymentMethodRequest, savedAccount)
     }
 
@@ -302,6 +302,8 @@ class AccountServiceTest {
                 id = 2
                 title = AccountTypeEnum.MENTOR
             })
+            email = "johndoe@example.com"
+            avatar = "avatar.png"
         }
         `when`(repository.searchByNameOrRole("john", AccountTypeEnum.MENTOR)).thenReturn(listOf(account))
 
@@ -315,7 +317,10 @@ class AccountServiceTest {
                 SearchAccountResult(
                     account.firstName,
                     account.lastName,
-                    account.roles().map { it.title.name })
+                    account.roles().map { it.title.name },
+                    account.email,
+                    account.avatar
+                )
             )
         )
 
@@ -486,6 +491,8 @@ class AccountServiceTest {
             firstName = "john"
             lastName = "doe"
             schedule = schedule1
+            email = "account1@example.com"
+            avatar = "avatar1.png"
         }
 
         val account2 = Account().apply {
@@ -493,6 +500,8 @@ class AccountServiceTest {
             firstName = "josh"
             lastName = "long"
             schedule = schedule2
+            email = "account2@example.com"
+            avatar = "avatar2.png"
         }
 
         val account3 = Account().apply {
@@ -500,6 +509,8 @@ class AccountServiceTest {
             firstName = "jane"
             lastName = "smith"
             schedule = schedule3
+            email = "account3@example.com"
+            avatar = "avatar3.png"
         }
 
         val account4 = Account().apply {
@@ -507,19 +518,31 @@ class AccountServiceTest {
             firstName = "kent"
             lastName = "beck"
             schedule = schedule4
+            email = "account4@example.com"
+            avatar = "avatar4.png"
         }
 
         val expected1 = MentorWithClosestSchedule(
             account1.id,
             account1.firstName,
             account1.lastName,
-            ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+            ),
+            account1.email,
+            account1.avatar
         )
         val expected2 = MentorWithClosestSchedule(
             account2.id,
             account2.firstName,
             account2.lastName,
-            ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+            ),
+            account2.email,
+            account2.avatar
         )
 
         `when`(
@@ -536,9 +559,9 @@ class AccountServiceTest {
 
 
     @Test
-    fun `reset password update account password`(){
+    fun `reset password update account password`() {
         val authentication = WithMockJwt.mockAuthentication(email = "john.doe@gmail.com")
-        val request = ResetPasswordRequest("secret","secret1")
+        val request = ResetPasswordRequest("secret", "secret1")
 
         val account = Account().apply {
             id = 1
@@ -547,14 +570,14 @@ class AccountServiceTest {
             lastName = "doe"
             password = request.currentPassword
         }
-        val accountCaptor:ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
 
 
         `when`(passwordEncoder.encode(request.newPassword)).thenReturn("newPasswordEncoded")
-        `when`(passwordEncoder.matches(request.currentPassword,account.password)).thenReturn(true)
+        `when`(passwordEncoder.matches(request.currentPassword, account.password)).thenReturn(true)
         `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
 
-        accountService.changePassword(authentication,request)
+        accountService.changePassword(authentication, request)
 
         verify(repository, times(1)).save(accountCaptor.capture())
         val password = accountCaptor.value.password
@@ -563,7 +586,7 @@ class AccountServiceTest {
 
 
     @Test
-    fun `reset password throws invalid password error if current password does not match requested current password`(){
+    fun `reset password throws invalid password error if current password does not match requested current password`() {
         val authentication = WithMockJwt.mockAuthentication(email = "john.doe@gmail.com")
         val request = ResetPasswordRequest("secret", "secret1")
 
@@ -579,7 +602,7 @@ class AccountServiceTest {
         `when`(passwordEncoder.matches(request.currentPassword, account.password)).thenReturn(false)
         `when`(repository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
 
-        val ex = assertThrows(LinchpinException::class.java){
+        val ex = assertThrows(LinchpinException::class.java) {
             accountService.changePassword(authentication, request)
         }
 

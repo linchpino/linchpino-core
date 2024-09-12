@@ -654,6 +654,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$[0].firstName").value("John"))
             .andExpect(jsonPath("$[0].lastName").value("Doe"))
             .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+            .andExpect(jsonPath("$[0].email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$[0].avatar").value("avatar image id"))
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
@@ -671,6 +673,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$[0].firstName").value("John"))
             .andExpect(jsonPath("$[0].lastName").value("Doe"))
             .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+            .andExpect(jsonPath("$[0].email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$[0].avatar").value("avatar image id"))
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
@@ -688,6 +692,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$[0].firstName").value("John"))
             .andExpect(jsonPath("$[0].lastName").value("Doe"))
             .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+            .andExpect(jsonPath("$[0].email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$[0].avatar").value("avatar image id"))
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
@@ -706,6 +712,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$[0].firstName").value("John"))
             .andExpect(jsonPath("$[0].lastName").value("Doe"))
             .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+            .andExpect(jsonPath("$[0].email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$[0].avatar").value("avatar image id"))
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
@@ -723,6 +731,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$[0].firstName").value("John"))
             .andExpect(jsonPath("$[0].lastName").value("Doe"))
             .andExpect(jsonPath("$[0].roles[0]").value("MENTOR"))
+            .andExpect(jsonPath("$[0].email").value("johndoe@gmail.com"))
+            .andExpect(jsonPath("$[0].avatar").value("avatar image id"))
     }
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
