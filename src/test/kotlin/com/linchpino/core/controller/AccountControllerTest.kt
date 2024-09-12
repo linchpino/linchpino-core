@@ -108,6 +108,8 @@ class AccountControllerTest {
             firstName = "john"
             lastName = "doe"
             schedule = schedule1
+            email = "account1@example.com"
+            avatar = "avatar1.png"
         }
 
         val account2 = Account().apply {
@@ -115,6 +117,8 @@ class AccountControllerTest {
             firstName = "josh"
             lastName = "long"
             schedule = schedule2
+            email = "account2@example.com"
+            avatar = "avatar2.png"
         }
 
         val expectedResponse = listOf(
@@ -122,13 +126,17 @@ class AccountControllerTest {
                 account1.id,
                 account1.firstName,
                 account1.lastName,
-                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)),
+                account1.email,
+                account1.avatar
             ),
             MentorWithClosestSchedule(
                 account2.id,
                 account2.firstName,
                 account2.lastName,
-                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60))
+                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)),
+                account2.email,
+                account2.avatar
             ),
         )
         val idCaptor: ArgumentCaptor<Long> = ArgumentCaptor.forClass(Long::class.java)

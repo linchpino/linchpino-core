@@ -75,7 +75,16 @@ class AccountService(
         val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
             .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
             .filter { it.second != null }
-            .map { MentorWithClosestSchedule(it.first.id, it.first.firstName, it.first.lastName, it.second) }
+            .map {
+                MentorWithClosestSchedule(
+                    it.first.id,
+                    it.first.firstName,
+                    it.first.lastName,
+                    it.second,
+                    it.first.email,
+                    it.first.avatar
+                )
+            }
         return mentors
     }
 
@@ -195,7 +204,15 @@ class AccountService(
     fun searchAccountByNameOrRole(name: String?, role: Int?): List<SearchAccountResult> {
         val accountType = AccountTypeEnum.entries.firstOrNull { it.value == role }
         return repository.searchByNameOrRole(name, accountType)
-            .map { SearchAccountResult(it.firstName, it.lastName, it.roles().map { r -> r.title.name },it.email,it.avatar) }
+            .map {
+                SearchAccountResult(
+                    it.firstName,
+                    it.lastName,
+                    it.roles().map { r -> r.title.name },
+                    it.email,
+                    it.avatar
+                )
+            }
     }
 
 

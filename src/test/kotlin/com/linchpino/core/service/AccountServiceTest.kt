@@ -491,6 +491,8 @@ class AccountServiceTest {
             firstName = "john"
             lastName = "doe"
             schedule = schedule1
+            email = "account1@example.com"
+            avatar = "avatar1.png"
         }
 
         val account2 = Account().apply {
@@ -498,6 +500,8 @@ class AccountServiceTest {
             firstName = "josh"
             lastName = "long"
             schedule = schedule2
+            email = "account2@example.com"
+            avatar = "avatar2.png"
         }
 
         val account3 = Account().apply {
@@ -505,6 +509,8 @@ class AccountServiceTest {
             firstName = "jane"
             lastName = "smith"
             schedule = schedule3
+            email = "account3@example.com"
+            avatar = "avatar3.png"
         }
 
         val account4 = Account().apply {
@@ -512,6 +518,8 @@ class AccountServiceTest {
             firstName = "kent"
             lastName = "beck"
             schedule = schedule4
+            email = "account4@example.com"
+            avatar = "avatar4.png"
         }
 
         val expected1 = MentorWithClosestSchedule(
@@ -521,7 +529,9 @@ class AccountServiceTest {
             ValidWindow(
                 ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
                 ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
-            )
+            ),
+            account1.email,
+            account1.avatar
         )
         val expected2 = MentorWithClosestSchedule(
             account2.id,
@@ -530,7 +540,9 @@ class AccountServiceTest {
             ValidWindow(
                 ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
                 ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
-            )
+            ),
+            account2.email,
+            account2.avatar
         )
 
         `when`(
