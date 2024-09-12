@@ -39,6 +39,8 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
 
@@ -126,7 +128,10 @@ class AccountControllerTest {
                 account1.id,
                 account1.firstName,
                 account1.lastName,
-                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)),
+                ValidWindow(
+                    ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                    ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+                ),
                 account1.email,
                 account1.avatar
             ),
@@ -134,7 +139,10 @@ class AccountControllerTest {
                 account2.id,
                 account2.firstName,
                 account2.lastName,
-                ValidWindow(ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)),
+                ValidWindow(
+                    ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                    ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+                ),
                 account2.email,
                 account2.avatar
             ),
@@ -217,7 +225,7 @@ class AccountControllerTest {
             interviewTypeIDs = request.interviewTypeIDs,
             detailsOfExpertise = request.detailsOfExpertise,
             linkedInUrl = request.linkedInUrl,
-            iban = request.iban?.replace(" ","")
+            iban = request.iban?.replace(" ", "")
         )
 
 
@@ -273,16 +281,17 @@ class AccountControllerTest {
             )
         )
 
-        `when`(accountService.searchAccountByNameOrRole("john", 3)).thenReturn(
-            expectedResult
+        val page = Pageable.ofSize(10)
+        `when`(accountService.searchAccountByNameOrRole("john", 3, page)).thenReturn(
+            PageImpl(expectedResult)
         )
 
         // When
-        val result = accountController.searchAccounts("john", 3)
+        val result = accountController.searchAccounts("john", 3, page)
 
         // Then
-        assertThat(result).isEqualTo(expectedResult)
-        verify(accountService, times(1)).searchAccountByNameOrRole("john", 3)
+        assertThat(result).isEqualTo(PageImpl(expectedResult))
+        verify(accountService, times(1)).searchAccountByNameOrRole("john", 3, page)
     }
 
 
@@ -346,11 +355,11 @@ class AccountControllerTest {
     }
 
     @Test
-    fun `test reset password calls service with provided arguments`(){
+    fun `test reset password calls service with provided arguments`() {
         val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
-        val request = ResetPasswordRequest("old","new")
-        accountController.changePassword(authentication,request)
+        val request = ResetPasswordRequest("old", "new")
+        accountController.changePassword(authentication, request)
 
-        verify(accountService, times(1)).changePassword(authentication,request)
+        verify(accountService, times(1)).changePassword(authentication, request)
     }
 }

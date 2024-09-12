@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.ZonedDateTime
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 @Repository
 interface AccountRepository : JpaRepository<Account, Long> {
@@ -89,6 +91,6 @@ interface AccountRepository : JpaRepository<Account, Long> {
         (LOWER(a.firstName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.firstName)),'%') OR LOWER(a.lastName) LIKE CONCAT('%',LOWER(COALESCE(:name, a.lastName)),'%'))
         """
     )
-    fun searchByNameOrRole(name: String?, type: AccountTypeEnum?): List<Account>
+    fun searchByNameOrRole(name: String?, type: AccountTypeEnum?, page: Pageable): Page<Account>
 
 }
