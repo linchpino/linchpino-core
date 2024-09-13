@@ -18,4 +18,5 @@ enum class ErrorCode(val status: HttpStatus) {
     TOO_MANY_ATTEMPT(HttpStatus.TOO_MANY_REQUESTS),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST),
     UNIQUE_ENTITY_VIOLATION(HttpStatus.BAD_REQUEST),
+    INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST),
 }

@@ -13,6 +13,7 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
 import java.util.*
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,6 +24,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 
@@ -164,4 +166,14 @@ class InterviewTypeServiceTest {
         verify(repository, times(1)).deleteById(1)
     }
 
+    @Test
+    fun `test delete interview types throws proper exception if constraint violation happens`(){
+
+        `when`(repository.deleteById(1)).thenThrow(DataIntegrityViolationException::class.java)
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            service.deleteInterviewType(1)
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INTEGRITY_VIOLATION)
+    }
 }
