@@ -1,0 +1,98 @@
+name: Build and Deploy Current Branch to linchpino-core-stage server
+run-name: Deploying to stage server
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+  
+jobs:
+  Build-and-push-to-GHCR:
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@main
+
+      - name: 'Login to GitHub Container Registry'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  Deploy-to-linchpino-core-server:
+      runs-on: core-stage-runner
+      environment: staging
+      permissions:
+        contents: read
+        packages: write
+      needs: Build-and-push-to-GHCR
+      steps:
+        - name: Connect to linchpino-core on GCP instance
+          env:
+            PR_NUMBER: ${{ github.event.number }}
+            ALLMYSECRETS: ${{ toJson(secrets) }}
+            ALLMYVARS: ${{ toJSON(vars) }}
+          run: |
+            echo "hi amin jan"
+            echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
+            echo $ALLMYVARS > /opt/.linchpino-core-vars
+            sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets && sudo sed -i "s/^ //g" /opt/.linchpino-core-secrets 
+            sudo  sed -i "s/[{|}]//g" /opt/.linchpino-core-vars && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-vars && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-vars && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-vars && sudo sed -i "s/^ //g" /opt/.linchpino-core-vars 
+            sudo echo "LANG=C.UTF-8" > /opt/actions-runner/.env && cat /opt/.linchpino-core-secrets /opt/.linchpino-core-vars >> /opt/actions-runner/.env
+            cd ${{ secrets.WORK_DIR }}
+            cat /opt/actions-runner/.env > .env
+            sudo git fetch --all
+            sudo git reset --hard
+            echo "GITHUB_REF_NAME :" ${GITHUB_REF_NAME}
+            echo "GITHUB_REF : "${GITHUB_REF##*/}
+            if [ ${GITHUB_REF##*/} == "merge" ]; then
+            currentBranch=pr-$PR_NUMBER
+            sudo git checkout origin/development --  docker-compose.yml
+            echo "the current branch is : " $currentBranch
+            else
+            currentBranch=$(echo ${GITHUB_REF_NAME} | sed "s/\//-/g")
+            echo "the current branch is : " $currentBranch
+            sudo git checkout origin/${GITHUB_REF_NAME}
+            sudo git checkout origin/${GITHUB_REF_NAME} --  docker-compose.yml
+            sudo git checkout origin/${GITHUB_REF_NAME} -- ./initscripts/init.sql
+            fi
+            sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
+            export POSTGRES_DB=$currentBranch
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            echo ${GITHUB_REF##*/}
+            if [ ${GITHUB_REF##*/} == "staging" ]; then
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-staging.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            fi
+            sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
+            sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
+            cat /opt/actions-runner/.env > .env
+            if [ ${GITHUB_REF##*/} == "development" ]; then
+            sudo sed -i "s/#-/"-"/" docker-compose.yml
+            fi
+            docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
+            docker-compose up -d
