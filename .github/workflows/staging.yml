@@ -1,4 +1,4 @@
-name: Build and Deploy Current Branch to linchpino-core-stage server
+name: Deploying to stage server
 run-name: Deploying to stage server
 on:
   push:
