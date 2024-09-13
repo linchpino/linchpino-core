@@ -7,6 +7,7 @@ import com.linchpino.core.dto.AddTimeSlotsRequest
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.MentorWithClosestSchedule
+import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.ResetPasswordRequest

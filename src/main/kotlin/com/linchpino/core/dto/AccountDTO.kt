@@ -175,4 +175,3 @@ data class LinkedInUserInfoResponse(
 )
 
 data class ResetPasswordRequest(@field:NotNull(message = "current password must be provided") val currentPassword: String,@field:PasswordPolicy val newPassword: String)
-
