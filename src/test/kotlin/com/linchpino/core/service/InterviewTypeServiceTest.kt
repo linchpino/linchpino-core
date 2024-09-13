@@ -166,14 +166,4 @@ class InterviewTypeServiceTest {
         verify(repository, times(1)).deleteById(1)
     }
 
-    @Test
-    fun `test delete interview types throws proper exception if constraint violation happens`(){
-
-        `when`(repository.deleteById(1)).thenThrow(DataIntegrityViolationException::class.java)
-        val ex = Assertions.assertThrows(LinchpinException::class.java){
-            service.deleteInterviewType(1)
-        }
-
-        assertThat(ex.errorCode).isEqualTo(ErrorCode.INTEGRITY_VIOLATION)
-    }
 }

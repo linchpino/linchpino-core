@@ -9,6 +9,10 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import java.lang.Exception
+import org.hibernate.exception.ConstraintViolationException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -22,6 +26,8 @@ class InterviewTypeService(
     private val jobPositionRepository: JobPositionRepository
 ) {
 
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
 
     @Transactional(readOnly = true)
     fun searchByName(name: String?, pageable: Pageable) = repository.search(name, pageable)
@@ -57,15 +63,6 @@ class InterviewTypeService(
     }
 
     fun deleteInterviewType(id: Long) {
-        try {
-            repository.deleteById(id)
-        } catch (ex: DataIntegrityViolationException) {
-            throw LinchpinException(
-                ErrorCode.INTEGRITY_VIOLATION,
-                "can not delete interview type with id: $id, it is used by other entities",
-                InterviewType::class.java.simpleName,
-                "removed"
-            )
-        }
+        repository.deleteById(id)
     }
 }
