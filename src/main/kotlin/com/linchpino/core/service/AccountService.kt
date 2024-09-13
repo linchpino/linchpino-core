@@ -9,10 +9,12 @@ import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.RegisterMentorResult
+import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
+import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
@@ -25,6 +27,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.Authentication
@@ -253,6 +256,25 @@ class AccountService(
             throw LinchpinException(ErrorCode.INVALID_PASSWORD, "currentPassword does not match")
         }
         account.password = passwordEncoder.encode(resetPassword.newPassword)
+        repository.save(account)
+    }
+
+    fun resetAccountPasswordByAdmin(request: ResetAccountPasswordRequest) {
+        val account = repository.findReferenceById(request.accountId)
+        account.password = passwordEncoder.encode(request.newPassword)
+        repository.save(account)
+    }
+
+    fun updateAccountByAdmin(request: UpdateAccountRequestByAdmin) {
+        val account = repository.findReferenceById(request.accountId)
+        account.roles().forEach { account.removeRole(it) }
+        roleRepository.findAll()
+            .filter { request.roles.contains(it.id) }
+            .forEach { account.addRole(it) }
+
+        request.status?.let {
+            account.status = AccountStatusEnum.entries.first { status -> status.value == it  }
+        }
         repository.save(account)
     }
 }
