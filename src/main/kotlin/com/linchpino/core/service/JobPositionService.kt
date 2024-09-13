@@ -7,6 +7,7 @@ import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.JobPositionRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -33,7 +34,11 @@ class JobPositionService(
         val jobPosition = JobPosition().apply {
             title = request.title
         }
-        jobPositionRepository.save(jobPosition)
+        try {
+            jobPositionRepository.save(jobPosition)
+        }catch (ex: DataIntegrityViolationException){
+            throw LinchpinException(ErrorCode.UNIQUE_ENTITY_VIOLATION,"job position with ${jobPosition.title} already exists.","title",JobPosition::class.java.simpleName)
+        }
         return JobPositionSearchResponse(jobPosition.id,jobPosition.title)
     }
 

@@ -171,4 +171,23 @@ class JobPositionAdminControllerTestIT {
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
     }
+
+    @WithMockJwt("john.doe@example.com", roles = [ADMIN])
+    @Test
+    fun `test create jobPosition fails if job position with the same name exists`() {
+        // Given
+        val jobPosition = JobPosition().apply { title = "Java Developer" }
+        jobPositionRepository.save(jobPosition)
+
+        val request = JobPositionCreateRequest(jobPosition.title)
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/admin/jobposition").contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Unique title violated for JobPosition"))
+    }
 }
