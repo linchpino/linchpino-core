@@ -13,9 +13,6 @@ import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import java.lang.Exception
-import org.hibernate.exception.ConstraintViolationException
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -39,8 +36,8 @@ class InterviewTypeService(
 
         val interviewType = InterviewType().apply {
             this.name = request.name
-            this.jobPositions.add(jobPosition)
         }
+        jobPosition.addInterviewType(interviewType)
         repository.save(interviewType)
         return InterviewTypeSearchResponse(interviewType.id, interviewType.name)
     }
@@ -67,8 +64,8 @@ class InterviewTypeService(
 
         request.jobPositionId?.let {
             jobPositionRepository.findByIdOrNull(it)?.let { jobPosition ->
-                interviewType.jobPositions.clear()
-                interviewType.jobPositions.add(jobPosition)
+                interviewType.jobPositions.forEach { jp -> jp.removeInterviewType(interviewType) }
+                jobPosition.addInterviewType(interviewType)
             }
         }
     }

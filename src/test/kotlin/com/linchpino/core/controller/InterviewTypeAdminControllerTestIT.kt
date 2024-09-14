@@ -157,8 +157,8 @@ class InterviewTypeAdminControllerTestIT {
         }
         val interviewType = InterviewType().apply {
             name = "Mock Interview"
-            jobPositions.add(jobPosition1)
         }
+        jobPosition1.addInterviewType(interviewType)
         interviewTypeRepository.save(interviewType)
 
         val request = InterviewTypeUpdateRequest("newTitle",null)
@@ -188,8 +188,8 @@ class InterviewTypeAdminControllerTestIT {
 
         val interviewType = InterviewType().apply {
             name = "Mock Interview"
-            jobPositions.add(jobPosition1)
         }
+        jobPosition1.addInterviewType(interviewType)
         interviewTypeRepository.save(interviewType)
 
         val request = InterviewTypeUpdateRequest(null,jobPosition2.id)
@@ -219,8 +219,8 @@ class InterviewTypeAdminControllerTestIT {
 
         val interviewType = InterviewType().apply {
             name = "Mock Interview"
-            jobPositions.add(jobPosition1)
         }
+        jobPosition1.addInterviewType(interviewType)
         interviewTypeRepository.save(interviewType)
 
         val request = InterviewTypeUpdateRequest("newTitle",jobPosition2.id)
