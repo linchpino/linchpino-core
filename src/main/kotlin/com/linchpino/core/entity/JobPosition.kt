@@ -7,9 +7,12 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 
 @Entity
-@Table(name = "JOB_POSITION")
+@Table(name = "JOB_POSITION",  uniqueConstraints = [
+    UniqueConstraint(name = "uc_jobposition_title", columnNames = ["TITLE"])
+])
 class JobPosition : AbstractEntity() {
     @Column(name = "TITLE")
     lateinit var title: String
