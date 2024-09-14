@@ -1,8 +1,10 @@
 package com.linchpino.core.service
 
 import com.linchpino.core.dto.InterviewTypeCreateRequest
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
@@ -46,7 +48,7 @@ class InterviewTypeService(
     @Transactional(readOnly = true)
     fun getInterviewTypeById(id: Long) = repository.findByIdOrNull(id)
         ?.let {
-            InterviewTypeSearchResponse(it.id, it.name)
+            InterviewTypeResponse(it.id, it.name, JobPositionSearchResponse(it.jobPositions.first().id,it.jobPositions.first().title))
         } ?: throw LinchpinException(
         ErrorCode.ENTITY_NOT_FOUND,
         "interviewType with id: $id does not exists",

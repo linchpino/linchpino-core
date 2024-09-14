@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.enums.AccountTypeEnum
@@ -102,15 +103,25 @@ class InterviewTypeAdminControllerTestIT {
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
     fun `test get interview type returns successfully`() {
+        val jobPosition = JobPosition().apply {
+            title = "test job position"
+        }
+        jobPositionRepository.save(jobPosition)
+
         val interviewType = InterviewType().apply {
             name = "Mock Interview"
+            jobPositions.add(jobPosition)
         }
+
         interviewTypeRepository.save(interviewType)
+
         mockMvc.perform(
             get("/api/admin/interviewtypes/{id}", interviewType.id)
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.title").value(interviewType.name))
+            .andExpect(jsonPath("$.jobPosition.id").value(jobPosition.id))
+            .andExpect(jsonPath("$.jobPosition.title").value(jobPosition.title))
     }
 
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])

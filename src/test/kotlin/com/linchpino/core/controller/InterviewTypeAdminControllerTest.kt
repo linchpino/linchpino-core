@@ -1,8 +1,10 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.dto.InterviewTypeCreateRequest
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.service.InterviewTypeService
@@ -41,8 +43,9 @@ class InterviewTypeAdminControllerTest {
     @Test
     fun `test get interview type by id calls service with provided arguments`() {
         // Given
+        val jobPositionSearchResponse = JobPositionSearchResponse(1, "jobPositionTitle")
         val id = 1L
-        `when`(service.getInterviewTypeById(id)).thenReturn(InterviewTypeSearchResponse(1, "title"))
+        `when`(service.getInterviewTypeById(id)).thenReturn(InterviewTypeResponse(1, "title",jobPositionSearchResponse))
 
         // When
         val result = controller.getInterviewType(id)
@@ -50,6 +53,8 @@ class InterviewTypeAdminControllerTest {
         // Then
         verify(service, times(1)).getInterviewTypeById(id)
         assertThat(result.title).isEqualTo("title")
+        assertThat(result.jobPosition.id).isEqualTo(1)
+        assertThat(result.jobPosition.title).isEqualTo("jobPositionTitle")
     }
 
     @Test

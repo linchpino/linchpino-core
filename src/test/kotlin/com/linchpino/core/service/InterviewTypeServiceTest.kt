@@ -2,8 +2,10 @@ package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeCreateRequest
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.exception.ErrorCode
@@ -104,13 +106,25 @@ class InterviewTypeServiceTest {
             id = 1
             name = "Mock Interview"
         }
+        val jobPosition = JobPosition().apply {
+            id = 1
+            title = "test job position"
+        }
+        expected.jobPositions.add(jobPosition)
+
         `when`(repository.findById(1)).thenReturn(Optional.of(expected))
 
         // When
         val result = service.getInterviewTypeById(1)
 
         // Then
-        assertThat(result).isEqualTo(InterviewTypeSearchResponse(expected.id, expected.name))
+        assertThat(result).isEqualTo(
+            InterviewTypeResponse(
+                expected.id,
+                expected.name,
+                JobPositionSearchResponse(jobPosition.id, jobPosition.title)
+            )
+        )
         verify(repository, times(1)).findById(1)
     }
 
