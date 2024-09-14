@@ -3,6 +3,9 @@ package com.linchpino.core.controller
 import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.service.InterviewTypeService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -10,6 +13,8 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
+import java.lang.Exception
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -98,6 +103,16 @@ class InterviewTypeAdminController(private val service: InterviewTypeService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     fun deleteInterviewTypeById(@PathVariable id: Long) {
-        service.deleteInterviewType(id)
+        try {
+            service.deleteInterviewType(id)
+        } catch (ex: DataIntegrityViolationException) {
+            throw LinchpinException(
+                "can not delete interview type with id: $id, it is used by other entities",
+                ex,
+                ErrorCode.INTEGRITY_VIOLATION,
+                InterviewType::class.java.simpleName,
+                "removed"
+            )
+        }
     }
 }

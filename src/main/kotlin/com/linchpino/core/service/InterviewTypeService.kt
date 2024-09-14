@@ -9,6 +9,11 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import java.lang.Exception
+import org.hibernate.exception.ConstraintViolationException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -21,6 +26,8 @@ class InterviewTypeService(
     private val jobPositionRepository: JobPositionRepository
 ) {
 
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
 
     @Transactional(readOnly = true)
     fun searchByName(name: String?, pageable: Pageable) = repository.search(name, pageable)
