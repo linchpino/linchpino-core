@@ -3,8 +3,11 @@ package com.linchpino.core.controller
 import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.service.InterviewTypeService
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -13,6 +16,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.dao.DataIntegrityViolationException
 
 @ExtendWith(MockitoExtension::class)
 class InterviewTypeAdminControllerTest {
@@ -67,5 +71,17 @@ class InterviewTypeAdminControllerTest {
 
         // Then
         verify(service, times(1)).deleteInterviewType(1)
+    }
+
+    @Test
+    fun `test delete interview types throws proper exception if constraint violation happens`(){
+
+        `when`(service.deleteInterviewType(1)).thenThrow(DataIntegrityViolationException::class.java)
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            controller.deleteInterviewTypeById(1)
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INTEGRITY_VIOLATION)
     }
 }
