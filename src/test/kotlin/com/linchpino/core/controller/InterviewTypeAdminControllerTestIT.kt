@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.dto.InterviewTypeCreateRequest
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
-import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.enums.AccountTypeEnum
@@ -152,13 +151,17 @@ class InterviewTypeAdminControllerTestIT {
 
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
-    fun `test update interview type`() {
+    fun `test update interview type title`() {
+        val jobPosition1 = JobPosition().apply {
+            title = "job position 1"
+        }
         val interviewType = InterviewType().apply {
             name = "Mock Interview"
+            jobPositions.add(jobPosition1)
         }
         interviewTypeRepository.save(interviewType)
 
-        val request = InterviewTypeUpdateRequest("newTitle")
+        val request = InterviewTypeUpdateRequest("newTitle",null)
 
         mockMvc.perform(
             put("/api/admin/interviewtypes/{id}", interviewType.id)
@@ -168,13 +171,77 @@ class InterviewTypeAdminControllerTestIT {
             .andExpect(status().isOk)
 
         assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.name).isEqualTo(request.name)
+        assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.jobPositions).containsExactly(jobPosition1)
     }
+
+    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test update interview type job position`() {
+        val jobPosition1 = JobPosition().apply {
+            title = "job position 1"
+        }
+        val jobPosition2 = JobPosition().apply {
+            title = "job position 2"
+        }
+        jobPositionRepository.save(jobPosition1)
+        jobPositionRepository.save(jobPosition2)
+
+        val interviewType = InterviewType().apply {
+            name = "Mock Interview"
+            jobPositions.add(jobPosition1)
+        }
+        interviewTypeRepository.save(interviewType)
+
+        val request = InterviewTypeUpdateRequest(null,jobPosition2.id)
+
+        mockMvc.perform(
+            put("/api/admin/interviewtypes/{id}", interviewType.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+
+        assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.name).isEqualTo(interviewType.name)
+        assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.jobPositions).containsExactly(jobPosition2)
+    }
+
+    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `test update interview type title and job position`() {
+        val jobPosition1 = JobPosition().apply {
+            title = "job position 1"
+        }
+        val jobPosition2 = JobPosition().apply {
+            title = "job position 2"
+        }
+        jobPositionRepository.save(jobPosition1)
+        jobPositionRepository.save(jobPosition2)
+
+        val interviewType = InterviewType().apply {
+            name = "Mock Interview"
+            jobPositions.add(jobPosition1)
+        }
+        interviewTypeRepository.save(interviewType)
+
+        val request = InterviewTypeUpdateRequest("newTitle",jobPosition2.id)
+
+        mockMvc.perform(
+            put("/api/admin/interviewtypes/{id}", interviewType.id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+
+        assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.name).isEqualTo(request.name)
+        assertThat(interviewTypeRepository.findByIdOrNull(interviewType.id)?.jobPositions).containsExactly(jobPosition2)
+    }
+
 
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
     fun `test update interview type returns 404 if entity not found`() {
 
-        val request = InterviewTypeUpdateRequest("newTitle")
+        val request = InterviewTypeUpdateRequest("newTitle",null)
 
         mockMvc.perform(
             put("/api/admin/interviewtypes/{id}", 100)

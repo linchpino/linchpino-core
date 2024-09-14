@@ -8,4 +8,4 @@ data class InterviewTypeResponse(val id: Long?, val title: String,val jobPositio
 
 data class InterviewTypeCreateRequest(@field:NotBlank val name: String, val jobPositionId: Long)
 
-data class InterviewTypeUpdateRequest(@field:NotBlank val name: String)
+data class InterviewTypeUpdateRequest(val name: String?,val jobPositionId: Long?)

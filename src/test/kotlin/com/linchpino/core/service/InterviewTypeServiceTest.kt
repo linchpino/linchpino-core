@@ -146,18 +146,29 @@ class InterviewTypeServiceTest {
     @Test
     fun `test update interview type`() {
         // Given
+        val jobPosition1 = JobPosition().apply {
+            id = 1
+            title = "jobPosition1"
+        }
+        val jobPosition2 = JobPosition().apply {
+            id = 2
+            title = "jobPosition2"
+        }
         val interviewType = InterviewType().apply {
             id = 1
             name = "Mock Interview"
+            jobPositions.add(jobPosition1)
         }
         `when`(repository.findById(1)).thenReturn(Optional.of(interviewType))
+        `when`(jobPositionRepository.findById(2)).thenReturn(Optional.of(jobPosition2))
 
         // When
-        service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+        service.updateInterviewType(1, InterviewTypeUpdateRequest("newName",2))
 
         // Then
         verify(repository, times(1)).findById(1)
         assertThat(interviewType.name).isEqualTo("newName")
+        assertThat(interviewType.jobPositions.first()).isEqualTo(jobPosition2)
     }
 
     @Test
@@ -167,7 +178,7 @@ class InterviewTypeServiceTest {
 
         // When
         val ex = assertThrows<LinchpinException> {
-            service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+            service.updateInterviewType(1, InterviewTypeUpdateRequest("newName",null))
         }
 
         // Then

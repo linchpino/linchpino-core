@@ -60,7 +60,7 @@ class InterviewTypeAdminControllerTest {
     @Test
     fun `test update interview type calls service with provided arguments`() {
         // Given
-        val request = InterviewTypeUpdateRequest("newTitle")
+        val request = InterviewTypeUpdateRequest("newTitle",1)
 
         // When
         controller.updateInterviewType(1, request)

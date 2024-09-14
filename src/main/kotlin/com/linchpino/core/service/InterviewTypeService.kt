@@ -61,7 +61,16 @@ class InterviewTypeService(
             "interviewType with id: $id does not exists",
             InterviewType::class.java.simpleName
         )
-        interviewType.name = request.name
+        request.name?.let {
+            interviewType.name = it
+        }
+
+        request.jobPositionId?.let {
+            jobPositionRepository.findByIdOrNull(it)?.let { jobPosition ->
+                interviewType.jobPositions.clear()
+                interviewType.jobPositions.add(jobPosition)
+            }
+        }
     }
 
     fun deleteInterviewType(id: Long) {
