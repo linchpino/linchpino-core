@@ -20,6 +20,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.dao.DataIntegrityViolationException
 
+
 @ExtendWith(MockitoExtension::class)
 class InterviewTypeAdminControllerTest {
 
