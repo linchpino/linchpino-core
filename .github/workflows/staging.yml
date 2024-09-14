@@ -1,55 +1,23 @@
-name: Build and Deploy Current Branch to linchpino-core-dev server
-run-name: Deploying to Development server
+name: Deploying to stage server
+run-name: Deploying to stage server
 on:
-  pull_request:
-      branches: ['**']
-      types: [opened,reopened]
+  push:
+    branches:
+      - staging
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+  
 jobs:
-  Sonar-Build:
-    runs-on: ubuntu-latest
-    outputs:
-      output1: ${{ steps.sonar-build-status.outputs.coverage }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-      - name: Build with Maven cloud
-        id: sonar-build-status
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=linchpino_linchpino-core \
-          -Dsonar.organization=linchpino \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONARCLOUD_TOKEN \
-          -Dsonar.coverage.exclusions=src/main/kotlin/com/linchpino/core/security/SecurityConfig*,src/main/kotlin/com/linchpino/core/exception/*,src/main/kotlin/com/linchpino/core/service/SpaceServiceProvider* \
-          -Dsonar.verbose=true
-          echo "coverage=$(grep -o -i -P '.{0,2}\%.{0,0}' target/site/jacoco/index.html | head -1 | cut -c1-2)" >> $GITHUB_OUTPUT
-        env:
-          GIT_HUB_TOKEN: ${{ secrets.GIT_HUB_TOKEN }}
-          SONARCLOUD_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      - name: Check on failures
-        if: steps.sonar-build-status.outcome != 'success' ||  steps.sonar-build-status.outputs.coverage < 50
-        run: |
-          echo "outcome":  ${{ steps.sonar-build-status.outcome }}
-          echo "coverage": ${{ steps.sonar-build-status.outputs.coverage }}
-          exit 1
-
   Build-and-push-to-GHCR:
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       packages: write
-    needs: Sonar-Build
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@main
@@ -77,7 +45,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   Deploy-to-linchpino-core-server:
-      runs-on: core-dev-runner
+      runs-on: core-stage-runner
+      environment: staging
       permissions:
         contents: read
         packages: write
@@ -89,6 +58,7 @@ jobs:
             ALLMYSECRETS: ${{ toJson(secrets) }}
             ALLMYVARS: ${{ toJSON(vars) }}
           run: |
+            echo "hi amin jan"
             echo $ALLMYSECRETS > /opt/.linchpino-core-secrets 
             echo $ALLMYVARS > /opt/.linchpino-core-vars
             sudo sed -i "s/[{|}]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/\": /=/g" /opt/.linchpino-core-secrets && sudo sed -i "s/[\"]//g" /opt/.linchpino-core-secrets && sudo sed -i "s/,/\\n/g" /opt/.linchpino-core-secrets && sudo sed -i "s/^ //g" /opt/.linchpino-core-secrets 
@@ -114,11 +84,14 @@ jobs:
             sudo sed -i "s/POSTGRES_DB=.*/POSTGRES_DB=$currentBranch/" /opt/actions-runner/.env
             export POSTGRES_DB=$currentBranch
             sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-dev.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
-            export POSTGRES_URL=jdbc:postgresql://api-dev.linchpino.com:5432/$currentBranch
+            echo ${GITHUB_REF##*/}
+            if [ ${GITHUB_REF##*/} == "staging" ]; then
+            sudo sed -i "s/POSTGRES_URL=.*/POSTGRES_URL=jdbc:postgresql:\/\/api-staging.linchpino.com:5432\/$currentBranch/" /opt/actions-runner/.env
+            fi
             sudo sed -i "s/\$currentbranches/$currentBranch/g" ./initscripts/init.sql
             sudo sed -i "s/\/linchpino-core:.*/\/linchpino-core:$currentBranch/" docker-compose.yml
             cat /opt/actions-runner/.env > .env
-            if [ ${GITHUB_REF##*/} == "development" ]; then
+            if [ ${GITHUB_REF##*/} == "staging" ]; then
             sudo sed -i "s/#-/"-"/" docker-compose.yml
             fi
             docker-compose stop && docker-compose rm -f linchpino-core && docker-compose pull linchpino-core
