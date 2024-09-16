@@ -15,11 +15,10 @@ interface InterviewTypeRepository : JpaRepository<InterviewType, Long> {
 
     @Query(
         """
-        SELECT new com.linchpino.core.dto.InterviewTypeSearchResponse(ip.id, ip.name)
-        FROM InterviewType ip
-        WHERE (:name IS NULL OR ip.name ILIKE %:name%)
+        SELECT it FROM InterviewType it join fetch it.jobPositions jp
+        WHERE (:name IS NULL OR it.name ILIKE %:name%)
     """
     )
-    fun search(name: String?, pageable: Pageable): Page<InterviewTypeSearchResponse>
+    fun search(name: String?, pageable: Pageable): Page<InterviewType>
 
 }

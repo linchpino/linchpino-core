@@ -48,7 +48,14 @@ class InterviewTypeServiceTest {
         // Given
         val nameCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
         val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
-
+        `when`(repository.search("interviewTitle",Pageable.ofSize(10))).thenReturn(PageImpl(listOf(InterviewType().apply {
+            id = 1
+            name = "interviewTitle"
+            jobPositions.add(JobPosition().apply {
+                id = 1
+                title = "jobTitle"
+            })
+        })))
         // When
         service.searchByName("interviewTitle", Pageable.ofSize(10))
 
@@ -61,19 +68,29 @@ class InterviewTypeServiceTest {
         assertThat(page.pageSize).isEqualTo(10)
     }
 
+
     @Test
     fun `test search returns page of interviewTypes`() {
         // Given
-        val page = PageImpl(mutableListOf(InterviewTypeSearchResponse(1, "InterviewType")))
+        val expectedPage = PageImpl(mutableListOf(InterviewTypeResponse(1,"interviewType1", JobPositionSearchResponse(1,"job1"))))
+        val page = PageImpl(mutableListOf(InterviewType().apply {
+            id = 1
+            name = "interviewType1"
+            jobPositions.add(JobPosition().apply {
+                id = 1
+                title = "job1"
+            })
+        }))
+
         `when`(repository.search("interviewTitle", Pageable.ofSize(10))).thenReturn(page)
 
         // When
         val result = service.searchByName("interviewTitle", Pageable.ofSize(10))
 
         // Then
-        assertThat(result).isEqualTo(page)
-
+        assertThat(result.content).isEqualTo(expectedPage.content)
     }
+
 
     @Test
     fun `test create interviewType calls repository with provided arguments`() {

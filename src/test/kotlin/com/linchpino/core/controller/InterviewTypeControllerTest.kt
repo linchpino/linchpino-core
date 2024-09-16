@@ -1,7 +1,9 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.captureNonNullable
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.service.InterviewTypeService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -48,7 +50,7 @@ class InterviewTypeControllerTest{
     @Test
     fun `test search returns page of interviewTypes`(){
         // Given
-        val page = PageImpl(mutableListOf(InterviewTypeSearchResponse(1,"InterviewType")))
+        val page = PageImpl(mutableListOf(InterviewTypeResponse(1,"InterviewType", JobPositionSearchResponse(1,"job1"))))
         `when`(service.searchByName("interviewTitle", Pageable.ofSize(10))).thenReturn(page)
 
         // When
