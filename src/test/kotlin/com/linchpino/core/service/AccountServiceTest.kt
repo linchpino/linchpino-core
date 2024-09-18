@@ -7,14 +7,17 @@ import com.linchpino.core.dto.CreateAccountResult
 import com.linchpino.core.dto.LinkedInUserInfoResponse
 import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.PaymentMethodRequest
+import com.linchpino.core.dto.PaymentMethodResponse
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.entity.Role
 import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.AccountStatusEnum
@@ -678,9 +681,128 @@ class AccountServiceTest {
         verify(repository, times(1)).save(accountCaptor.capture())
         val savedAccount = accountCaptor.value
 
-        assertThat(savedAccount.roles().map { it.title }).containsExactlyInAnyOrderElementsOf(listOf(AccountTypeEnum.GUEST, AccountTypeEnum.JOB_SEEKER))
+        assertThat(
+            savedAccount.roles().map { it.title }).containsExactlyInAnyOrderElementsOf(
+            listOf(
+                AccountTypeEnum.GUEST,
+                AccountTypeEnum.JOB_SEEKER
+            )
+        )
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.DEACTIVATED)
     }
 
+    @Test
+    fun `should update all updatable profile fields`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = UpdateProfileRequest(
+            firstName = "updated firstName",
+            lastName = "updated lastName",
+            detailsOfExpertise = "updated details",
+            iban = "updated iban",
+            linkedInUrl = "updated linkedInUrl",
+            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0)
+        )
+        val account = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            email = "john.doe@gmail.com"
+            linkedInUrl = "linkedinurl"
+            detailsOfExpertise = "details"
+            iban = "GB82WEST12345698765432"
+        }
+        val paymentMethod = PaymentMethod().apply {
+            id = account.id
+            type = PaymentMethodType.FREE
+        }
+
+        val paymentMethodCaptor: ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val paymentMethodRequestCaptor:ArgumentCaptor<PaymentMethodRequest> =ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
+        `when`(paymentService.findByIdOrNull(paymentMethod.id!!)).thenReturn(paymentMethod)
+        `when`(repository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(account)
+
+        // When
+        val result = accountService.updateProfile(authentication, request)
+
+        // Then
+        verify(paymentService, times(1)).update(paymentMethodCaptor.captureNonNullable())
+        verify(paymentService, times(0)).savePaymentMethod(paymentMethodRequestCaptor.captureNonNullable(), accountCaptor.captureNonNullable())
+        verify(repository, times(1)).save(accountCaptor.captureNonNullable())
+
+        assertThat(paymentMethodCaptor.value.type).isEqualTo(request.paymentMethodRequest?.type)
+        assertThat(paymentMethodCaptor.value.fixRate).isEqualTo(request.paymentMethodRequest?.fixRate)
+        assertThat(result.id).isEqualTo(account.id)
+        assertThat(result.firstName).isEqualTo(request.firstName)
+        assertThat(result.lastName).isEqualTo(request.lastName)
+        assertThat(result.detailsOfExpertise).isEqualTo(request.detailsOfExpertise)
+        assertThat(result.iban).isEqualTo(request.iban)
+        assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
+        assertThat(result.paymentMethod).isEqualTo(
+            PaymentMethodResponse.FixPricePaymentMethod(
+                PaymentMethodType.FIX_PRICE,
+                50.0
+            )
+        )
+    }
+
+    @Test
+    fun `test update should update all updatable profile fields and creates payment method if non exists`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = UpdateProfileRequest(
+            firstName = "updated firstName",
+            lastName = "updated lastName",
+            detailsOfExpertise = "updated details",
+            iban = "updated iban",
+            linkedInUrl = "updated linkedInUrl",
+            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0)
+        )
+        val account = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            email = "john.doe@gmail.com"
+            linkedInUrl = "linkedinurl"
+            detailsOfExpertise = "details"
+            iban = "GB82WEST12345698765432"
+        }
+
+        val paymentMethod = PaymentMethod().apply {
+            id = account.id
+            type = PaymentMethodType.FIX_PRICE
+            fixRate = 50.0
+        }
+
+        val paymentMethodCaptor: ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
+        val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val paymentMethodRequestCaptor:ArgumentCaptor<PaymentMethodRequest> =ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
+        `when`(paymentService.findByIdOrNull(account.id!!)).thenReturn(null)
+        `when`(repository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(account)
+        `when`(paymentService.savePaymentMethod(paymentMethodRequestCaptor.captureNonNullable(), accountCaptor.captureNonNullable())).thenReturn(paymentMethod)
+
+        // When
+        val result = accountService.updateProfile(authentication, request)
+
+        // Then
+        verify(paymentService, times(0)).update(paymentMethodCaptor.captureNonNullable())
+        verify(repository, times(1)).save(accountCaptor.captureNonNullable())
+
+        assertThat(paymentMethodRequestCaptor.value.type).isEqualTo(PaymentMethodType.FIX_PRICE)
+        assertThat(paymentMethodRequestCaptor.value.fixRate).isEqualTo(50.0)
+        assertThat(result.id).isEqualTo(account.id)
+        assertThat(result.firstName).isEqualTo(request.firstName)
+        assertThat(result.lastName).isEqualTo(request.lastName)
+        assertThat(result.detailsOfExpertise).isEqualTo(request.detailsOfExpertise)
+        assertThat(result.iban).isEqualTo(request.iban)
+        assertThat(result.linkedInUrl).isEqualTo(request.linkedInUrl)
+        assertThat(result.paymentMethod).isEqualTo(
+            PaymentMethodResponse.FixPricePaymentMethod(
+                PaymentMethodType.FIX_PRICE,
+                50.0
+            )
+        )
+    }
 
 }

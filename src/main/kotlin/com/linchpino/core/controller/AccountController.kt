@@ -13,6 +13,8 @@ import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.dto.UpdateAccountRequest
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.ScheduleService
@@ -226,5 +228,10 @@ class AccountController(
     @PutMapping("/profile/change-password")
     fun changePassword(authentication: Authentication, @Valid @RequestBody resetPassword: ResetPasswordRequest) {
         accountService.changePassword(authentication, resetPassword)
+    }
+
+    @PutMapping("/profile")
+    fun updateAccount(authentication: Authentication,@Valid @RequestBody request: UpdateProfileRequest): AccountSummary {
+        return accountService.updateProfile(authentication,request)
     }
 }

@@ -15,6 +15,7 @@ import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
@@ -273,8 +274,36 @@ class AccountService(
             .forEach { account.addRole(it) }
 
         request.status?.let {
-            account.status = AccountStatusEnum.entries.first { status -> status.value == it  }
+            account.status = AccountStatusEnum.entries.first { status -> status.value == it }
         }
         repository.save(account)
+    }
+
+    fun updateProfile(authentication: Authentication, request: UpdateProfileRequest): AccountSummary {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
+        var paymentMethod = paymentService.findByIdOrNull(account.id!!)
+        with(request) {
+            firstName?.let { account.firstName = it }
+            lastName?.let { account.lastName = it }
+            detailsOfExpertise?.let { account.detailsOfExpertise = it }
+            iban?.let { account.iban = it }
+            linkedInUrl?.let { account.linkedInUrl = it }
+            paymentMethodRequest?.let { paymentRequest ->
+                if (paymentMethod == null) {
+                    paymentMethod = paymentService.savePaymentMethod(paymentRequest, account)
+                } else {
+                    with(paymentMethod!!) {
+                        type = paymentRequest.type!!
+                        maxPayment = paymentRequest.maxPayment
+                        minPayment = paymentRequest.minPayment
+                        fixRate = paymentRequest.fixRate
+                        paymentService.update(this)
+                    }
+                }
+            }
+        }
+        repository.save(account)
+        return account.toSummary(paymentMethod)
     }
 }
