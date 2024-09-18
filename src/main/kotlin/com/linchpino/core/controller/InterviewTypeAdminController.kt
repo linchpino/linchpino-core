@@ -1,6 +1,7 @@
 package com.linchpino.core.controller
 
 import com.linchpino.core.dto.InterviewTypeCreateRequest
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
 import com.linchpino.core.entity.InterviewType
@@ -65,7 +66,7 @@ class InterviewTypeAdminController(private val service: InterviewTypeService) {
         ]
     )
     @GetMapping("/{id}")
-    fun getInterviewType(@PathVariable id: Long): InterviewTypeSearchResponse {
+    fun getInterviewType(@PathVariable id: Long): InterviewTypeResponse {
         return service.getInterviewTypeById(id)
     }
 

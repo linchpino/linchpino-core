@@ -2,8 +2,10 @@ package com.linchpino.core.service
 
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.InterviewTypeCreateRequest
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.dto.InterviewTypeSearchResponse
 import com.linchpino.core.dto.InterviewTypeUpdateRequest
+import com.linchpino.core.dto.JobPositionSearchResponse
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.exception.ErrorCode
@@ -46,7 +48,14 @@ class InterviewTypeServiceTest {
         // Given
         val nameCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
         val pageCaptor: ArgumentCaptor<Pageable> = ArgumentCaptor.forClass(Pageable::class.java)
-
+        `when`(repository.search("interviewTitle",Pageable.ofSize(10))).thenReturn(PageImpl(listOf(InterviewType().apply {
+            id = 1
+            name = "interviewTitle"
+            jobPositions.add(JobPosition().apply {
+                id = 1
+                title = "jobTitle"
+            })
+        })))
         // When
         service.searchByName("interviewTitle", Pageable.ofSize(10))
 
@@ -59,19 +68,29 @@ class InterviewTypeServiceTest {
         assertThat(page.pageSize).isEqualTo(10)
     }
 
+
     @Test
     fun `test search returns page of interviewTypes`() {
         // Given
-        val page = PageImpl(mutableListOf(InterviewTypeSearchResponse(1, "InterviewType")))
+        val expectedPage = PageImpl(mutableListOf(InterviewTypeResponse(1,"interviewType1", JobPositionSearchResponse(1,"job1"))))
+        val page = PageImpl(mutableListOf(InterviewType().apply {
+            id = 1
+            name = "interviewType1"
+            jobPositions.add(JobPosition().apply {
+                id = 1
+                title = "job1"
+            })
+        }))
+
         `when`(repository.search("interviewTitle", Pageable.ofSize(10))).thenReturn(page)
 
         // When
         val result = service.searchByName("interviewTitle", Pageable.ofSize(10))
 
         // Then
-        assertThat(result).isEqualTo(page)
-
+        assertThat(result.content).isEqualTo(expectedPage.content)
     }
+
 
     @Test
     fun `test create interviewType calls repository with provided arguments`() {
@@ -104,13 +123,25 @@ class InterviewTypeServiceTest {
             id = 1
             name = "Mock Interview"
         }
+        val jobPosition = JobPosition().apply {
+            id = 1
+            title = "test job position"
+        }
+        expected.jobPositions.add(jobPosition)
+
         `when`(repository.findById(1)).thenReturn(Optional.of(expected))
 
         // When
         val result = service.getInterviewTypeById(1)
 
         // Then
-        assertThat(result).isEqualTo(InterviewTypeSearchResponse(expected.id, expected.name))
+        assertThat(result).isEqualTo(
+            InterviewTypeResponse(
+                expected.id,
+                expected.name,
+                JobPositionSearchResponse(jobPosition.id, jobPosition.title)
+            )
+        )
         verify(repository, times(1)).findById(1)
     }
 
@@ -132,18 +163,29 @@ class InterviewTypeServiceTest {
     @Test
     fun `test update interview type`() {
         // Given
+        val jobPosition1 = JobPosition().apply {
+            id = 1
+            title = "jobPosition1"
+        }
+        val jobPosition2 = JobPosition().apply {
+            id = 2
+            title = "jobPosition2"
+        }
         val interviewType = InterviewType().apply {
             id = 1
             name = "Mock Interview"
+            jobPositions.add(jobPosition1)
         }
         `when`(repository.findById(1)).thenReturn(Optional.of(interviewType))
+        `when`(jobPositionRepository.findById(2)).thenReturn(Optional.of(jobPosition2))
 
         // When
-        service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+        service.updateInterviewType(1, InterviewTypeUpdateRequest("newName",2))
 
         // Then
         verify(repository, times(1)).findById(1)
         assertThat(interviewType.name).isEqualTo("newName")
+        assertThat(interviewType.jobPositions.first()).isEqualTo(jobPosition2)
     }
 
     @Test
@@ -153,7 +195,7 @@ class InterviewTypeServiceTest {
 
         // When
         val ex = assertThrows<LinchpinException> {
-            service.updateInterviewType(1, InterviewTypeUpdateRequest("newName"))
+            service.updateInterviewType(1, InterviewTypeUpdateRequest("newName",null))
         }
 
         // Then
