@@ -16,6 +16,7 @@ import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Schedule
@@ -361,5 +362,26 @@ class AccountControllerTest {
         accountController.changePassword(authentication, request)
 
         verify(accountService, times(1)).changePassword(authentication, request)
+    }
+
+
+    @Test
+    fun `test update profile calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = UpdateProfileRequest(
+            "firstName",
+            "lastName",
+            "detailsOfExpertise",
+            "iban",
+            "linkedInUrl",
+            PaymentMethodRequest(PaymentMethodType.FREE)
+        )
+
+        // When
+        accountController.updateAccount(authentication, request)
+
+        // Then
+        verify(accountService, times(1)).updateProfile(authentication, request)
     }
 }
