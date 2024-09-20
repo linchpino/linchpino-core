@@ -275,7 +275,9 @@ class AccountControllerTest {
         // Given
         val expectedResult = listOf(
             SearchAccountResult(
-                "John", "Doe",
+                100,
+                "John",
+                "Doe",
                 listOf("MENTOR"),
                 "johndoe@example.com",
                 "avatar.png"

@@ -331,6 +331,7 @@ class AccountServiceTest {
             PageImpl(
                 listOf(
                     SearchAccountResult(
+                        account.id,
                         account.firstName,
                         account.lastName,
                         account.roles().map { it.title.name },

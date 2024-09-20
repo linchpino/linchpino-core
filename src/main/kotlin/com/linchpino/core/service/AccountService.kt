@@ -212,6 +212,7 @@ class AccountService(
         return repository.searchByNameOrRole(name, accountType, page)
             .map {
                 SearchAccountResult(
+                    it.id,
                     it.firstName,
                     it.lastName,
                     it.roles().map { r -> r.title.name },

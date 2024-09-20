@@ -174,6 +174,7 @@ class AccountController(
         return scheduleService.addSchedule(request, auth)
     }
 
+    @Deprecated(message = "Marked for removal. This API is available under admin path")
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     @ApiResponses(

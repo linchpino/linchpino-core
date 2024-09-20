@@ -171,6 +171,7 @@ data class RegisterMentorResult(
 )
 
 data class SearchAccountResult(
+    val id: Long?,
     val firstName: String?,
     val lastName: String?,
     val roles: List<String>,
