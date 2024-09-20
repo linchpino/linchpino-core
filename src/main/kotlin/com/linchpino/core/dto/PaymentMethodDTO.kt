@@ -1,5 +1,9 @@
 package com.linchpino.core.dto
 
+import com.linchpino.core.dto.PaymentMethodResponse.FixPricePaymentMethod
+import com.linchpino.core.dto.PaymentMethodResponse.FreePaymentMethod
+import com.linchpino.core.dto.PaymentMethodResponse.PayAsYouGoPaymentMethod
+import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.enums.PaymentMethodType
 import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
@@ -13,6 +17,23 @@ data class PaymentMethodRequest(
     val maxPayment: Double? = null,
     val fixRate: Double? = null
 )
+
+sealed interface PaymentMethodResponse {
+    data class FreePaymentMethod(val type: PaymentMethodType) : PaymentMethodResponse
+    data class FixPricePaymentMethod(val type: PaymentMethodType, val fixRate: Double?) : PaymentMethodResponse
+    data class PayAsYouGoPaymentMethod(val type: PaymentMethodType, val minPayment: Double?, val maxPayment: Double?) :
+        PaymentMethodResponse
+}
+
+fun PaymentMethod.toResponse(): PaymentMethodResponse {
+    return when (type) {
+        PaymentMethodType.PAY_AS_YOU_GO -> PayAsYouGoPaymentMethod(type, minPayment, maxPayment)
+
+        PaymentMethodType.FIX_PRICE -> FixPricePaymentMethod(type, fixRate)
+
+        PaymentMethodType.FREE -> FreePaymentMethod(type)
+    }
+}
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
@@ -82,5 +103,23 @@ class PaymentMethodValidator : ConstraintValidator<ValidPaymentMethod, PaymentMe
         }
 
         return isValid
+    }
+}
+
+
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.RUNTIME)
+@Constraint(validatedBy = [PaymentMethodValidatorUpdate::class])
+annotation class ValidPaymentMethodUpdate(
+    val message: String = "Invalid payment method details",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Any>> = []
+)
+
+class PaymentMethodValidatorUpdate : ConstraintValidator<ValidPaymentMethodUpdate, PaymentMethodRequest> {
+
+    override fun isValid(paymentMethodDTO: PaymentMethodRequest?, context: ConstraintValidatorContext): Boolean {
+        if (paymentMethodDTO == null) return true
+        return PaymentMethodValidator().isValid(paymentMethodDTO, context)
     }
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.jupiter.MockitoExtension
 
@@ -144,5 +145,25 @@ class PaymentServiceTest{
         assertThat(savedPaymentMethod.maxPayment).isNull()
         assertThat(savedPaymentMethod.fixRate).isNull()
         assertThat(savedPaymentMethod.account).isEqualTo(account)
+    }
+
+
+    @Test
+    fun `should update payment method`(){
+        // Given
+        val paymentMethod = PaymentMethod().apply {
+            id = 1
+            type = PaymentMethodType.FREE
+        }
+        val paymentMethodCaptor:ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
+
+        // When
+        paymentService.update(paymentMethod)
+
+        // Then
+        verify(paymentMethodRepository, times(1)).save(paymentMethodCaptor.capture())
+
+        assertThat(paymentMethodCaptor.value.id).isEqualTo(1)
+        assertThat(paymentMethodCaptor.value.type).isEqualTo(PaymentMethodType.FREE)
     }
 }

@@ -12,6 +12,7 @@ import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
@@ -419,7 +420,7 @@ class AccountControllerTestIT {
             paymentMethodRequest = paymentMethodRequest,
             iban = "GB82 WEST 1234 5698 7654 32"
         )
-        val expectedIBAN = request.iban?.trim()?.replace(" ","")?.uppercase()
+        val expectedIBAN = request.iban?.trim()?.replace(" ", "")?.uppercase()
 
         mockMvc.perform(
             post("/api/accounts/mentors")
@@ -980,7 +981,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password resets password successfully`(){
+    fun `test reset password resets password successfully`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -989,7 +990,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("secret","secret2")
+        val request = ResetPasswordRequest("secret", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1003,7 +1004,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password throws exception if new password does not meet password policy`(){
+    fun `test reset password throws exception if new password does not meet password policy`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1012,7 +1013,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("secret","s2")
+        val request = ResetPasswordRequest("secret", "s2")
 
         // When & Then
         mockMvc.perform(
@@ -1028,7 +1029,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password throws exception if currentPassword does not match currentPassword in the request`(){
+    fun `test reset password throws exception if currentPassword does not match currentPassword in the request`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1037,7 +1038,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+        val request = ResetPasswordRequest("wrongCurrentPassword", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1052,7 +1053,7 @@ class AccountControllerTestIT {
 
 
     @Test
-    fun `test reset password can not be called without authentication`(){
+    fun `test reset password can not be called without authentication`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1061,7 +1062,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+        val request = ResetPasswordRequest("wrongCurrentPassword", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1072,6 +1073,79 @@ class AccountControllerTestIT {
             .andExpect(status().isUnauthorized)
     }
 
+    @WithMockJwt(username = "john.doe@example.com")
+    @Test
+    fun `test update profile`() {
+        // given
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "john.doe@example.com"
+            linkedInUrl = "linkedin.com/in/john"
+            detailsOfExpertise = "john's details"
+            iban = "iban"
+        }
+        accountRepository.save(john)
+        val paymentMethod = PaymentMethod().apply {
+            type = PaymentMethodType.FREE
+            account = john
+        }
+
+        entityManager.persist(paymentMethod)
+
+        val request = UpdateProfileRequest(
+            "JohnUpdate",
+            "DoeUpdate",
+            "detailsUpdate",
+            "GB82WEST12345698765432",
+            "linkedin.com/in/johnUpdate",
+            PaymentMethodRequest(
+                PaymentMethodType.FIX_PRICE,
+                fixRate = 50.0
+            )
+        )
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstName").value(request.firstName))
+            .andExpect(jsonPath("$.lastName").value(request.lastName))
+            .andExpect(jsonPath("$.email").value(john.email))
+            .andExpect(jsonPath("$.iban").value(request.iban))
+            .andExpect(jsonPath("$.linkedInUrl").value(request.linkedInUrl))
+            .andExpect(jsonPath("$.detailsOfExpertise").value(request.detailsOfExpertise))
+            .andExpect(jsonPath("$.paymentMethod.type").value(request.paymentMethodRequest?.type?.name))
+            .andExpect(jsonPath("$.paymentMethod.fixRate").value(request.paymentMethodRequest?.fixRate))
+
+    }
+
+    @Test
+    fun `update profile needs authentication`() {
+        // Given
+        val request = UpdateProfileRequest(
+            "JohnUpdate",
+            "DoeUpdate",
+            "detailsUpdate",
+            "GB82WEST12345698765432",
+            "linkedin.com/in/johnUpdate",
+            PaymentMethodRequest(
+                PaymentMethodType.FIX_PRICE,
+                fixRate = 50.0
+            )
+        )
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isUnauthorized)
+    }
 
     private fun saveAccountsWithRole() {
         val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)
