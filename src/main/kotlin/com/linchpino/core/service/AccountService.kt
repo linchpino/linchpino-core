@@ -16,17 +16,21 @@ import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.UpdateProfileRequest
+import com.linchpino.core.dto.ValidWindow
+import com.linchpino.core.dto.hasOverlapWith
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
@@ -55,8 +59,10 @@ class AccountService(
     private val emailService: EmailService,
     private val storageService: StorageService,
     private val linkedInService: LinkedInService,
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
+    private val mentorTimeSlotRepository: MentorTimeSlotRepository
 ) {
+
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val request = SaveAccountRequest(
@@ -87,10 +93,17 @@ class AccountService(
             else -> date.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT)
         }
 
-        val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
+        val accountsWithValidWindow = repository.closestMentorSchedule(selectedTime, interviewTypeId)
             .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
             .filter { it.second != null }
-            .map {
+
+        val accountIds = accountsWithValidWindow.map { it.first.id!! }
+        val bookedTimeSlots = mentorTimeSlotRepository.findByAccountIdsAndDate(accountIds, selectedDate)
+
+        val mentors = accountsWithValidWindow
+            .filter { (account, validWindow) ->
+                accountsWithBookedTimeSlot(account, bookedTimeSlots, validWindow!!)
+            }.map {
                 MentorWithClosestSchedule(
                     it.first.id,
                     it.first.firstName,
@@ -102,6 +115,19 @@ class AccountService(
             }
         return mentors
     }
+
+    private fun accountsWithBookedTimeSlot(
+        account: Account,
+        bookedTimeSlots: List<MentorTimeSlot>,
+        validWindow: ValidWindow
+    ): Boolean {
+        if (bookedTimeSlots.isEmpty()) return true
+        return bookedTimeSlots.any { timeSlot ->
+            if (timeSlot.account?.id != account.id) true
+            else !ValidWindow(timeSlot.fromTime, timeSlot.toTime).hasOverlapWith(validWindow)
+        }
+    }
+
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
         val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)

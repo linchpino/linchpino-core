@@ -5,8 +5,13 @@ import com.linchpino.core.entity.Schedule
 import com.linchpino.core.enums.RecurrenceType
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 data class ValidWindow(val start: ZonedDateTime, val end: ZonedDateTime)
+
+fun ValidWindow.hasOverlapWith(window: ValidWindow) =
+    start.truncatedTo(ChronoUnit.MINUTES).isBefore(window.end.truncatedTo(ChronoUnit.MINUTES))
+        && window.start.truncatedTo(ChronoUnit.MINUTES).isBefore(end.truncatedTo(ChronoUnit.MINUTES))
 
 data class ScheduleRequest(
     val startTime: ZonedDateTime,
@@ -25,7 +30,7 @@ fun ScheduleRequest.toSchedule(account: Account): Schedule {
     schedule.recurrenceType = this.recurrenceType
     schedule.interval = this.interval
     schedule.endTime = this.endTime
-    if (this.recurrenceType == RecurrenceType.WEEKLY){
+    if (this.recurrenceType == RecurrenceType.WEEKLY) {
         schedule.weekDays.addAll(this.weekDays)
     }
     if (this.recurrenceType == RecurrenceType.MONTHLY) {

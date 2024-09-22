@@ -17,6 +17,7 @@ import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.entity.Role
 import com.linchpino.core.entity.Schedule
@@ -29,6 +30,7 @@ import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
@@ -59,6 +61,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 
 @ExtendWith(MockitoExtension::class)
@@ -90,6 +93,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var paymentService: PaymentService
+
+    @Mock
+    private lateinit var mentorTimeSlotRepository: MentorTimeSlotRepository
 
     @Test
     fun `test creating account`() {
@@ -563,7 +569,12 @@ class AccountServiceTest {
             account2.email,
             account2.avatar
         )
-
+        `when`(
+            mentorTimeSlotRepository.findByAccountIdsAndDate(
+                listOf(account1, account2).map { it.id!! },
+                selectedDay.toLocalDate()
+            )
+        ).thenReturn(emptyList())
         `when`(
             repository.closestMentorSchedule(
                 selectedDay.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT),
@@ -574,6 +585,127 @@ class AccountServiceTest {
         val result = accountService.findMentorsWithClosestScheduleBy(selectedDay, interviewTypeId)
 
         assertThat(result).containsExactly(expected1, expected2)
+    }
+
+    @Test
+    fun `mentors with closest schedule must return list of mentors and exclude already booked time slots`() {
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule1 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+
+        val schedule2 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY, DayOfWeek.FRIDAY)
+        }
+
+        val schedule3 = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.MONTHLY
+            monthDays = mutableListOf(15, 25)
+        }
+
+        val schedule4 = Schedule().apply {
+            startTime = start.plusDays(7)
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+        val selectedDay = ZonedDateTime.parse("2024-09-09T10:00:00+03:00")
+        val interviewTypeId = 1L
+        val account1 = Account().apply {
+            id = 1
+            firstName = "john"
+            lastName = "doe"
+            schedule = schedule1
+            email = "account1@example.com"
+            avatar = "avatar1.png"
+        }
+
+        val account2 = Account().apply {
+            id = 2
+            firstName = "josh"
+            lastName = "long"
+            schedule = schedule2
+            email = "account2@example.com"
+            avatar = "avatar2.png"
+        }
+
+        val account3 = Account().apply {
+            id = 3
+            firstName = "jane"
+            lastName = "smith"
+            schedule = schedule3
+            email = "account3@example.com"
+            avatar = "avatar3.png"
+        }
+
+        val account4 = Account().apply {
+            id = 4
+            firstName = "kent"
+            lastName = "beck"
+            schedule = schedule4
+            email = "account4@example.com"
+            avatar = "avatar4.png"
+        }
+
+        val expected1 = MentorWithClosestSchedule(
+            account1.id,
+            account1.firstName,
+            account1.lastName,
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+            ),
+            account1.email,
+            account1.avatar
+        )
+        val expected2 = MentorWithClosestSchedule(
+            account2.id,
+            account2.firstName,
+            account2.lastName,
+            ValidWindow(
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00"),
+                ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+            ),
+            account2.email,
+            account2.avatar
+        )
+        val timeSlots = listOf(MentorTimeSlot().apply {
+            account = account2
+            fromTime = ZonedDateTime.parse("2024-09-09T12:30:00+03:00")
+            toTime = ZonedDateTime.parse("2024-09-09T12:30:00+03:00").plusMinutes(60)
+        })
+
+        `when`(
+            mentorTimeSlotRepository.findByAccountIdsAndDate(
+                listOf(account1, account2).map { it.id!! },
+                selectedDay.toLocalDate()
+            )
+        ).thenReturn(timeSlots)
+        `when`(
+            repository.closestMentorSchedule(
+                selectedDay.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT),
+                interviewTypeId
+            )
+        ).thenReturn(listOf(account1, account2, account3, account4))
+
+        val result = accountService.findMentorsWithClosestScheduleBy(selectedDay, interviewTypeId)
+
+        assertThat(result).containsExactly(expected1)
     }
 
 
@@ -721,7 +853,8 @@ class AccountServiceTest {
 
         val paymentMethodCaptor: ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
-        val paymentMethodRequestCaptor:ArgumentCaptor<PaymentMethodRequest> =ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
+        val paymentMethodRequestCaptor: ArgumentCaptor<PaymentMethodRequest> =
+            ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
         `when`(paymentService.findByIdOrNull(paymentMethod.id!!)).thenReturn(paymentMethod)
         `when`(repository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(account)
 
@@ -730,7 +863,10 @@ class AccountServiceTest {
 
         // Then
         verify(paymentService, times(1)).update(paymentMethodCaptor.captureNonNullable())
-        verify(paymentService, times(0)).savePaymentMethod(paymentMethodRequestCaptor.captureNonNullable(), accountCaptor.captureNonNullable())
+        verify(paymentService, times(0)).savePaymentMethod(
+            paymentMethodRequestCaptor.captureNonNullable(),
+            accountCaptor.captureNonNullable()
+        )
         verify(repository, times(1)).save(accountCaptor.captureNonNullable())
 
         assertThat(paymentMethodCaptor.value.type).isEqualTo(request.paymentMethodRequest?.type)
@@ -779,10 +915,16 @@ class AccountServiceTest {
 
         val paymentMethodCaptor: ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
-        val paymentMethodRequestCaptor:ArgumentCaptor<PaymentMethodRequest> =ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
+        val paymentMethodRequestCaptor: ArgumentCaptor<PaymentMethodRequest> =
+            ArgumentCaptor.forClass(PaymentMethodRequest::class.java)
         `when`(paymentService.findByIdOrNull(account.id!!)).thenReturn(null)
         `when`(repository.findByEmailIgnoreCase("john.doe@example.com")).thenReturn(account)
-        `when`(paymentService.savePaymentMethod(paymentMethodRequestCaptor.captureNonNullable(), accountCaptor.captureNonNullable())).thenReturn(paymentMethod)
+        `when`(
+            paymentService.savePaymentMethod(
+                paymentMethodRequestCaptor.captureNonNullable(),
+                accountCaptor.captureNonNullable()
+            )
+        ).thenReturn(paymentMethod)
 
         // When
         val result = accountService.updateProfile(authentication, request)
@@ -807,4 +949,85 @@ class AccountServiceTest {
         )
     }
 
+
+    @Test
+    fun tt() {
+        val account1 = Account().apply { id = 1 }
+        val account2 = Account().apply { id = 2 }
+        val account3 = Account().apply { id = 3 }
+        val account4 = Account().apply { id = 4 }
+        val account5 = Account().apply { id = 5 }
+        val account6 = Account().apply { id = 6 }
+
+        val validWindow1 = ValidWindow(
+            ZonedDateTime.parse("2024-05-09T12:30:45+03:00"),
+            ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+        )
+        val validWindow2 = ValidWindow(
+            ZonedDateTime.parse("2024-05-09T14:30:45+03:00"),
+            ZonedDateTime.parse("2024-05-09T15:30:45+03:00")
+        )
+        val validWindow3 = ValidWindow(
+            ZonedDateTime.parse("2024-05-09T16:30:45+03:00"),
+            ZonedDateTime.parse("2024-05-09T17:30:45+03:00")
+        )
+        val validWindow4 = ValidWindow(
+            ZonedDateTime.parse("2024-05-09T18:30:45+03:00"),
+            ZonedDateTime.parse("2024-05-09T19:30:45+03:00")
+        )
+
+        val validWindowsPerAccount = listOf(
+            account1 to validWindow1,
+            account2 to validWindow2,
+            account3 to validWindow3,
+            account4 to validWindow4,
+            account1 to validWindow3,
+            account1 to validWindow4,
+            account3 to validWindow1
+        )
+
+        val mentorTimeSlots = listOf(
+            MentorTimeSlot().apply {
+                account = account1
+                fromTime = ZonedDateTime.parse("2024-05-09T12:30:45+03:00")
+                toTime = ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            },
+            MentorTimeSlot().apply {
+                account = account3
+                fromTime = ZonedDateTime.parse("2024-05-09T16:30:45+03:00")
+                toTime = ZonedDateTime.parse("2024-05-09T17:30:45+03:00")
+            },
+            MentorTimeSlot().apply {
+                account = account5
+                fromTime = ZonedDateTime.parse("2024-05-09T12:30:45+03:00")
+                toTime = ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            },
+            MentorTimeSlot().apply {
+                account = account6
+                fromTime = ZonedDateTime.parse("2024-05-09T12:30:45+03:00")
+                toTime = ZonedDateTime.parse("2024-05-09T13:30:45+03:00")
+            }
+
+        )
+        val accountIDsThatHaveTimeSlots = mentorTimeSlots.map { it.account?.id }
+        val filteredValidWindows = validWindowsPerAccount.filter { (account, validWindow) ->
+            accountIDsThatHaveTimeSlots.none { it == account.id } ||
+                mentorTimeSlots.any { timeSlot ->
+                    timeSlot.account?.id == account.id && !isOverlapping(
+                        ValidWindow(timeSlot.fromTime, timeSlot.toTime),
+                        validWindow
+                    )
+                }
+        }
+        println(filteredValidWindows)
+    }
+
+    fun isOverlapping(window1: ValidWindow, window2: ValidWindow): Boolean {
+        val window1FromTruncated = window1.start.truncatedTo(ChronoUnit.MINUTES)
+        val window1ToTruncated = window1.end.truncatedTo(ChronoUnit.MINUTES)
+        val window2FromTruncated = window2.start.truncatedTo(ChronoUnit.MINUTES)
+        val window2ToTruncated = window2.end.truncatedTo(ChronoUnit.MINUTES)
+
+        return window1FromTruncated.isBefore(window2ToTruncated) && window2FromTruncated.isBefore(window1ToTruncated)
+    }
 }
