@@ -31,6 +31,8 @@ import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
@@ -38,11 +40,10 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 
 @Service
 @Transactional
@@ -77,7 +78,15 @@ class AccountService(
 
 
     fun findMentorsWithClosestScheduleBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestSchedule> {
-        val selectedTime = date.withZoneSameInstant(ZoneOffset.UTC)
+        val now = ZonedDateTime.now(ZoneOffset.UTC)
+        val currentDate = now.toLocalDate()
+        val selectedDate = date.toLocalDate()
+
+        val selectedTime = when {
+            currentDate.isEqual(selectedDate) -> now
+            else -> date.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT)
+        }
+
         val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
             .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
             .filter { it.second != null }

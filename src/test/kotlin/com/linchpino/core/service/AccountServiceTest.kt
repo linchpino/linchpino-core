@@ -33,9 +33,6 @@ import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
-import java.time.DayOfWeek
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -58,6 +55,10 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication
 import org.springframework.security.oauth2.server.resource.introspection.OAuth2IntrospectionAuthenticatedPrincipal
 import org.springframework.web.multipart.MultipartFile
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 
 @ExtendWith(MockitoExtension::class)
@@ -565,7 +566,7 @@ class AccountServiceTest {
 
         `when`(
             repository.closestMentorSchedule(
-                selectedDay.withZoneSameInstant(ZoneOffset.UTC),
+                selectedDay.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT),
                 interviewTypeId
             )
         ).thenReturn(listOf(account1, account2, account3, account4))
