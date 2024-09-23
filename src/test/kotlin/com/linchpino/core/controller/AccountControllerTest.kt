@@ -28,8 +28,6 @@ import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -44,6 +42,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {
@@ -280,7 +280,8 @@ class AccountControllerTest {
                 "Doe",
                 listOf("MENTOR"),
                 "johndoe@example.com",
-                "avatar.png"
+                "avatar.png",
+                AccountStatusEnum.ACTIVATED,
             )
         )
 

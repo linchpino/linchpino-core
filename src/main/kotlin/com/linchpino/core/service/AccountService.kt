@@ -252,7 +252,8 @@ class AccountService(
                     it.lastName,
                     it.roles().map { r -> r.title.name },
                     it.email,
-                    it.avatar
+                    it.avatar,
+                    it.status
                 )
             }
     }

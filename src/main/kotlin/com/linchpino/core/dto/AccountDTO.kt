@@ -176,7 +176,8 @@ data class SearchAccountResult(
     val lastName: String?,
     val roles: List<String>,
     val email: String,
-    val avatar: String?
+    val avatar: String?,
+    val status: AccountStatusEnum,
 )
 
 data class AddProfileImageResponse(val imageUrl: String)
