@@ -98,11 +98,12 @@ class AccountService(
             .filter { it.second != null }
 
         val accountIds = accountsWithValidWindow.map { it.first.id!! }
-        val bookedTimeSlots = mentorTimeSlotRepository.findByAccountIdsAndDate(accountIds, selectedDate)
+        val bookedTimeSlots =
+            mentorTimeSlotRepository.findByAccountIdsAndDate(accountIds, selectedDate).groupBy { it.account?.id }
 
         val mentors = accountsWithValidWindow
             .filter { (account, validWindow) ->
-                accountsWithBookedTimeSlot(account, bookedTimeSlots, validWindow!!)
+                accountsWithBookedTimeSlot(bookedTimeSlots[account.id] ?: emptyList(), validWindow!!)
             }.map {
                 MentorWithClosestSchedule(
                     it.first.id,
@@ -117,14 +118,13 @@ class AccountService(
     }
 
     private fun accountsWithBookedTimeSlot(
-        account: Account,
         bookedTimeSlots: List<MentorTimeSlot>,
         validWindow: ValidWindow
     ): Boolean {
-        if (bookedTimeSlots.isEmpty()) return true
+        if (bookedTimeSlots.isEmpty())
+            return true
         return bookedTimeSlots.any { timeSlot ->
-            if (timeSlot.account?.id != account.id) true
-            else !ValidWindow(timeSlot.fromTime, timeSlot.toTime).hasOverlapWith(validWindow)
+            !ValidWindow(timeSlot.fromTime, timeSlot.toTime).hasOverlapWith(validWindow)
         }
     }
 
