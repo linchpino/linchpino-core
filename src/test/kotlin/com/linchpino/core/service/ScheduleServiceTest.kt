@@ -3,6 +3,7 @@ package com.linchpino.core.service
 import com.linchpino.core.captureNonNullable
 import com.linchpino.core.dto.CreateInterviewRequest
 import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.entity.Schedule
@@ -15,8 +16,6 @@ import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -30,6 +29,8 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.dao.DataIntegrityViolationException
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class ScheduleServiceTest {
@@ -170,7 +171,7 @@ class ScheduleServiceTest {
             lastName = "Doe"
             this.schedule = schedule
         }
-        val timeSlotCaptor:ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
+        val timeSlotCaptor: ArgumentCaptor<MentorTimeSlot> = ArgumentCaptor.forClass(MentorTimeSlot::class.java)
         `when`(mentorTimeSlotRepository.save(any())).thenReturn(MentorTimeSlot())
 
         // When
@@ -214,7 +215,7 @@ class ScheduleServiceTest {
         }
 
         // When
-        val ex = Assertions.assertThrows(LinchpinException::class.java){
+        val ex = Assertions.assertThrows(LinchpinException::class.java) {
             scheduleService.availableTimeSlot(account, request)
         }
 
@@ -223,7 +224,7 @@ class ScheduleServiceTest {
 
 
     @Test
-    fun `test available time slot throws exception if requested time slot is already booked`(){
+    fun `test available time slot throws exception if requested time slot is already booked`() {
         // Given
         val request = CreateInterviewRequest(
             1,
@@ -249,14 +250,83 @@ class ScheduleServiceTest {
             this.schedule = schedule
         }
 
-        `when`(mentorTimeSlotRepository.numberOfOverlappingSlots(request.startTime,request.endTime)).thenReturn(1)
+        `when`(mentorTimeSlotRepository.numberOfOverlappingSlots(request.startTime, request.endTime)).thenReturn(1)
 
         // When & Then
-        val ex = Assertions.assertThrows(LinchpinException::class.java){
+        val ex = Assertions.assertThrows(LinchpinException::class.java) {
             scheduleService.availableTimeSlot(account, request)
         }
 
         assertThat(ex.errorCode).isEqualTo(ErrorCode.TIMESLOT_IS_BOOKED)
     }
+
+    @Test
+    fun `should update schedule`() {
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val schedule = Schedule().apply {
+            id = 1
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY)
+            interval = 1
+            duration = 60
+            startTime = ZonedDateTime.parse("2024-08-28T12:30:45+03:00")
+            endTime = ZonedDateTime.parse("2024-12-30T13:30:45+03:00")
+        }
+
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@example.com"
+            this.schedule = schedule
+        }
+
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+
+        `when`(accountRepository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+
+        val result = scheduleService.updateSchedule(authentication, request)
+
+        assertThat(result.startTime).isEqualTo(request.startTime)
+        assertThat(result.endTime).isEqualTo(schedule.endTime)
+        assertThat(result.duration).isEqualTo(schedule.duration)
+        assertThat(result.interval).isEqualTo(schedule.interval)
+        assertThat(result.weekDays).isEmpty()
+        assertThat(result.recurrenceType).isEqualTo(request.recurrenceType)
+        assertThat(result.monthDays).isEqualTo(request.monthDays)
+    }
+
+    @Test
+    fun `update schedule should throw exception if account does not have schedule`() {
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@example.com"
+        }
+
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+
+        `when`(accountRepository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java) {
+             scheduleService.updateSchedule(authentication, request)
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
+
+    }
+
 
 }

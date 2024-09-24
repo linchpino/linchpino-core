@@ -19,4 +19,5 @@ enum class ErrorCode(val status: HttpStatus) {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST),
     UNIQUE_ENTITY_VIOLATION(HttpStatus.BAD_REQUEST),
     INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST),
+    INVALID_STATE(HttpStatus.BAD_REQUEST),
 }

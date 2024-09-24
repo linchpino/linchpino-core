@@ -1,11 +1,16 @@
 package com.linchpino.core.entity
 
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.enums.RecurrenceType
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 
 class ScheduleTest {
 
@@ -494,4 +499,225 @@ class ScheduleTest {
         assertThat(result).isNull()
     }
 
+    @Test
+    fun `should update startTime and endTime`() {
+        val schedule = dummySchedule()
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.now(),
+            endTime = ZonedDateTime.now().plusHours(2),
+            duration = null,
+            recurrenceType = null,
+            interval = null
+        )
+
+        schedule.update(request)
+
+        assertThat(schedule.startTime).isEqualTo(request.startTime)
+        assertThat(schedule.endTime).isEqualTo(request.endTime)
+    }
+
+    @Test
+    fun `should update duration and interval`() {
+        val schedule = dummySchedule()
+        val request = ScheduleUpdateRequest(
+            startTime = null,
+            endTime = null,
+            duration = 60,
+            recurrenceType = null,
+            interval = 2
+        )
+
+        schedule.update(request)
+
+        assertThat(schedule.duration).isEqualTo(request.duration)
+        assertThat(schedule.interval).isEqualTo(request.interval)
+    }
+
+    @Test
+    fun `should clear weekDays and monthDays for daily recurrence`() {
+        val schedule = dummySchedule()
+        schedule.weekDays = mutableListOf(DayOfWeek.MONDAY)
+        schedule.monthDays = mutableListOf(1)
+
+        val request = ScheduleUpdateRequest(
+            startTime = null,
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.DAILY,
+            interval = null
+        )
+
+        schedule.update(request)
+
+        assertThat(schedule.recurrenceType).isEqualTo(RecurrenceType.DAILY)
+        assertThat(schedule.weekDays).isEmpty()
+        assertThat(schedule.monthDays).isEmpty()
+    }
+
+    @Test
+    fun `should clear monthDays for weekly recurrence and update weekDays`() {
+        val schedule = dummySchedule()
+        schedule.monthDays = mutableListOf(1)
+
+        val request = ScheduleUpdateRequest(
+            startTime = null,
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.WEEKLY,
+            interval = null,
+            weekDays = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
+        schedule.update(request)
+
+        assertThat(schedule.recurrenceType).isEqualTo(RecurrenceType.WEEKLY)
+        assertThat(schedule.monthDays).isEmpty()
+        assertThat(schedule.weekDays).containsExactly(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+    }
+
+    @Test
+    fun `should clear weekDays for monthly recurrence and update monthDays`() {
+        val schedule = dummySchedule()
+        schedule.weekDays = mutableListOf(DayOfWeek.MONDAY)
+
+        val request = ScheduleUpdateRequest(
+            startTime = null,
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+
+        schedule.update(request)
+
+        assertThat(schedule.recurrenceType).isEqualTo(RecurrenceType.MONTHLY)
+        assertThat(schedule.weekDays).isEmpty()
+        assertThat(schedule.monthDays).containsExactly(1, 15)
+    }
+
+    @Test
+    fun `should throw exception when startTime is null`() {
+        val schedule = dummySchedule()
+        schedule.endTime = ZonedDateTime.now()
+        schedule.startTime = null
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when endTime is null`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = null
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when startTime is after endTime`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now().plusHours(1)
+        schedule.endTime = ZonedDateTime.now()
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when recurrenceType is weekly but weekDays is empty`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = ZonedDateTime.now().plusHours(1)
+        schedule.recurrenceType = RecurrenceType.WEEKLY
+        schedule.weekDays = mutableListOf()
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when recurrenceType is monthly but monthDays is empty`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = ZonedDateTime.now().plusHours(1)
+        schedule.recurrenceType = RecurrenceType.MONTHLY
+        schedule.monthDays = mutableListOf()
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when recurrenceType is daily but monthDays or weekDays are not empty`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = ZonedDateTime.now().plusHours(1)
+        schedule.recurrenceType = RecurrenceType.DAILY
+        schedule.monthDays = mutableListOf(1)
+        schedule.weekDays = mutableListOf(DayOfWeek.MONDAY)
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `should throw exception when recurrenceType is null`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = ZonedDateTime.now().plusHours(1)
+        schedule.recurrenceType = null
+
+        val ex = Assertions.assertThrows(LinchpinException::class.java){
+            schedule.validate()
+        }
+
+        assertThat(ex.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+
+    }
+
+    @Test
+    fun `should not throw exception when all validations pass`() {
+        val schedule = dummySchedule()
+        schedule.startTime = ZonedDateTime.now()
+        schedule.endTime = ZonedDateTime.now().plusHours(1)
+        schedule.recurrenceType = RecurrenceType.WEEKLY
+        schedule.weekDays = mutableListOf(DayOfWeek.MONDAY)
+
+        assertThatCode { schedule.validate() }.doesNotThrowAnyException()
+    }
+
+
+    private fun dummySchedule(): Schedule {
+        val start = ZonedDateTime.parse("2024-08-28T12:30:00+03:00")
+        val end = ZonedDateTime.parse("2024-12-30T13:30:00+03:00")
+        val schedule = Schedule().apply {
+            startTime = start
+            endTime = end
+            interval = 2
+            duration = 60
+            recurrenceType = RecurrenceType.DAILY
+        }
+        return schedule
+    }
 }

@@ -23,6 +23,16 @@ data class ScheduleRequest(
     val monthDays: List<Int> = listOf()
 )
 
+data class ScheduleUpdateRequest(
+    val startTime: ZonedDateTime?,
+    val duration: Int?,
+    val recurrenceType: RecurrenceType?,
+    val interval: Int?,
+    val endTime: ZonedDateTime?,
+    val weekDays: List<DayOfWeek> = listOf(),
+    val monthDays: List<Int> = listOf()
+)
+
 fun ScheduleRequest.toSchedule(account: Account): Schedule {
     val schedule = Schedule()
     schedule.startTime = this.startTime
