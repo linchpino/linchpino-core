@@ -343,7 +343,8 @@ class AccountServiceTest {
                         account.lastName,
                         account.roles().map { it.title.name },
                         account.email,
-                        account.avatar
+                        account.avatar,
+                        account.status
                     )
                 )
             )

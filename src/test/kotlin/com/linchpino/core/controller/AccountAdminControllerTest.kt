@@ -3,6 +3,7 @@ package com.linchpino.core.controller
 import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
+import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.service.AccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -59,7 +60,8 @@ class AccountAdminControllerTest {
                 "Doe",
                 listOf("MENTOR"),
                 "johndoe@example.com",
-                "avatar.png"
+                "avatar.png",
+                AccountStatusEnum.ACTIVATED
             )
         )
 
