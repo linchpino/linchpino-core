@@ -73,11 +73,12 @@ class ScheduleService(
     }
 
 
-    fun deleteSchedule(authentication: Authentication, request: ScheduleUpdateRequest) {
+    fun deleteSchedule(authentication: Authentication) {
         val account = accountRepository.findByEmailIgnoreCase(authentication.email())
             ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
         account.schedule?.let {
-            scheduleRepository.delete(it)
+            scheduleRepository.deleteById(it.id)
+            account.schedule = null
         }
     }
 }

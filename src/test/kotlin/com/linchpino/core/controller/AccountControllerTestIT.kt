@@ -51,6 +51,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
@@ -1150,7 +1151,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
     @Test
-    fun `should update schedule`(){
+    fun `should update schedule`() {
         saveFakeMentorsWithSchedule()
         val request = ScheduleUpdateRequest(
             startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
@@ -1173,6 +1174,24 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.monthDays[1]").value(request.monthDays[1]))
     }
 
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `should delete schedule`() {
+        saveFakeMentorsWithSchedule()
+
+        mockMvc.perform(delete("/api/accounts/mentors/schedule"))
+            .andExpect(status().isNoContent)
+
+        val john = entityManager.createQuery("select a from Account a where a.email = :email", Account::class.java)
+            .setParameter("email", "john.doe@example.com")
+            .singleResult
+        val johnSchedule = entityManager.createQuery("select s from Schedule s where s.account.id =:id")
+            .setParameter("id", john.id)
+            .resultList
+
+        assertThat(johnSchedule).isEmpty()
+    }
 
     private fun saveAccountsWithRole() {
         val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)

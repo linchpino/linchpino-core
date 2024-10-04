@@ -321,12 +321,38 @@ class ScheduleServiceTest {
         `when`(accountRepository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
 
         val ex = Assertions.assertThrows(LinchpinException::class.java) {
-             scheduleService.updateSchedule(authentication, request)
+            scheduleService.updateSchedule(authentication, request)
         }
 
         assertThat(ex.errorCode).isEqualTo(ErrorCode.ENTITY_NOT_FOUND)
 
     }
 
+
+    @Test
+    fun `should delete schedule`() {
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val schedule = Schedule().apply {
+            id = 1
+            recurrenceType = RecurrenceType.WEEKLY
+            weekDays = mutableListOf(DayOfWeek.MONDAY)
+            interval = 1
+            duration = 60
+            startTime = ZonedDateTime.parse("2024-08-28T12:30:45+03:00")
+            endTime = ZonedDateTime.parse("2024-12-30T13:30:45+03:00")
+        }
+
+        val account = Account().apply {
+            id = 1
+            email = "john.doe@example.com"
+            this.schedule = schedule
+        }
+
+        `when`(accountRepository.findByEmailIgnoreCase(authentication.email())).thenReturn(account)
+
+        scheduleService.deleteSchedule(authentication)
+        assertThat(account.schedule).isNull()
+        verify(scheduleRepository, times(1)).deleteById(schedule.id)
+    }
 
 }

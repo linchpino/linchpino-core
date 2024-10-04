@@ -205,7 +205,7 @@ class AccountController(
             password,
             AccountTypeEnum.ADMIN.value
         )
-        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value,PageRequest.of(0,20))
+        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value, PageRequest.of(0, 20))
         if (admins.isEmpty) {
             createAccount(request)
         }
@@ -233,18 +233,24 @@ class AccountController(
     }
 
     @PutMapping("/profile")
-    fun updateAccount(authentication: Authentication,@Valid @RequestBody request: UpdateProfileRequest): AccountSummary {
-        return accountService.updateProfile(authentication,request)
+    fun updateAccount(
+        authentication: Authentication,
+        @Valid @RequestBody request: UpdateProfileRequest
+    ): AccountSummary {
+        return accountService.updateProfile(authentication, request)
     }
 
     @PutMapping("/mentors/schedule")
-    fun updateSchedule(authentication: Authentication,@Valid @RequestBody request: ScheduleUpdateRequest): ScheduleResponse {
-       return scheduleService.updateSchedule(authentication,request)
+    fun updateSchedule(
+        authentication: Authentication,
+        @Valid @RequestBody request: ScheduleUpdateRequest
+    ): ScheduleResponse {
+        return scheduleService.updateSchedule(authentication, request)
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/mentors/schedule")
-    fun deleteSchedule(authentication: Authentication,@Valid @RequestBody request: ScheduleUpdateRequest) {
-        scheduleService.deleteSchedule(authentication,request)
+    fun deleteSchedule(authentication: Authentication) {
+        scheduleService.deleteSchedule(authentication)
     }
 }

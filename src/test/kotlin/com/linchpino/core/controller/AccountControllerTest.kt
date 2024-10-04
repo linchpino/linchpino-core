@@ -411,13 +411,25 @@ class AccountControllerTest {
             ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
         )
 
-        `when`(scheduleService.updateSchedule(authentication,request)).thenReturn(response)
+        `when`(scheduleService.updateSchedule(authentication, request)).thenReturn(response)
 
         // When
-        val result = accountController.updateSchedule(authentication,request)
+        val result = accountController.updateSchedule(authentication, request)
 
         // Then
         assertThat(result).isEqualTo(response)
-        verify(scheduleService, times(1)).updateSchedule(authentication,request)
+        verify(scheduleService, times(1)).updateSchedule(authentication, request)
+    }
+
+    @Test
+    fun `test delete schedule calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+
+        // When
+        accountController.deleteSchedule(authentication)
+
+        // Then
+        verify(scheduleService, times(1)).deleteSchedule(authentication)
     }
 }
