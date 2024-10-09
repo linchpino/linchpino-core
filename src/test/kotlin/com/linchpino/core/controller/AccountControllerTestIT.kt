@@ -11,6 +11,7 @@ import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.entity.Account
@@ -32,9 +33,6 @@ import com.linchpino.core.service.EmailService
 import com.linchpino.core.service.LinkedInService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
-import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasItems
@@ -53,6 +51,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
@@ -60,6 +59,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
+import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -1145,6 +1147,50 @@ class AccountControllerTestIT {
                 .content(ObjectMapper().writeValueAsString(request))
         )
             .andExpect(status().isUnauthorized)
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `should update schedule`() {
+        saveFakeMentorsWithSchedule()
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+
+        mockMvc.perform(
+            put("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startTime").value("2024-09-28T09:30:45Z"))
+            .andExpect(jsonPath("$.recurrenceType").value(request.recurrenceType?.name))
+            .andExpect(jsonPath("$.monthDays[0]").value(request.monthDays[0]))
+            .andExpect(jsonPath("$.monthDays[1]").value(request.monthDays[1]))
+    }
+
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `should delete schedule`() {
+        saveFakeMentorsWithSchedule()
+
+        mockMvc.perform(delete("/api/accounts/mentors/schedule"))
+            .andExpect(status().isNoContent)
+
+        val john = entityManager.createQuery("select a from Account a where a.email = :email", Account::class.java)
+            .setParameter("email", "john.doe@example.com")
+            .singleResult
+        val johnSchedule = entityManager.createQuery("select s from Schedule s where s.account.id =:id")
+            .setParameter("id", john.id)
+            .resultList
+
+        assertThat(johnSchedule).isEmpty()
     }
 
     private fun saveAccountsWithRole() {

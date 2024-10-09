@@ -14,6 +14,7 @@ import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
 import com.linchpino.core.dto.UpdateProfileRequest
@@ -386,5 +387,49 @@ class AccountControllerTest {
 
         // Then
         verify(accountService, times(1)).updateProfile(authentication, request)
+    }
+
+    @Test
+    fun `test update schedule calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+        val response = ScheduleResponse(
+            1,
+            ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            40,
+            1,
+            RecurrenceType.MONTHLY,
+            1,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+        )
+
+        `when`(scheduleService.updateSchedule(authentication, request)).thenReturn(response)
+
+        // When
+        val result = accountController.updateSchedule(authentication, request)
+
+        // Then
+        assertThat(result).isEqualTo(response)
+        verify(scheduleService, times(1)).updateSchedule(authentication, request)
+    }
+
+    @Test
+    fun `test delete schedule calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+
+        // When
+        accountController.deleteSchedule(authentication)
+
+        // Then
+        verify(scheduleService, times(1)).deleteSchedule(authentication)
     }
 }

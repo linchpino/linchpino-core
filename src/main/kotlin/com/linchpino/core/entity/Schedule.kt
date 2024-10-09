@@ -1,7 +1,10 @@
 package com.linchpino.core.entity
 
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.enums.RecurrenceType
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
@@ -97,9 +100,11 @@ class Schedule {
             endTarget != null -> {
                 validWindow(validStartTime, validEndTime, startTarget, endTarget)
             }
+
             validStartTime != null && validStartTime.isAfter(startTarget) -> {
                 ValidWindow(validStartTime, validEndTime!!)
             }
+
             else -> null
         }
 
@@ -130,9 +135,11 @@ class Schedule {
             endTarget != null -> {
                 validWindow(validStartTime, validEndTime, startTarget, endTarget)
             }
+
             validStartTime != null && validStartTime.isAfter(startTarget) -> {
                 ValidWindow(validStartTime, validEndTime!!)
             }
+
             else -> {
                 null
             }
@@ -165,9 +172,11 @@ class Schedule {
             endTarget != null -> {
                 validWindow(validStartTime, validEndTime, startTarget, endTarget)
             }
+
             validStartTime != null && validStartTime.isAfter(startTarget) -> {
                 ValidWindow(validStartTime, validEndTime!!)
             }
+
             else -> {
                 null
             }
@@ -191,4 +200,89 @@ class Schedule {
         }
         return ValidWindow(validStartTime, validEndTime)
     }
+
+    fun validate() {
+        if (this.startTime == null || this.endTime == null)
+            throw throw LinchpinException(
+                ErrorCode.INVALID_STATE,
+                "start time and end time must not be null",
+                Schedule::class.java.simpleName,
+                "start time and end time must not be null"
+            )
+        if (this.startTime!!.isAfter(this.endTime)) {
+            throw LinchpinException(
+                ErrorCode.INVALID_STATE,
+                "startTime is after endTime",
+                Schedule::class.java.simpleName,
+                "start time is after endTime"
+            )
+        }
+
+        when (this.recurrenceType) {
+            RecurrenceType.WEEKLY -> {
+                if (weekDays.isEmpty()) throw LinchpinException(
+                    ErrorCode.INVALID_STATE,
+                    "recurrence type is weekly but weekdays is empty",
+                    Schedule::class.java.simpleName,
+                    "weekDays is empty"
+                )
+            }
+
+            RecurrenceType.MONTHLY -> {
+                if (monthDays.isEmpty()) throw LinchpinException(
+                    ErrorCode.INVALID_STATE,
+                    "recurrence type is monthly but monthDays is empty",
+                    Schedule::class.java.simpleName,
+                    "monthDays is empty"
+                )
+            }
+
+            RecurrenceType.DAILY -> {
+                if (monthDays.isNotEmpty() || weekDays.isNotEmpty()) throw LinchpinException(
+                    ErrorCode.INVALID_STATE,
+                    "recurrence type is daily but monthDays or weekDays are not empty",
+                    Schedule::class.java.simpleName,
+                    "monthDays or weekDays are not empty"
+                )
+            }
+
+            else -> throw LinchpinException(
+                ErrorCode.INVALID_STATE,
+                "recurrence type is null",
+                Schedule::class.java.simpleName,
+                "recurrence type must not be null"
+            )
+        }
+    }
+
+    fun update(request: ScheduleUpdateRequest): Schedule {
+        request.startTime?.let { this.startTime = it }
+        request.endTime?.let { this.endTime = it }
+        request.duration?.let { this.duration = it }
+        request.interval?.let { this.interval = it }
+
+        request.recurrenceType?.let { type ->
+            when (type) {
+                RecurrenceType.DAILY -> {
+                    this.weekDays.clear()
+                    this.monthDays.clear()
+                }
+                RecurrenceType.WEEKLY -> this.monthDays.clear()
+                RecurrenceType.MONTHLY -> this.weekDays.clear()
+            }
+            this.recurrenceType = type
+        }
+
+        if (request.weekDays.isNotEmpty() && request.recurrenceType == RecurrenceType.WEEKLY) {
+            this.weekDays = request.weekDays.toMutableList()
+        }
+
+        if (request.monthDays.isNotEmpty() && request.recurrenceType == RecurrenceType.MONTHLY) {
+            this.monthDays = request.monthDays.toMutableList()
+        }
+
+        validate()
+        return this
+    }
+
 }

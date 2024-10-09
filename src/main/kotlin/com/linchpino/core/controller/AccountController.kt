@@ -12,8 +12,8 @@ import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.SearchAccountResult
-import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.service.AccountService
@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
@@ -39,6 +38,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.time.ZonedDateTime
 
 @RestController
 @RequestMapping("api/accounts")
@@ -204,7 +205,7 @@ class AccountController(
             password,
             AccountTypeEnum.ADMIN.value
         )
-        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value,PageRequest.of(0,20))
+        val admins = accountService.searchAccountByNameOrRole(null, AccountTypeEnum.ADMIN.value, PageRequest.of(0, 20))
         if (admins.isEmpty) {
             createAccount(request)
         }
@@ -232,7 +233,24 @@ class AccountController(
     }
 
     @PutMapping("/profile")
-    fun updateAccount(authentication: Authentication,@Valid @RequestBody request: UpdateProfileRequest): AccountSummary {
-        return accountService.updateProfile(authentication,request)
+    fun updateAccount(
+        authentication: Authentication,
+        @Valid @RequestBody request: UpdateProfileRequest
+    ): AccountSummary {
+        return accountService.updateProfile(authentication, request)
+    }
+
+    @PutMapping("/mentors/schedule")
+    fun updateSchedule(
+        authentication: Authentication,
+        @Valid @RequestBody request: ScheduleUpdateRequest
+    ): ScheduleResponse {
+        return scheduleService.updateSchedule(authentication, request)
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/mentors/schedule")
+    fun deleteSchedule(authentication: Authentication) {
+        scheduleService.deleteSchedule(authentication)
     }
 }
