@@ -11,7 +11,9 @@ import com.linchpino.core.dto.PaymentMethodRequest
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.InterviewType
 import com.linchpino.core.entity.MentorTimeSlot
@@ -31,9 +33,6 @@ import com.linchpino.core.service.EmailService
 import com.linchpino.core.service.LinkedInService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
-import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasItems
@@ -52,6 +51,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
@@ -59,6 +59,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
+import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -419,7 +422,7 @@ class AccountControllerTestIT {
             paymentMethodRequest = paymentMethodRequest,
             iban = "GB82 WEST 1234 5698 7654 32"
         )
-        val expectedIBAN = request.iban?.trim()?.replace(" ","")?.uppercase()
+        val expectedIBAN = request.iban?.trim()?.replace(" ", "")?.uppercase()
 
         mockMvc.perform(
             post("/api/accounts/mentors")
@@ -980,7 +983,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password resets password successfully`(){
+    fun `test reset password resets password successfully`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -989,7 +992,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("secret","secret2")
+        val request = ResetPasswordRequest("secret", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1003,7 +1006,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password throws exception if new password does not meet password policy`(){
+    fun `test reset password throws exception if new password does not meet password policy`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1012,7 +1015,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("secret","s2")
+        val request = ResetPasswordRequest("secret", "s2")
 
         // When & Then
         mockMvc.perform(
@@ -1028,7 +1031,7 @@ class AccountControllerTestIT {
 
     @WithMockJwt(username = "johndoe@gmail.com")
     @Test
-    fun `test reset password throws exception if currentPassword does not match currentPassword in the request`(){
+    fun `test reset password throws exception if currentPassword does not match currentPassword in the request`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1037,7 +1040,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+        val request = ResetPasswordRequest("wrongCurrentPassword", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1052,7 +1055,7 @@ class AccountControllerTestIT {
 
 
     @Test
-    fun `test reset password can not be called without authentication`(){
+    fun `test reset password can not be called without authentication`() {
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1061,7 +1064,7 @@ class AccountControllerTestIT {
         }
         accountRepository.save(john)
 
-        val request = ResetPasswordRequest("wrongCurrentPassword","secret2")
+        val request = ResetPasswordRequest("wrongCurrentPassword", "secret2")
 
         // When & Then
         mockMvc.perform(
@@ -1072,6 +1075,123 @@ class AccountControllerTestIT {
             .andExpect(status().isUnauthorized)
     }
 
+    @WithMockJwt(username = "john.doe@example.com")
+    @Test
+    fun `test update profile`() {
+        // given
+        val john = Account().apply {
+            firstName = "John"
+            lastName = "Doe"
+            email = "john.doe@example.com"
+            linkedInUrl = "linkedin.com/in/john"
+            detailsOfExpertise = "john's details"
+            iban = "iban"
+        }
+        accountRepository.save(john)
+        val paymentMethod = PaymentMethod().apply {
+            type = PaymentMethodType.FREE
+            account = john
+        }
+
+        entityManager.persist(paymentMethod)
+
+        val request = UpdateProfileRequest(
+            "JohnUpdate",
+            "DoeUpdate",
+            "detailsUpdate",
+            "GB82WEST12345698765432",
+            "linkedin.com/in/johnUpdate",
+            PaymentMethodRequest(
+                PaymentMethodType.FIX_PRICE,
+                fixRate = 50.0
+            )
+        )
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstName").value(request.firstName))
+            .andExpect(jsonPath("$.lastName").value(request.lastName))
+            .andExpect(jsonPath("$.email").value(john.email))
+            .andExpect(jsonPath("$.iban").value(request.iban))
+            .andExpect(jsonPath("$.linkedInUrl").value(request.linkedInUrl))
+            .andExpect(jsonPath("$.detailsOfExpertise").value(request.detailsOfExpertise))
+            .andExpect(jsonPath("$.paymentMethod.type").value(request.paymentMethodRequest?.type?.name))
+            .andExpect(jsonPath("$.paymentMethod.fixRate").value(request.paymentMethodRequest?.fixRate))
+
+    }
+
+    @Test
+    fun `update profile needs authentication`() {
+        // Given
+        val request = UpdateProfileRequest(
+            "JohnUpdate",
+            "DoeUpdate",
+            "detailsUpdate",
+            "GB82WEST12345698765432",
+            "linkedin.com/in/johnUpdate",
+            PaymentMethodRequest(
+                PaymentMethodType.FIX_PRICE,
+                fixRate = 50.0
+            )
+        )
+
+        // When & Then
+        mockMvc.perform(
+            put("/api/accounts/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `should update schedule`() {
+        saveFakeMentorsWithSchedule()
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+
+        mockMvc.perform(
+            put("/api/accounts/mentors/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startTime").value("2024-09-28T09:30:45Z"))
+            .andExpect(jsonPath("$.recurrenceType").value(request.recurrenceType?.name))
+            .andExpect(jsonPath("$.monthDays[0]").value(request.monthDays[0]))
+            .andExpect(jsonPath("$.monthDays[1]").value(request.monthDays[1]))
+    }
+
+
+    @WithMockJwt(username = "john.doe@example.com", roles = [AccountTypeEnum.MENTOR])
+    @Test
+    fun `should delete schedule`() {
+        saveFakeMentorsWithSchedule()
+
+        mockMvc.perform(delete("/api/accounts/mentors/schedule"))
+            .andExpect(status().isNoContent)
+
+        val john = entityManager.createQuery("select a from Account a where a.email = :email", Account::class.java)
+            .setParameter("email", "john.doe@example.com")
+            .singleResult
+        val johnSchedule = entityManager.createQuery("select s from Schedule s where s.account.id =:id")
+            .setParameter("id", john.id)
+            .resultList
+
+        assertThat(johnSchedule).isEmpty()
+    }
 
     private fun saveAccountsWithRole() {
         val mentorRole = entityManager.find(Role::class.java, AccountTypeEnum.MENTOR.value)

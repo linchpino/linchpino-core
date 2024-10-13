@@ -2,6 +2,7 @@ package com.linchpino.core.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.PaymentMethod
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.enums.PaymentMethodType
@@ -49,6 +50,15 @@ data class UpdateAccountRequest(
     val externalId: String?
 )
 
+data class UpdateProfileRequest(
+    val firstName: String?,
+    val lastName: String?,
+    val detailsOfExpertise: String? = null,
+    @field:ValidIBANUpdate val iban: String? = null,
+    val linkedInUrl: String? = null,
+    @field:ValidPaymentMethodUpdate val paymentMethodRequest: PaymentMethodRequest?
+)
+
 data class CreateAccountResult(
     val id: Long,
     val firstName: String?,
@@ -76,7 +86,7 @@ data class MentorWithClosestSchedule(
     val mentorFirstName: String?,
     val mentorLastName: String?,
     val validWindow: ValidWindow?,
-    val email:String,
+    val email: String,
     val avatar: String?
 )
 
@@ -100,10 +110,11 @@ data class AccountSummary(
     val detailsOfExpertise: String? = null,
     val linkedInUrl: String? = null,
     val iban: String? = null,
-    val schedule: ScheduleResponse? = null
+    val schedule: ScheduleResponse? = null,
+    val paymentMethod: PaymentMethodResponse? = null
 )
 
-fun Account.toSummary() = AccountSummary(
+fun Account.toSummary(paymentMethod: PaymentMethod? = null) = AccountSummary(
     id,
     firstName,
     lastName,
@@ -115,7 +126,8 @@ fun Account.toSummary() = AccountSummary(
     detailsOfExpertise,
     linkedInUrl,
     iban,
-    schedule?.toResponse()
+    schedule?.toResponse(),
+    paymentMethod?.toResponse()
 )
 
 
@@ -159,11 +171,13 @@ data class RegisterMentorResult(
 )
 
 data class SearchAccountResult(
+    val id: Long?,
     val firstName: String?,
     val lastName: String?,
     val roles: List<String>,
     val email: String,
-    val avatar: String?
+    val avatar: String?,
+    val status: AccountStatusEnum,
 )
 
 data class AddProfileImageResponse(val imageUrl: String)
@@ -174,8 +188,18 @@ data class LinkedInUserInfoResponse(
     @JsonProperty("family_name") val lastName: String?
 )
 
-data class ResetPasswordRequest(@field:NotNull(message = "current password must be provided") val currentPassword: String,@field:PasswordPolicy val newPassword: String)
+data class ResetPasswordRequest(
+    @field:NotNull(message = "current password must be provided") val currentPassword: String,
+    @field:PasswordPolicy val newPassword: String
+)
 
-data class ResetAccountPasswordRequest(@field:NotNull(message = "account id must not be null") val accountId:Long,@field:PasswordPolicy val newPassword: String)
+data class ResetAccountPasswordRequest(
+    @field:NotNull(message = "account id must not be null") val accountId: Long,
+    @field:PasswordPolicy val newPassword: String
+)
 
-data class UpdateAccountRequestByAdmin(@field:NotNull(message = "account id must not be null") val accountId:Long, val roles:List<Int> = emptyList(), val status:Int?)
+data class UpdateAccountRequestByAdmin(
+    @field:NotNull(message = "account id must not be null") val accountId: Long,
+    val roles: List<Int> = emptyList(),
+    val status: Int?
+)

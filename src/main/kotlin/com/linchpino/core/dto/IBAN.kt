@@ -61,3 +61,21 @@ class IBANValidator : ConstraintValidator<ValidIBAN, String> {
 
 }
 
+@Target(AnnotationTarget.FIELD, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+@Constraint(validatedBy = [IBANValidatorForUpdate::class])
+annotation class ValidIBANUpdate(
+    val message: String = "Invalid IBAN number",
+    val groups: Array<KClass<*>> = [],
+    val payload: Array<KClass<out Any>> = []
+)
+
+class IBANValidatorForUpdate : ConstraintValidator<ValidIBANUpdate, String> {
+
+    override fun isValid(iban: String?, context: ConstraintValidatorContext): Boolean {
+        if (iban == null) return true
+        return IBANValidator().isValid(iban,context)
+    }
+
+}
+

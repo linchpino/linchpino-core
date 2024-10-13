@@ -15,21 +15,28 @@ import com.linchpino.core.dto.SaveAccountRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequest
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
+import com.linchpino.core.dto.UpdateProfileRequest
+import com.linchpino.core.dto.ValidWindow
+import com.linchpino.core.dto.hasOverlapWith
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
+import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
+import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.core.OAuth2AccessToken
@@ -37,11 +44,10 @@ import org.springframework.security.oauth2.server.resource.authentication.Bearer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
 
 @Service
 @Transactional
@@ -53,8 +59,10 @@ class AccountService(
     private val emailService: EmailService,
     private val storageService: StorageService,
     private val linkedInService: LinkedInService,
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
+    private val mentorTimeSlotRepository: MentorTimeSlotRepository
 ) {
+
 
     fun createAccount(createAccountRequest: CreateAccountRequest): CreateAccountResult {
         val request = SaveAccountRequest(
@@ -76,11 +84,27 @@ class AccountService(
 
 
     fun findMentorsWithClosestScheduleBy(date: ZonedDateTime, interviewTypeId: Long): List<MentorWithClosestSchedule> {
-        val selectedTime = date.withZoneSameInstant(ZoneOffset.UTC)
-        val mentors = repository.closestMentorSchedule(selectedTime, interviewTypeId)
+        val now = ZonedDateTime.now(ZoneOffset.UTC)
+        val currentDate = now.toLocalDate()
+        val selectedDate = date.toLocalDate()
+
+        val selectedTime = when {
+            currentDate.isEqual(selectedDate) -> now
+            else -> date.withZoneSameInstant(ZoneOffset.UTC).with(LocalTime.MIDNIGHT)
+        }
+
+        val accountsWithValidWindow = repository.closestMentorSchedule(selectedTime, interviewTypeId)
             .map { it to it.schedule?.doesMatchesSelectedDay(selectedTime) }
             .filter { it.second != null }
-            .map {
+
+        val accountIds = accountsWithValidWindow.map { it.first.id!! }
+        val bookedTimeSlots =
+            mentorTimeSlotRepository.findByAccountIdsAndDate(accountIds, selectedDate).groupBy { it.account?.id }
+
+        val mentors = accountsWithValidWindow
+            .filter { (account, validWindow) ->
+                accountsWithBookedTimeSlot(bookedTimeSlots[account.id] ?: emptyList(), validWindow!!)
+            }.map {
                 MentorWithClosestSchedule(
                     it.first.id,
                     it.first.firstName,
@@ -92,6 +116,18 @@ class AccountService(
             }
         return mentors
     }
+
+    private fun accountsWithBookedTimeSlot(
+        bookedTimeSlots: List<MentorTimeSlot>,
+        validWindow: ValidWindow
+    ): Boolean {
+        if (bookedTimeSlots.isEmpty())
+            return true
+        return bookedTimeSlots.any { timeSlot ->
+            !ValidWindow(timeSlot.fromTime, timeSlot.toTime).hasOverlapWith(validWindow)
+        }
+    }
+
 
     fun activeJobSeekerAccount(request: ActivateJobSeekerAccountRequest): AccountSummary {
         val account = repository.findByExternalId(request.externalId, AccountTypeEnum.JOB_SEEKER)
@@ -211,11 +247,13 @@ class AccountService(
         return repository.searchByNameOrRole(name, accountType, page)
             .map {
                 SearchAccountResult(
+                    it.id,
                     it.firstName,
                     it.lastName,
                     it.roles().map { r -> r.title.name },
                     it.email,
-                    it.avatar
+                    it.avatar,
+                    it.status
                 )
             }
     }
@@ -273,8 +311,36 @@ class AccountService(
             .forEach { account.addRole(it) }
 
         request.status?.let {
-            account.status = AccountStatusEnum.entries.first { status -> status.value == it  }
+            account.status = AccountStatusEnum.entries.first { status -> status.value == it }
         }
         repository.save(account)
+    }
+
+    fun updateProfile(authentication: Authentication, request: UpdateProfileRequest): AccountSummary {
+        val account = repository.findByEmailIgnoreCase(authentication.email())
+            ?: throw LinchpinException(ErrorCode.ACCOUNT_NOT_FOUND, "account not found")
+        var paymentMethod = paymentService.findByIdOrNull(account.id!!)
+        with(request) {
+            firstName?.let { account.firstName = it }
+            lastName?.let { account.lastName = it }
+            detailsOfExpertise?.let { account.detailsOfExpertise = it }
+            iban?.let { account.iban = it }
+            linkedInUrl?.let { account.linkedInUrl = it }
+            paymentMethodRequest?.let { paymentRequest ->
+                if (paymentMethod == null) {
+                    paymentMethod = paymentService.savePaymentMethod(paymentRequest, account)
+                } else {
+                    with(paymentMethod!!) {
+                        type = paymentRequest.type!!
+                        maxPayment = paymentRequest.maxPayment
+                        minPayment = paymentRequest.minPayment
+                        fixRate = paymentRequest.fixRate
+                        paymentService.update(this)
+                    }
+                }
+            }
+        }
+        repository.save(account)
+        return account.toSummary(paymentMethod)
     }
 }

@@ -14,8 +14,10 @@ import com.linchpino.core.dto.RegisterMentorResult
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.ScheduleResponse
+import com.linchpino.core.dto.ScheduleUpdateRequest
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.TimeSlot
+import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.ValidWindow
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.Schedule
@@ -27,8 +29,6 @@ import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.AccountService
 import com.linchpino.core.service.ScheduleService
 import com.linchpino.core.service.TimeSlotService
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -43,6 +43,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.mock.web.MockMultipartFile
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 
 @ExtendWith(MockitoExtension::class)
 class AccountControllerTest {
@@ -274,10 +276,13 @@ class AccountControllerTest {
         // Given
         val expectedResult = listOf(
             SearchAccountResult(
-                "John", "Doe",
+                100,
+                "John",
+                "Doe",
                 listOf("MENTOR"),
                 "johndoe@example.com",
-                "avatar.png"
+                "avatar.png",
+                AccountStatusEnum.ACTIVATED,
             )
         )
 
@@ -361,5 +366,70 @@ class AccountControllerTest {
         accountController.changePassword(authentication, request)
 
         verify(accountService, times(1)).changePassword(authentication, request)
+    }
+
+
+    @Test
+    fun `test update profile calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = UpdateProfileRequest(
+            "firstName",
+            "lastName",
+            "detailsOfExpertise",
+            "iban",
+            "linkedInUrl",
+            PaymentMethodRequest(PaymentMethodType.FREE)
+        )
+
+        // When
+        accountController.updateAccount(authentication, request)
+
+        // Then
+        verify(accountService, times(1)).updateProfile(authentication, request)
+    }
+
+    @Test
+    fun `test update schedule calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+        val request = ScheduleUpdateRequest(
+            startTime = ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            endTime = null,
+            duration = null,
+            recurrenceType = RecurrenceType.MONTHLY,
+            interval = null,
+            monthDays = listOf(1, 15)
+        )
+        val response = ScheduleResponse(
+            1,
+            ZonedDateTime.parse("2024-09-28T12:30:45+03:00"),
+            40,
+            1,
+            RecurrenceType.MONTHLY,
+            1,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+        )
+
+        `when`(scheduleService.updateSchedule(authentication, request)).thenReturn(response)
+
+        // When
+        val result = accountController.updateSchedule(authentication, request)
+
+        // Then
+        assertThat(result).isEqualTo(response)
+        verify(scheduleService, times(1)).updateSchedule(authentication, request)
+    }
+
+    @Test
+    fun `test delete schedule calls service with provided arguments`() {
+        // Given
+        val authentication = WithMockJwt.mockAuthentication("john.doe@example.com")
+
+        // When
+        accountController.deleteSchedule(authentication)
+
+        // Then
+        verify(scheduleService, times(1)).deleteSchedule(authentication)
     }
 }

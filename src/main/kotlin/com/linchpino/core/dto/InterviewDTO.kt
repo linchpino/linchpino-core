@@ -24,6 +24,7 @@ data class CreateInterviewResult(
 )
 
 data class InterviewListResponse(
+    val id:Long,
     val intervieweeId: Long,
     val intervieweeName: String,
     val fromTime: ZonedDateTime,

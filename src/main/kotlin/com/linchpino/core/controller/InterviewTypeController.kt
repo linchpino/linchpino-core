@@ -1,6 +1,6 @@
 package com.linchpino.core.controller
 
-import com.linchpino.core.dto.InterviewTypeSearchResponse
+import com.linchpino.core.dto.InterviewTypeResponse
 import com.linchpino.core.service.InterviewTypeService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -30,8 +30,7 @@ class InterviewTypeController(private val service: InterviewTypeService) {
     fun interviewTypes(
         @RequestParam(required = false) name: String?,
         @PageableDefault(size = 10) pageable: Pageable
-    ): Page<InterviewTypeSearchResponse> = service.searchByName(name, pageable)
-
+    ): Page<InterviewTypeResponse> = service.searchByName(name, pageable)
 
 
 }

@@ -2,6 +2,7 @@ package com.linchpino.core.controller
 
 import com.linchpino.core.PostgresContainerConfig
 import com.linchpino.core.entity.InterviewType
+import com.linchpino.core.entity.JobPosition
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import org.junit.jupiter.api.BeforeEach
@@ -39,9 +40,17 @@ class InterviewTypeControllerTestIT {
         val interviewType3 = InterviewType().apply { name = "Edit Resume" }
         val interviewType4 = InterviewType().apply { name = "Data Science Roadmap" }
         val interviewType5 = InterviewType().apply { name = "Developer Roadmap" }
+        val job1 = JobPosition().apply { title = "job1" }
+        val job2 = JobPosition().apply { title = "job2" }
+        val job3 = JobPosition().apply { title = "job3" }
 
-
-        repository.saveAll(listOf(interviewType1, interviewType2, interviewType3, interviewType4, interviewType5))
+        job1.addInterviewType(interviewType1)
+        job1.addInterviewType(interviewType2)
+        job2.addInterviewType(interviewType3)
+        job3.addInterviewType(interviewType4)
+        job3.addInterviewType(interviewType5)
+        jobPositionRepository.saveAll(listOf(job1, job2, job3))
+//        repository.saveAll(listOf(interviewType1, interviewType2, interviewType3, interviewType4, interviewType5))
     }
 
     @Test
@@ -51,6 +60,7 @@ class InterviewTypeControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].title").value("Mock Interview"))
+            .andExpect(jsonPath("$.content[0].jobPosition.title").value("job1"))
     }
 
     @Test
@@ -60,6 +70,7 @@ class InterviewTypeControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].title").value("Mock Interview"))
+            .andExpect(jsonPath("$.content[0].jobPosition.title").value("job1"))
     }
 
     @Test
@@ -77,10 +88,15 @@ class InterviewTypeControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(5))
             .andExpect(jsonPath("$.content[0].title").value("Mock Interview"))
+            .andExpect(jsonPath("$.content[0].jobPosition.title").value("job1"))
             .andExpect(jsonPath("$.content[1].title").value("Resume Review"))
+            .andExpect(jsonPath("$.content[1].jobPosition.title").value("job1"))
             .andExpect(jsonPath("$.content[2].title").value("Edit Resume"))
+            .andExpect(jsonPath("$.content[2].jobPosition.title").value("job2"))
             .andExpect(jsonPath("$.content[3].title").value("Data Science Roadmap"))
+            .andExpect(jsonPath("$.content[3].jobPosition.title").value("job3"))
             .andExpect(jsonPath("$.content[4].title").value("Developer Roadmap"))
+            .andExpect(jsonPath("$.content[4].jobPosition.title").value("job3"))
     }
 
     @Test
@@ -90,7 +106,9 @@ class InterviewTypeControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(2))
             .andExpect(jsonPath("$.content[0].title").value("Mock Interview"))
+            .andExpect(jsonPath("$.content[0].jobPosition.title").value("job1"))
             .andExpect(jsonPath("$.content[1].title").value("Resume Review"))
+            .andExpect(jsonPath("$.content[1].jobPosition.title").value("job1"))
     }
 
     @Test
@@ -99,6 +117,8 @@ class InterviewTypeControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(2))
             .andExpect(jsonPath("$.content[1].title").value("Edit Resume"))
+            .andExpect(jsonPath("$.content[1].jobPosition.title").value("job2"))
             .andExpect(jsonPath("$.content[0].title").value("Resume Review"))
+            .andExpect(jsonPath("$.content[0].jobPosition.title").value("job1"))
     }
 }
