@@ -21,8 +21,13 @@ interface PaymentRepository : CrudRepository<Payment, Long> {
         )
          from Payment p
         where
-        (:status is null or p.status = :status) and (:refNumber is null or p.refNumber = :refNumber)
+        (:status is null or p.status = :status) and (:refNumber is null or p.refNumber = :refNumber) and (:interviewId is null or p.interview.id = :interviewId)
     """
     )
-    fun search(status: PaymentStatus?, refNumber: String?, pageable: Pageable): Page<PaymentResponse>
+    fun search(
+        status: PaymentStatus?,
+        refNumber: String?,
+        interviewId: Long?,
+        pageable: Pageable
+    ): Page<PaymentResponse>
 }
