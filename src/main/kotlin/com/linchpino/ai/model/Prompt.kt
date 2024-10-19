@@ -1,8 +1,15 @@
-package com.linchpino.ai.model;
+package com.linchpino.ai.model
 
-public class Prompt {
+class Prompt(private val requestDetail: RequestDetail) {
+    override fun toString(): String {
+        return ROADMAP_PROMPT
+            .replace("_targetLevel_", requestDetail.targetLevel)
+            .replace("_summary_", requestDetail.resume.summary)
+            .replace("_experience_", requestDetail.resume.experience)
+    }
 
-    public static final String ROADMAP_PROMPT = """
+    companion object {
+        val ROADMAP_PROMPT: String = """
         This is my summary: {_summary_} and this is my experiences: {_experience_}.
         I want to have a roadmap to reach to level {_targetLevel_}.
         Could you please give me a roadmap to reach level {_targetLevel_}
@@ -27,26 +34,13 @@ public class Prompt {
             ]
         }
         Provide me response in json without any other information.
-        """;
 
-    private final RequestDetail requestDetail;
+        """.trimIndent()
 
-    public Prompt(RequestDetail requestDetail) {
-        this.requestDetail = requestDetail;
-    }
-
-    public static Prompt of(RequestDetail requestDetail) {
-        if (requestDetail == null) {
-            throw new IllegalArgumentException("Request detail cannot be null");
+        @JvmStatic
+        fun of(requestDetail: RequestDetail?): Prompt {
+            requireNotNull(requestDetail) { "Request detail cannot be null" }
+            return Prompt(requestDetail)
         }
-        return new Prompt(requestDetail);
     }
-
-    public String toString() {
-        return Prompt.ROADMAP_PROMPT
-            .replace("_targetLevel_", requestDetail.getTargetLevel())
-            .replace("_summary_", requestDetail.getResume().getSummary())
-            .replace("_experience_", requestDetail.getResume().getExperience());
-    }
-
 }

@@ -1,45 +1,32 @@
-package com.linchpino.ai.model;
+package com.linchpino.ai.model
 
-import com.linchpino.ai.service.impl.ChatGPTServiceImpl;
-import com.linchpino.ai.service.impl.GeminiServiceImpl;
+import com.linchpino.ai.service.impl.ChatGPTServiceImpl
+import com.linchpino.ai.service.impl.GeminiServiceImpl
 
-public enum AIServiceName {
+enum class AIServiceName(val label: String, @JvmField val componentName: String, private val isDefault: Boolean) {
     CHATGPT("ChatGPT", ChatGPTServiceImpl.COMPONENT_NAME, false),
-    GEMINI("Gemini", GeminiServiceImpl.COMPONENT_NAME, true);
+    GEMINI("Gemini", GeminiServiceImpl.COMPONENT_NAME, true),
+    NOT_FOUND("Not found", "Not_found", false);
 
-    public final String label;
-    public final String componentName;
-    private final boolean isDefault;
-
-    AIServiceName(String label, String componentName, boolean isDefault) {
-        this.label = label;
-        this.componentName = componentName;
-        this.isDefault = isDefault;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public String getComponentName() {
-        return componentName;
-    }
-
-    public static AIServiceName getDefault() {
-        for (AIServiceName value : values()) {
-            if (value.isDefault) {
-                return value;
+    companion object {
+        val default: AIServiceName
+            get() {
+                for (value in entries) {
+                    if (value.isDefault) {
+                        return value
+                    }
+                }
+                return NOT_FOUND
             }
-        }
-        return null;
-    }
 
-    public static AIServiceName getComponentNameOrDefault(String componentName) {
-        for (AIServiceName value : values()) {
-            if (value.componentName.equalsIgnoreCase(componentName)) {
-                return value;
+        @JvmStatic
+        fun getComponentNameOrDefault(componentName: String?): AIServiceName {
+            for (value in entries) {
+                if (value.componentName.equals(componentName, ignoreCase = true)) {
+                    return value
+                }
             }
+            return default
         }
-        return getDefault();
     }
 }

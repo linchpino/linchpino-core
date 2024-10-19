@@ -1,7 +1,7 @@
-package com.linchpino.ai.service;
+package com.linchpino.ai.service
 
-import com.linchpino.ai.model.RequestDetail;
+import com.linchpino.ai.model.RequestDetail
 
-public interface AIService {
-    String talkToAI(RequestDetail requestDetail);
+interface AIService {
+    fun talkToAI(requestDetail: RequestDetail?): String?
 }
