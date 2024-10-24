@@ -28,7 +28,8 @@ class StorageService(
         "image/jpeg",
         "image/jpg",
         "image/bmp",
-        "image/gif")
+        "image/gif",
+        "image/webp")
 
     private val tika: Tika = Tika()
 
