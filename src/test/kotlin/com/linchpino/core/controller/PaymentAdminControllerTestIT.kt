@@ -47,19 +47,16 @@ class PaymentAdminControllerTestIT {
 
     private val payments = listOf(
         Payment().apply {
-            id = 1
             refNumber = "ref_number_1"
             amount = BigDecimal("12.5")
             status = PaymentStatus.PENDING
         },
         Payment().apply {
-            id = 2
             refNumber = "ref_number_2"
             amount = BigDecimal("13.5")
             status = PaymentStatus.VERIFIED
         },
         Payment().apply {
-            id = 3
             refNumber = "ref_number_3"
             amount = BigDecimal("17.5")
             status = PaymentStatus.REJECTED
@@ -74,8 +71,11 @@ class PaymentAdminControllerTestIT {
         val jobSeeker = createAccount("jane", "smith", "jane.smith@example.com")
         val timeSlots = createMentorTimeSlots(mentor, 3)
         val interviews = createInterviews(mentor, jobPosition, timeSlots, interviewTypes, jobSeeker)
-
-        associatePaymentsWithInterviews(interviews)
+        payments.forEachIndexed { index, payment ->
+            payment.interview = interviews[index]
+            entityManager.persist(payment)
+        }
+//        associatePaymentsWithInterviews(interviews)
     }
 
 
@@ -86,15 +86,15 @@ class PaymentAdminControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(3))
             .andExpect(jsonPath("$.content[0].refNumber").value("ref_number_1"))
-            .andExpect(jsonPath("$.content[0].amount").value("12.50"))
+            .andExpect(jsonPath("$.content[0].amount").value("12.5"))
             .andExpect(jsonPath("$.content[0].status").value("PENDING"))
 
             .andExpect(jsonPath("$.content[1].refNumber").value("ref_number_2"))
-            .andExpect(jsonPath("$.content[1].amount").value("13.50"))
+            .andExpect(jsonPath("$.content[1].amount").value("13.5"))
             .andExpect(jsonPath("$.content[1].status").value("VERIFIED"))
 
             .andExpect(jsonPath("$.content[2].refNumber").value("ref_number_3"))
-            .andExpect(jsonPath("$.content[2].amount").value("17.50"))
+            .andExpect(jsonPath("$.content[2].amount").value("17.5"))
             .andExpect(jsonPath("$.content[2].status").value("REJECTED"))
 
             .andExpect(jsonPath("$.totalElements").value(3))
@@ -110,7 +110,7 @@ class PaymentAdminControllerTestIT {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].refNumber").value("ref_number_1"))
-            .andExpect(jsonPath("$.content[0].amount").value("12.50"))
+            .andExpect(jsonPath("$.content[0].amount").value("12.5"))
             .andExpect(jsonPath("$.content[0].status").value("PENDING"))
 
 
@@ -130,13 +130,31 @@ class PaymentAdminControllerTestIT {
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].refNumber").value(expectedRefNumber))
             .andExpect(jsonPath("$.content[0].status").value("PENDING"))
-            .andExpect(jsonPath("$.content[0].amount").value("12.50"))
+            .andExpect(jsonPath("$.content[0].amount").value("12.5"))
 
 
             .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.totalPages").value(1))
             .andExpect(jsonPath("$.numberOfElements").value(1))
     }
+
+    @WithMockJwt(username = "admin@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
+    fun `search payments should return only the payment with the specified interviewId as a query parameter`() {
+
+        val interviewId = payments.map { it.interview?.id }.firstOrNull()
+        mockMvc.perform(get("/api/admin/payments").param("interviewId", "$interviewId"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+            .andExpect(jsonPath("$.content[0].interviewId").value(interviewId))
+
+
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.totalPages").value(1))
+            .andExpect(jsonPath("$.numberOfElements").value(1))
+    }
+
 
     @WithMockJwt(username = "admin@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
@@ -253,7 +271,7 @@ class PaymentAdminControllerTestIT {
     private fun associatePaymentsWithInterviews(interviews: List<Interview>) {
         interviews.forEachIndexed { i, interview ->
             payments[i].apply {
-                this.interview = interview
+                this.interview = Interview().apply { id = interview.id }
             }.also {
                 entityManager.persist(it)
             }

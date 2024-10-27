@@ -18,7 +18,10 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.InterviewRepository
 import com.linchpino.core.repository.PaymentMethodRepository
 import com.linchpino.core.repository.PaymentRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import java.math.BigDecimal
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
@@ -33,6 +36,8 @@ class PaymentService(
     private val interviewRepository: InterviewRepository,
 ) {
 
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
     fun savePaymentMethod(request: PaymentMethodRequest, account: Account): PaymentMethod {
         return PaymentMethod().apply {
             type = request.type ?: PaymentMethodType.FREE
@@ -64,7 +69,17 @@ class PaymentService(
             refNumber = request.refNumber
             status = PaymentStatus.PENDING
         }.let {
-            paymentRepository.save(it)
+            try {
+                paymentRepository.save(it)
+            } catch (ex: DataIntegrityViolationException) {
+                throw LinchpinException(
+                    "reference number is duplicated",
+                    ex,
+                    ErrorCode.UNIQUE_ENTITY_VIOLATION,
+                    "refNumber",
+                    Payment::class.java.simpleName
+                )
+            }
             it.toResponse()
         }
     }
@@ -94,7 +109,12 @@ class PaymentService(
     }
 
     @Transactional(readOnly = true)
-    fun search(status: PaymentStatus?, refNumber: String?, pageable: Pageable): Page<PaymentResponse> {
-        return paymentRepository.search(status, refNumber, pageable)
+    fun search(
+        status: PaymentStatus?,
+        refNumber: String?,
+        interviewId: Long?,
+        pageable: Pageable
+    ): Page<PaymentResponse> {
+        return paymentRepository.search(status, refNumber, interviewId, pageable)
     }
 }

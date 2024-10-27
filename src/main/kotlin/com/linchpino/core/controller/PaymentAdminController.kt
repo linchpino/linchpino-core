@@ -41,8 +41,9 @@ class PaymentAdminController(private val paymentService: PaymentService) {
     fun searchPayments(
         @RequestParam(required = false) status: PaymentStatus?,
         @RequestParam(required = false) refNumber: String?,
+        @RequestParam(required = false) interviewId: Long?,
         pageable: Pageable
     ): Page<PaymentResponse> {
-        return paymentService.search(status, refNumber, pageable)
+        return paymentService.search(status, refNumber, interviewId, pageable)
     }
 }
