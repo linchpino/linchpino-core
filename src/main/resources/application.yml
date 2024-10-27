@@ -93,3 +93,7 @@ gcp:
 
 file:
     upload-dir: ${UPLOAD_DIR:/tmp}
+
+cors:
+  allowed-origins:
+    - ${ALLOWED_ORIGIN:"http://localhost:3000"}

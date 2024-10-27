@@ -1,5 +1,6 @@
 package com.linchpino
 
+import com.linchpino.core.security.CorsProperties
 import com.linchpino.core.security.RSAKeys
 import io.swagger.v3.oas.annotations.OpenAPIDefinition
 import io.swagger.v3.oas.annotations.info.Info
@@ -10,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
 @EnableScheduling
-@EnableConfigurationProperties(RSAKeys::class)
+@EnableConfigurationProperties(RSAKeys::class,CorsProperties::class)
 @OpenAPIDefinition(info = Info(title = "Linchpino Core", version = "1.0"))
 class LinchpinApp
 
