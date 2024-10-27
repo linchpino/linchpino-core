@@ -111,7 +111,8 @@ data class AccountSummary(
     val linkedInUrl: String? = null,
     val iban: String? = null,
     val schedule: ScheduleResponse? = null,
-    val paymentMethod: PaymentMethodResponse? = null
+    val paymentMethod: PaymentMethodResponse? = null,
+    val interviewTypes: List<ShortInterviewTypeResponse> = emptyList()
 )
 
 fun Account.toSummary(paymentMethod: PaymentMethod? = null) = AccountSummary(
@@ -127,7 +128,13 @@ fun Account.toSummary(paymentMethod: PaymentMethod? = null) = AccountSummary(
     linkedInUrl,
     iban,
     schedule?.toResponse(),
-    paymentMethod?.toResponse()
+    paymentMethod?.toResponse(),
+    interviewTypes().map {
+        ShortInterviewTypeResponse(
+            it.id,
+            it.name
+        )
+    }
 )
 
 
