@@ -59,13 +59,13 @@ class PaymentAdminControllerTest {
     fun `test search payment`() {
 
         val response = PageImpl(listOf(PaymentResponse(1, 1, "refNumber", BigDecimal("10.5"), PaymentStatus.REJECTED)))
-        `when`(paymentService.search(PaymentStatus.PENDING, "refNumber", Pageable.ofSize(10))).thenReturn(
+        `when`(paymentService.search(PaymentStatus.PENDING, "refNumber", 1, Pageable.ofSize(10))).thenReturn(
             response
         )
 
-        val result = paymentAdminController.searchPayments(PaymentStatus.PENDING, "refNumber", Pageable.ofSize(10))
+        val result = paymentAdminController.searchPayments(PaymentStatus.PENDING, "refNumber", 1, Pageable.ofSize(10))
 
-        verify(paymentService, times(1)).search(PaymentStatus.PENDING, "refNumber", Pageable.ofSize(10))
+        verify(paymentService, times(1)).search(PaymentStatus.PENDING, "refNumber", 1, Pageable.ofSize(10))
         assertThat(result).isEqualTo(response)
     }
 
