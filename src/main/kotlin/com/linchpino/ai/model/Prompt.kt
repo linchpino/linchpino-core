@@ -34,13 +34,6 @@ class Prompt(private val requestDetail: RequestDetail) {
             ]
         }
         Provide me response in json without any other information.
-
         """.trimIndent()
-
-        @JvmStatic
-        fun of(requestDetail: RequestDetail?): Prompt {
-            requireNotNull(requestDetail) { "Request detail cannot be null" }
-            return Prompt(requestDetail)
-        }
     }
 }

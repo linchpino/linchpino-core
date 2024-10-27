@@ -21,8 +21,7 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
     @Value("\${spring.ai.roadmap-attempt-limit}")
     private val roadmapAttemptLimit = 0
 
-    fun create(file: File?): Resume {
-        requireNotNull(file) { "File cannot be null" }
+    fun create(file: File): Resume {
         val lines = readLines(file)
         val email = Resume.findEmail(lines)
         if (isRoadmapAttemptLimitReached(email)) {
@@ -32,7 +31,6 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
     }
 
     fun save(resume: Resume): Resume {
-        Objects.requireNonNull(resume, "Resume cannot be null")
         Objects.requireNonNull(resume.email, "Email cannot be null")
         return resumeRepository.save(resume)
     }
@@ -59,11 +57,10 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
         try {
             Loader.loadPDF(file).use { document ->
                 logger.info("Reading the file: {}", file.name)
-                val textStripper = PDFTextStripper()
-                return ArrayList(
-                    Arrays.asList(
-                        *textStripper.getText(document).split("\n".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()))
+                val extractedText = PDFTextStripper().getText(document)
+                val lines = extractedText.split("\n")
+                    .filter { it.isNotBlank() }
+                return ArrayList(lines)
             }
         } catch (e: IOException) {
             throw LinchpinException(ErrorCode.SERVER_ERROR, "Error occurred while reading the file!", e)

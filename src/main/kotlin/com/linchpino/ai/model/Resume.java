@@ -97,7 +97,7 @@ public class Resume {
     private String lineIsHeader(String line, String[] headers) {
         for (String header : headers) {
             if (line.toLowerCase().contains(header.toLowerCase()) &&
-                    line.length() < 2 * header.length()) {
+                line.length() < 2 * header.length()) {
                 return header;
             }
         }
@@ -170,17 +170,17 @@ public class Resume {
 
         public static List<String> getContactLines(List<String> lines) {
             return Stream.of(emailPattern, phonePattern).sequential()
-                    .flatMap(pattern -> lines.stream().map(line -> find(line, pattern)))
-                    .filter(Objects::nonNull)
-                    .toList();
+                .flatMap(pattern -> lines.stream().map(line -> find(line, pattern)))
+                .filter(Objects::nonNull)
+                .toList();
         }
 
         public static String findEmail(List<String> lines) {
             return lines.stream()
-                    .map(line -> find(line, emailPattern))
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
+                .map(line -> find(line, emailPattern))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
         }
 
         static String find(String str, Pattern pattern) {

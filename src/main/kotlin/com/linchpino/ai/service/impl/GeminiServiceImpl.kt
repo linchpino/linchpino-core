@@ -2,7 +2,7 @@ package com.linchpino.ai.service.impl
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.linchpino.ai.model.Prompt.Companion.of
+import com.linchpino.ai.model.Prompt
 import com.linchpino.ai.model.RequestDetail
 import com.linchpino.ai.service.AIService
 import com.linchpino.core.exception.ErrorCode
@@ -26,7 +26,7 @@ class GeminiServiceImpl : AIService {
 
     private val restTemplate = RestTemplate()
 
-    override fun talkToAI(requestDetail: RequestDetail?): String? {
+    override fun talkToAI(requestDetail: RequestDetail): String? {
         try {
             val url = String.format(
                 "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s",
@@ -57,15 +57,14 @@ class GeminiServiceImpl : AIService {
         }
     }
 
-    private fun getPrompt(requestDetail: RequestDetail?): String {
-        val prompt = of(requestDetail).toString()
+    private fun getPrompt(requestDetail: RequestDetail): String {
+        val prompt = Prompt(requestDetail).toString()
         logger.info("Prompt: {}", prompt)
         return prompt
     }
 
     private fun getPromptRequest(prompt: String): String {
         val mapper = ObjectMapper()
-        var promptRequest = ""
         val contentsJson = mapper.createObjectNode()
         try {
             val textJson = mapper.createObjectNode()
@@ -77,7 +76,7 @@ class GeminiServiceImpl : AIService {
             val contentsArray = mapper.createArrayNode()
             contentsArray.add(partsJson)
             contentsJson.set<JsonNode>("contents", contentsArray)
-            promptRequest = mapper.writeValueAsString(contentsJson)
+            return mapper.writeValueAsString(contentsJson)
         } catch (e: Exception) {
             throw LinchpinException(
                 ErrorCode.SERVER_ERROR,
@@ -85,7 +84,6 @@ class GeminiServiceImpl : AIService {
                 e
             )
         }
-        return promptRequest
     }
 
     @JvmRecord

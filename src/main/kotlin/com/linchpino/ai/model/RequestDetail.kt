@@ -1,3 +1,3 @@
 package com.linchpino.ai.model
 
-class RequestDetail(var targetLevel: String, var resume: Resume)
+class RequestDetail(val targetLevel: String, val resume: Resume)
