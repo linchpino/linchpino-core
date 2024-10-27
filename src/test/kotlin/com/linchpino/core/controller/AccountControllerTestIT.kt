@@ -849,6 +849,7 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.detailsOfExpertise").value("test expertise"))
             .andExpect(jsonPath("$.linkedInUrl").value("https://linkedin.com/john"))
             .andExpect(jsonPath("$.iban").value("GB82WEST12345698765432"))
+            .andExpect(jsonPath("$.interviewTypes[0].title").value("Java Developer"))
     }
 
     @WithMockBearerToken(username = "johndoe@gmail.com", roles = [AccountTypeEnum.MENTOR])
@@ -1208,6 +1209,10 @@ class AccountControllerTestIT {
             iban = "GB82WEST12345698765432"
             avatar = "avatar image id"
         }
+
+        john.addInterviewType(InterviewType().apply {
+            name = "Java Developer"
+        })
 
         val jane = Account().apply {
             firstName = "Jane"

@@ -6,8 +6,6 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet
 import com.nimbusds.jwt.JWTParser
 import jakarta.servlet.http.HttpServletRequest
-import java.net.URI
-import java.text.ParseException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -38,10 +36,12 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import java.net.URI
+import java.text.ParseException
 
 @Configuration
 @EnableMethodSecurity
-class SecurityConfig(private val rsaKeys: RSAKeys) {
+class SecurityConfig(private val rsaKeys: RSAKeys,private val corsProperties: CorsProperties) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity,
@@ -49,7 +49,37 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
                             linkedInService: LinkedInService): SecurityFilterChain {
         return http
             .csrf { it.disable() }
-            .cors { it.configurationSource(corsConfigurationSource()) }
+            .cors {
+                val configurationSource = CorsConfigurationSource { _: HttpServletRequest? ->
+                    val configuration = CorsConfiguration()
+                    configuration.allowedOrigins = corsProperties.allowedOrigins
+                    configuration.allowedMethods = listOf(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                    )
+                    configuration.allowedHeaders = listOf(
+                        "Content-Type",
+                        "Authorization",
+                        "Origin",
+                        "Access-Control-Allow-Origin",
+                        "Access-Control-Allow-Headers"
+                    )
+                    configuration.exposedHeaders = listOf(
+                        "Content-Type",
+                        "Authorization"
+                    )
+
+                    UrlBasedCorsConfigurationSource().apply {
+                        registerCorsConfiguration("/**", configuration)
+                    }
+                    configuration
+                }
+                it.configurationSource(configurationSource)
+            }
             .authorizeHttpRequests {
                 it.requestMatchers("/login").authenticated()
                 it.requestMatchers("/api/accounts/profile/**").authenticated()
@@ -126,19 +156,6 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
         return opaqueTokenIntrospector
     }
 
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource = CorsConfiguration()
-        .apply {
-            applyPermitDefaultValues()
-            allowedOrigins = listOf("*")
-            allowedMethods = listOf("*")
-            allowedHeaders = listOf("*")
-        }
-        .let { corsConfig ->
-            UrlBasedCorsConfigurationSource().apply {
-                registerCorsConfiguration("/**", corsConfig)
-            }
-        }
 
     @Bean
     fun restClient() = RestClient.create()
