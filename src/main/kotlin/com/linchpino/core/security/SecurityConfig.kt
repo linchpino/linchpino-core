@@ -52,7 +52,9 @@ class SecurityConfig(private val rsaKeys: RSAKeys,private val corsProperties: Co
             .cors {
                 val configurationSource = CorsConfigurationSource { _: HttpServletRequest? ->
                     val configuration = CorsConfiguration()
-                    configuration.allowedOrigins = corsProperties.allowedOrigins
+                    println("allowed origins: =================> "+corsProperties.allowedOrigins)
+//                    configuration.allowedOrigins = corsProperties.allowedOrigins
+                    configuration.allowedOrigins = listOf("https://ui-dev.linchpino.com/","http://localhost:3000")
                     configuration.allowedMethods = listOf(
                         "GET",
                         "POST",
