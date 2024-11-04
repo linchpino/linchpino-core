@@ -96,4 +96,5 @@ file:
 
 cors:
   allowed-origins:
-    - ${ALLOWED_ORIGIN:"http://localhost:3000"}
+    - https://ui-dev.linchpino.com
+    - http://localhost:3000

@@ -38,10 +38,13 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import java.net.URI
 import java.text.ParseException
+import org.slf4j.LoggerFactory
 
 @Configuration
 @EnableMethodSecurity
 class SecurityConfig(private val rsaKeys: RSAKeys,private val corsProperties: CorsProperties) {
+
+    private val logger = LoggerFactory.getLogger(SecurityConfig::class.java)
 
     @Bean
     fun securityFilterChain(http: HttpSecurity,
@@ -52,9 +55,8 @@ class SecurityConfig(private val rsaKeys: RSAKeys,private val corsProperties: Co
             .cors {
                 val configurationSource = CorsConfigurationSource { _: HttpServletRequest? ->
                     val configuration = CorsConfiguration()
-                    println("allowed origins: =================> "+corsProperties.allowedOrigins)
-//                    configuration.allowedOrigins = corsProperties.allowedOrigins
-                    configuration.allowedOrigins = listOf("https://ui-dev.linchpino.com/","http://localhost:3000")
+                    logger.info("cors origins: {}",corsProperties.allowedOrigins)
+                    configuration.allowedOrigins = corsProperties.allowedOrigins
                     configuration.allowedMethods = listOf(
                         "GET",
                         "POST",
