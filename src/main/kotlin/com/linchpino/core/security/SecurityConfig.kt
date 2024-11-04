@@ -53,7 +53,7 @@ class SecurityConfig(private val rsaKeys: RSAKeys) {
     fun securityFilterChain(http: HttpSecurity,
                             opaqueTokenIntrospector: OpaqueTokenIntrospector,
                             linkedInService: LinkedInService): SecurityFilterChain {
-        val origins = allowedOrigins?.let { it.split("-").map{ s -> s.trim() } }?: emptyList()
+        val origins = allowedOrigins?.let { it.split("_").map{ s -> s.trim() } }?: emptyList()
         return http
             .csrf { it.disable() }
             .cors {
