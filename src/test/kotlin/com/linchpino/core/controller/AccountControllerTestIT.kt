@@ -462,6 +462,97 @@ class AccountControllerTestIT {
     }
 
     @Test
+    fun `test register new mentor throws exception if payment is not free and iban is invalid`() {
+        // Given
+        val it1 = InterviewType().apply { name = "type1" }
+        val it2 = InterviewType().apply { name = "type2" }
+        val interviewTypes = interviewTypeRepository.saveAll(listOf(it1, it2))
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.PAY_AS_YOU_GO,
+            minPayment = 10.0,
+            maxPayment = 25.0
+        )
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "@secret1",
+            interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "https://www.linkedin.com/in/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = null
+        )
+
+        mockMvc.perform(
+            post("/api/accounts/mentors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Invalid state for iban : iban must be valid, since payment type is not free"))
+    }
+
+    @Test
+    fun `test register new mentor is successful when payment is free and iban is null`() {
+        // Given
+        val it1 = InterviewType().apply { name = "type1" }
+        val it2 = InterviewType().apply { name = "type2" }
+        val interviewTypes = interviewTypeRepository.saveAll(listOf(it1, it2))
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.FREE,
+        )
+        val request = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "@secret1",
+            interviewTypeIDs = interviewTypes.map { it.id!! }.toList(),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "https://www.linkedin.com/in/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = null
+        )
+
+        mockMvc.perform(
+            post("/api/accounts/mentors")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.id").isNumber)
+            .andExpect(jsonPath("$.firstName").value("John"))
+            .andExpect(jsonPath("$.lastName").value("Doe"))
+            .andExpect(jsonPath("$.email").value("john@example.com"))
+            .andExpect(jsonPath("$.interviewTypeIDs").isArray)
+            .andExpect(jsonPath("$.detailsOfExpertise").value("Some expertise"))
+            .andExpect(jsonPath("$.linkedInUrl").value("https://www.linkedin.com/in/johndoe"))
+
+        verify(
+            mailService,
+            times(1)
+        ).sendingWelcomeEmailToMentor(
+            request.firstName,
+            request.lastName,
+            request.email
+        )
+
+        // verify payment method
+        val savedAccount = accountRepository.findByEmailIgnoreCase(request.email)
+        val paymentMethod = entityManager.find(
+            PaymentMethod::class.java,
+            savedAccount!!.id
+        )
+
+        assertThat(paymentMethod.account?.email).isEqualTo(request.email)
+        assertThat(paymentMethod.type).isEqualTo(PaymentMethodType.FREE)
+        assertThat(paymentMethod.minPayment).isEqualTo(paymentMethodRequest.minPayment)
+        assertThat(paymentMethod.maxPayment).isEqualTo(paymentMethodRequest.maxPayment)
+        assertThat(savedAccount.iban).isNull()
+    }
+
+    @Test
     fun `test register new mentor throws exception when no interviewTypeIDs found in database`() {
         // Given
         val request = RegisterMentorRequest(
