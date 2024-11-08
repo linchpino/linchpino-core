@@ -411,6 +411,15 @@ class AccountControllerTestIT {
             minPayment = 10.0,
             maxPayment = 25.0
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -420,14 +429,15 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = "GB82 WEST 1234 5698 7654 32"
+            iban = "GB82 WEST 1234 5698 7654 32",
+            scheduleRequest = scheduleRequest
         )
         val expectedIBAN = request.iban?.trim()?.replace(" ", "")?.uppercase()
 
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)
@@ -437,6 +447,13 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.interviewTypeIDs").isArray)
             .andExpect(jsonPath("$.detailsOfExpertise").value("Some expertise"))
             .andExpect(jsonPath("$.linkedInUrl").value("https://www.linkedin.com/in/johndoe"))
+            .andExpect(jsonPath("$.schedule.duration").value(60))
+            .andExpect(jsonPath("$.schedule.recurrenceType").value("WEEKLY"))
+            .andExpect(jsonPath("$.schedule.interval").value(3))
+            .andExpect(jsonPath("$.schedule.startTime").value("2024-08-28T09:30:45Z"))
+            .andExpect(jsonPath("$.schedule.endTime").value("2024-12-30T10:30:45Z"))
+            .andExpect(jsonPath("$.schedule.weekDays[0]").value("MONDAY"))
+            .andExpect(jsonPath("$.schedule.weekDays[1]").value("WEDNESDAY"))
 
         verify(
             mailService,
@@ -464,6 +481,15 @@ class AccountControllerTestIT {
     @Test
     fun `test register new mentor throws exception when no interviewTypeIDs found in database`() {
         // Given
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -473,13 +499,14 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
             paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
-            iban = "GB82 WEST 1234 5698 7654 32"
+            iban = "GB82 WEST 1234 5698 7654 32",
+            scheduleRequest = scheduleRequest
         )
         //
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.timestamp").exists())
@@ -489,6 +516,15 @@ class AccountControllerTestIT {
 
     @Test
     fun `test register mentor with invalid request data`() {
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val invalidRequest = RegisterMentorRequest(
             firstName = "", // Empty first name
             lastName = "Doe",
@@ -498,13 +534,14 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://linkedin.com/johndoe",
             paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
-            iban = "GB82 WEST 1234 5698 7654 33"
+            iban = "GB82 WEST 1234 5698 7654 33",
+            scheduleRequest = scheduleRequest
         )
 
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))

@@ -21,6 +21,7 @@ import com.linchpino.core.dto.hasOverlapWith
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
+import com.linchpino.core.dto.toSchedule
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.MentorTimeSlot
@@ -32,8 +33,10 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
+import com.nimbusds.jose.proc.SecurityContext
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -48,6 +51,7 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
+import org.springframework.security.core.context.SecurityContextHolder
 
 @Service
 @Transactional
@@ -60,7 +64,8 @@ class AccountService(
     private val storageService: StorageService,
     private val linkedInService: LinkedInService,
     private val paymentService: PaymentService,
-    private val mentorTimeSlotRepository: MentorTimeSlotRepository
+    private val mentorTimeSlotRepository: MentorTimeSlotRepository,
+    private val scheduleRepository: ScheduleRepository
 ) {
 
 
@@ -165,7 +170,14 @@ class AccountService(
             request.paymentMethodRequest,
             request.iban?.toIBAN()
         )
-        val registeredMentor = saveAccount(saveAccountRequest).toRegisterMentorResult()
+        val saveAccount = saveAccount(saveAccountRequest)
+
+        val schedule = request.scheduleRequest.toSchedule(saveAccount)
+        saveAccount.schedule = schedule
+        scheduleRepository.save(schedule)
+
+        val registeredMentor = saveAccount.toRegisterMentorResult()
+
         registeredMentor.firstName?.let { firstName ->
             registeredMentor.lastName?.let { lastName ->
                 emailService.sendingWelcomeEmailToMentor(

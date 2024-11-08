@@ -11,6 +11,8 @@ import com.linchpino.core.dto.PaymentMethodResponse
 import com.linchpino.core.dto.RegisterMentorRequest
 import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
+import com.linchpino.core.dto.ScheduleRequest
+import com.linchpino.core.dto.ScheduleResponse
 import com.linchpino.core.dto.SearchAccountResult
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.UpdateProfileRequest
@@ -32,6 +34,7 @@ import com.linchpino.core.repository.AccountRepository
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.MentorTimeSlotRepository
 import com.linchpino.core.repository.RoleRepository
+import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.security.email
@@ -96,6 +99,9 @@ class AccountServiceTest {
 
     @Mock
     private lateinit var mentorTimeSlotRepository: MentorTimeSlotRepository
+
+    @Mock
+    private lateinit var scheduleRepository: ScheduleRepository
 
     @Test
     fun `test creating account`() {
@@ -252,6 +258,16 @@ class AccountServiceTest {
             type = PaymentMethodType.FIX_PRICE,
             fixRate = 10.0
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
+
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -261,7 +277,8 @@ class AccountServiceTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = "GB82 WEST 1234 5698 7654 32"
+            iban = "GB82 WEST 1234 5698 7654 32",
+            scheduleRequest = scheduleRequest
         )
 
         val i1 = InterviewType().apply {
@@ -277,13 +294,17 @@ class AccountServiceTest {
             title = AccountTypeEnum.MENTOR
         }
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
+        val scheduleCaptor: ArgumentCaptor<Schedule> = ArgumentCaptor.forClass(Schedule::class.java)
         `when`(interviewTypeRepository.findAllByIdIn(request.interviewTypeIDs)).thenReturn(listOf(i1, i2))
         `when`(passwordEncoder.encode(request.password)).thenReturn("encoded password")
         `when`(roleRepository.findAll()).thenReturn(listOf(mentorRole))
 
+
         val result = accountService.registerMentor(request)
 
         verify(repository, times(1)).save(accountCaptor.captureNonNullable())
+        verify(scheduleRepository, times(1)).save(scheduleCaptor.captureNonNullable())
+
         accountCaptor.value.firstName?.let { firstName ->
             accountCaptor.value.lastName?.let { lastName ->
                 verify(emailService, times(1)).sendingWelcomeEmailToMentor(
@@ -304,6 +325,15 @@ class AccountServiceTest {
         assertThat(savedAccount.status).isEqualTo(AccountStatusEnum.ACTIVATED)
         assertThat(savedAccount.iban).isEqualTo(request.iban?.trim()?.replace(" ", ""))
         verify(paymentService, times(1)).savePaymentMethod(paymentMethodRequest, savedAccount)
+
+
+        val savedSchedule = scheduleCaptor.value
+        assertThat(savedSchedule.duration).isEqualTo(60)
+        assertThat(savedSchedule.recurrenceType).isEqualTo(RecurrenceType.WEEKLY)
+        assertThat(savedSchedule.interval).isEqualTo(3)
+        assertThat(savedSchedule.weekDays).isEqualTo(listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY))
+        assertThat(savedSchedule.startTime).isEqualTo(ZonedDateTime.parse("2024-08-28T12:30:45+03:00"))
+        assertThat(savedSchedule.endTime).isEqualTo(ZonedDateTime.parse("2024-12-30T13:30:45+03:00"))
     }
 
     @Test

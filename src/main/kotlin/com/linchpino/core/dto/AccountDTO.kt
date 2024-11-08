@@ -150,7 +150,8 @@ data class RegisterMentorRequest(
         message = "Invalid LinkedIn URL"
     ) val linkedInUrl: String?,
     @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest,
-    @field:NotBlank(message = "iban must not be null") @field:ValidIBAN val iban: String?
+    @field:NotBlank(message = "iban must not be null") @field:ValidIBAN val iban: String?,
+    @field:NotNull val scheduleRequest: ScheduleRequest
 )
 
 fun Account.toRegisterMentorResult(): RegisterMentorResult {
@@ -162,7 +163,8 @@ fun Account.toRegisterMentorResult(): RegisterMentorResult {
         this.interviewTypeIDs(),
         this.detailsOfExpertise,
         this.linkedInUrl,
-        this.iban
+        this.iban,
+        this.schedule!!.toResponse()
     )
 }
 
@@ -174,7 +176,8 @@ data class RegisterMentorResult(
     val interviewTypeIDs: List<Long>,
     val detailsOfExpertise: String?,
     val linkedInUrl: String?,
-    val iban: String?
+    val iban: String?,
+    val schedule: ScheduleResponse
 )
 
 data class SearchAccountResult(
