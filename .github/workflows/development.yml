@@ -36,4 +36,4 @@ jobs:
       - name: Build and push
         run: | 
           chmod +x mvnw
-         ./mvnw clean package jib:build -Dimage=ghcr.io/linchpino/linchpino-core -Djib.to.tags=${{ steps.meta.outputs.tags }}
+          ./mvnw clean package jib:build -Dimage=ghcr.io/linchpino/linchpino-core -Djib.to.tags=${{ steps.meta.outputs.tags }}
