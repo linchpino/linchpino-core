@@ -35,4 +35,4 @@ jobs:
 
       - name: Build and push
         run: | 
-          mvn spring-boot:build-image -Dimage=ghcr.io/linchpino/linchpino-core -Djib.to.tags=${{ steps.meta.outputs.tags }}
+         sudo mvn spring-boot:build-image -Dimage=ghcr.io/linchpino/linchpino-core -Djib.to.tags=${{ steps.meta.outputs.tags }}
