@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 @Service
 class ResumeService(private val resumeRepository: ResumeRepository) {
@@ -31,16 +30,7 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
     }
 
     fun save(resume: Resume): Resume {
-        Objects.requireNonNull(resume.email, "Email cannot be null")
         return resumeRepository.save(resume)
-    }
-
-    fun findById(id: Long): Resume? {
-        return resumeRepository.findById(id).orElse(null)
-    }
-
-    fun findAll(): MutableList<Resume?> {
-        return resumeRepository.findAll()
     }
 
     private fun isRoadmapAttemptLimitReached(email: String): Boolean {

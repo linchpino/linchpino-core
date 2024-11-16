@@ -2,14 +2,13 @@ package com.linchpino.ai.model
 
 class Prompt(private val requestDetail: RequestDetail) {
     override fun toString(): String {
-        return ROADMAP_PROMPT
+        return roadmapPrompt
             .replace("_targetLevel_", requestDetail.targetLevel)
             .replace("_summary_", requestDetail.resume.summary)
             .replace("_experience_", requestDetail.resume.experience)
     }
 
-    companion object {
-        val ROADMAP_PROMPT: String = """
+    private val roadmapPrompt: String = """
         This is my summary: {_summary_} and this is my experiences: {_experience_}.
         I want to have a roadmap to reach to level {_targetLevel_}.
         Could you please give me a roadmap to reach level {_targetLevel_}
@@ -34,6 +33,5 @@ class Prompt(private val requestDetail: RequestDetail) {
             ]
         }
         Provide me response in json without any other information.
-        """.trimIndent()
-    }
+        """
 }
