@@ -307,6 +307,90 @@ class AccountServiceTest {
     }
 
     @Test
+    fun `test register mentor throws exception when payment method is fix price and iban is null or invalid`() {
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.FIX_PRICE,
+            fixRate = 10.0
+        )
+        val request1 = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = "iban" // invalid iban
+        )
+
+        val ex1 = assertThrows(LinchpinException::class.java){
+             accountService.registerMentor(request1)
+        }
+        assertThat(ex1.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+
+        val request2 = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = null // invalid iban
+        )
+
+        val ex2 = assertThrows(LinchpinException::class.java){
+            accountService.registerMentor(request2)
+        }
+        assertThat(ex2.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+    @Test
+    fun `test register mentor throws exception when payment method is pay as you go and iban is null or invalid`() {
+        val paymentMethodRequest = PaymentMethodRequest(
+            type = PaymentMethodType.PAY_AS_YOU_GO,
+            maxPayment = 10.0,
+            minPayment = 5.0
+        )
+        val request1 = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = "iban" // invalid iban
+        )
+
+        val ex1 = assertThrows(LinchpinException::class.java){
+            accountService.registerMentor(request1)
+        }
+        assertThat(ex1.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+
+        val request2 = RegisterMentorRequest(
+            firstName = "John",
+            lastName = "Doe",
+            email = "john@example.com",
+            password = "password",
+            interviewTypeIDs = listOf(1L, 2L),
+            detailsOfExpertise = "Some expertise",
+            linkedInUrl = "http://linkedin.com/johndoe",
+            paymentMethodRequest = paymentMethodRequest,
+            iban = null // invalid iban
+        )
+
+        val ex2 = assertThrows(LinchpinException::class.java){
+            accountService.registerMentor(request2)
+        }
+        assertThat(ex2.errorCode).isEqualTo(ErrorCode.INVALID_STATE)
+    }
+
+
+    @Test
     fun `test search accounts by name or role`() {
         // Given
         val account = Account().apply {
