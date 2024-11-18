@@ -37,6 +37,6 @@ class PromptTest extends ResumeMockData {
             }
             Provide me response in json without any other information.
             """;
-        assertEquals(defaultRoadmapPrompt, Prompt.of(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
+        assertEquals(defaultRoadmapPrompt, new Prompt(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
     }
 }
