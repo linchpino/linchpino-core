@@ -207,6 +207,14 @@ class AccountControllerTest {
     @Test
     fun `test register new mentor`() {
         // Given
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -216,7 +224,8 @@ class AccountControllerTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = PaymentMethodRequest(PaymentMethodType.FREE),
-            iban = "GB82 WEST 1234 5698 7654 32"
+            iban = "GB82 WEST 1234 5698 7654 32",
+            scheduleRequest = scheduleRequest
         )
 
         val expectedResponse = RegisterMentorResult(
@@ -227,7 +236,17 @@ class AccountControllerTest {
             interviewTypeIDs = request.interviewTypeIDs,
             detailsOfExpertise = request.detailsOfExpertise,
             linkedInUrl = request.linkedInUrl,
-            iban = request.iban?.replace(" ", "")
+            iban = request.iban?.replace(" ", ""),
+            schedule = ScheduleResponse(
+                1,
+                ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+                60,
+                1,
+                RecurrenceType.WEEKLY,
+                3,
+                ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+                listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+            )
         )
 
 

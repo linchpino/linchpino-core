@@ -2,15 +2,7 @@ package com.linchpino.ai.model;
 
 import com.linchpino.core.exception.ErrorCode;
 import com.linchpino.core.exception.LinchpinException;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
+import jakarta.persistence.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
