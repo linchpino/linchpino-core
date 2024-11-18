@@ -1,7 +1,7 @@
-package com.linchpino.ai.service;
+package com.linchpino.ai.service
 
-import java.io.File;
+import java.io.File
 
-public interface RoadmapService {
-    String getRoadmap(String targetLevel, File resumeFile);
+fun interface RoadmapService {
+    fun getRoadmap(targetLevel: String, resumeFile: File): String?
 }

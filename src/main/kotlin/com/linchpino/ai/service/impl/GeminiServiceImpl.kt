@@ -1,106 +1,114 @@
-package com.linchpino.ai.service.impl;
+package com.linchpino.ai.service.impl
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.linchpino.ai.model.Prompt;
-import com.linchpino.ai.model.RequestDetail;
-import com.linchpino.ai.service.AIService;
-import com.linchpino.core.exception.ErrorCode;
-import com.linchpino.core.exception.LinchpinException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.linchpino.ai.model.Prompt
+import com.linchpino.ai.model.RequestDetail
+import com.linchpino.ai.service.AIService
+import com.linchpino.core.exception.ErrorCode
+import com.linchpino.core.exception.LinchpinException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Component
+import org.springframework.web.client.RestTemplate
 
 @Component("gemini")
-public class GeminiServiceImpl implements AIService {
+class GeminiServiceImpl : AIService {
+    private val logger: Logger = LoggerFactory.getLogger(GeminiServiceImpl::class.java)
 
-    private final Logger logger = LoggerFactory.getLogger(GeminiServiceImpl.class);
+    @Value("\${spring.ai.gemini.api-key}")
+    private val geminiApiKey: String? = null
 
-    public static final String COMPONENT_NAME = "gemini";
+    private val restTemplate = RestTemplate()
 
-    @Value("${spring.ai.gemini.api-key}")
-    private String geminiApiKey;
-
-    private final RestTemplate restTemplate;
-
-    public GeminiServiceImpl() {
-        this.restTemplate = new RestTemplate();
-    }
-
-    @Override
-    public String talkToAI(RequestDetail requestDetail) {
+    override fun talkToAI(requestDetail: RequestDetail): String? {
         try {
-            String url = String.format("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", geminiApiKey);
+            val url = String.format(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s",
+                geminiApiKey
+            )
             // Set the headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            val headers = HttpHeaders()
+            headers.contentType = MediaType.APPLICATION_JSON
             // Create the request entity
-            HttpEntity<String> requestEntity = new HttpEntity<>(getPromptRequest(getPrompt(requestDetail)), headers);
+            val requestEntity = HttpEntity(getPromptRequest(getPrompt(requestDetail)), headers)
             // Make the POST request
-            ResponseEntity<JsonData> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, JsonData.class);
-            JsonData responseJson = response.getBody();
-            if (responseJson != null) {
-                return responseJson.candidates().get(0).content().parts().get(0).text();
+            val response = restTemplate.exchange(
+                url, HttpMethod.POST, requestEntity,
+                JsonData::class.java
+            )
+            val responseJson = response.body
+            return if (responseJson != null) {
+                responseJson.candidates[0].content.parts[0].text
             } else {
-                return "Error in response type";
+                "Error in response type"
             }
-        } catch (Exception e) {
-            throw new LinchpinException(ErrorCode.SERVER_ERROR, "Error in generating response from Gemini AI with error: " + e.getMessage(), e);
+        } catch (e: Exception) {
+            throw LinchpinException(
+                ErrorCode.SERVER_ERROR,
+                "Error in generating response from Gemini AI with error: " + e.message,
+                e
+            )
         }
     }
 
-    private String getPrompt(RequestDetail requestDetail) {
-        String prompt = Prompt.of(requestDetail).toString();
-        logger.info("Prompt: {}", prompt);
-        return prompt;
+    private fun getPrompt(requestDetail: RequestDetail): String {
+        val prompt = Prompt(requestDetail).toString()
+        logger.info("Prompt: {}", prompt)
+        return prompt
     }
 
-    private String getPromptRequest(String prompt) {
-        ObjectMapper mapper = new ObjectMapper();
-        String promptRequest = "";
-        ObjectNode contentsJson = mapper.createObjectNode();
+    private fun getPromptRequest(prompt: String): String {
+        val mapper = ObjectMapper()
+        val contentsJson = mapper.createObjectNode()
         try {
-            ObjectNode textJson = mapper.createObjectNode();
-            textJson.put("text", prompt);
-            ArrayNode partsArray = mapper.createArrayNode();
-            partsArray.add(textJson);
-            ObjectNode partsJson = mapper.createObjectNode();
-            partsJson.set("parts", partsArray);
-            ArrayNode contentsArray = mapper.createArrayNode();
-            contentsArray.add(partsJson);
-            contentsJson.set("contents", contentsArray);
-            promptRequest = mapper.writeValueAsString(contentsJson);
-        } catch (Exception e) {
-            throw new LinchpinException(ErrorCode.SERVER_ERROR, "Error in creating prompt request with error: " + e.getMessage(), e);
+            val textJson = mapper.createObjectNode()
+            textJson.put("text", prompt)
+            val partsArray = mapper.createArrayNode()
+            partsArray.add(textJson)
+            val partsJson = mapper.createObjectNode()
+            partsJson.set<JsonNode>("parts", partsArray)
+            val contentsArray = mapper.createArrayNode()
+            contentsArray.add(partsJson)
+            contentsJson.set<JsonNode>("contents", contentsArray)
+            return mapper.writeValueAsString(contentsJson)
+        } catch (e: Exception) {
+            throw LinchpinException(
+                ErrorCode.SERVER_ERROR,
+                "Error in creating prompt request with error: " + e.message,
+                e
+            )
         }
-        return promptRequest;
     }
 
-    public record Part(String text) {
-    }
+    @JvmRecord
+    data class Part(val text: String)
 
-    public record Content(List<Part> parts, String role) {
-    }
+    @JvmRecord
+    data class Content(val parts: List<Part>, val role: String)
 
-    public record SafetyRating(String category, String probability) {
-    }
+    @JvmRecord
+    data class SafetyRating(val category: String, val probability: String)
 
-    public record Candidate(Content content, String finishReason, int index, List<SafetyRating> safetyRatings) {
-    }
+    @JvmRecord
+    data class Candidate(
+        val content: Content,
+        val finishReason: String,
+        val index: Int,
+        val safetyRatings: List<SafetyRating>
+    )
 
-    public record UsageMetadata(int promptTokenCount, int candidatesTokenCount, int totalTokenCount) {
-    }
+    @JvmRecord
+    data class UsageMetadata(val promptTokenCount: Int, val candidatesTokenCount: Int, val totalTokenCount: Int)
 
-    public record JsonData(List<Candidate> candidates, UsageMetadata usageMetadata) {
+    @JvmRecord
+    data class JsonData(val candidates: List<Candidate>, val usageMetadata: UsageMetadata)
+    companion object {
+        const val COMPONENT_NAME: String = "gemini"
     }
 }

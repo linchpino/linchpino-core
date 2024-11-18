@@ -5,6 +5,7 @@ import com.linchpino.core.dto.ActivateJobSeekerAccountRequest
 import com.linchpino.core.dto.AddProfileImageResponse
 import com.linchpino.core.dto.CreateAccountRequest
 import com.linchpino.core.dto.CreateAccountResult
+import com.linchpino.core.dto.IBAN
 import com.linchpino.core.dto.MentorWithClosestSchedule
 import com.linchpino.core.dto.MentorWithClosestTimeSlot
 import com.linchpino.core.dto.RegisterMentorRequest
@@ -27,6 +28,7 @@ import com.linchpino.core.entity.Account
 import com.linchpino.core.entity.MentorTimeSlot
 import com.linchpino.core.enums.AccountStatusEnum
 import com.linchpino.core.enums.AccountTypeEnum
+import com.linchpino.core.enums.PaymentMethodType
 import com.linchpino.core.exception.ErrorCode
 import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.AccountRepository
@@ -36,7 +38,6 @@ import com.linchpino.core.repository.RoleRepository
 import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.repository.findReferenceById
 import com.linchpino.core.security.email
-import com.nimbusds.jose.proc.SecurityContext
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -51,7 +52,6 @@ import java.time.LocalTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
-import org.springframework.security.core.context.SecurityContextHolder
 
 @Service
 @Transactional
@@ -157,6 +157,9 @@ class AccountService(
     }
 
     fun registerMentor(request: RegisterMentorRequest): RegisterMentorResult {
+        if(request.paymentMethodRequest.type != PaymentMethodType.FREE &&  (request.iban == null || !IBAN(request.iban).isValid())){
+            throw LinchpinException(ErrorCode.INVALID_STATE,"iban is invalid","iban","iban must be valid, since payment type is not free")
+        }
         val saveAccountRequest = SaveAccountRequest(
             request.firstName,
             request.lastName,

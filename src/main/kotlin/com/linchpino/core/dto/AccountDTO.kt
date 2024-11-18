@@ -150,7 +150,7 @@ data class RegisterMentorRequest(
         message = "Invalid LinkedIn URL"
     ) val linkedInUrl: String?,
     @field:NotNull(message = "payment method must not be null") val paymentMethodRequest: PaymentMethodRequest,
-    @field:NotBlank(message = "iban must not be null") @field:ValidIBAN val iban: String?,
+    @field:ValidIBANUpdate val iban: String?,
     @field:NotNull val scheduleRequest: ScheduleRequest
 )
 

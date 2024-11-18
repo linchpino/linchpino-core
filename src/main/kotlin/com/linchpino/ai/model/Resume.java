@@ -1,15 +1,14 @@
 package com.linchpino.ai.model;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
+import com.linchpino.core.exception.ErrorCode;
+import com.linchpino.core.exception.LinchpinException;
+import jakarta.persistence.*;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,8 +29,11 @@ public class Resume {
     private List<String> lines = new ArrayList<>();
 
     public Resume(String email, List<String> lines) {
+        if (email == null || lines == null) {
+            throw new LinchpinException(ErrorCode.SERVER_ERROR, "Email and lines must not be null");
+        }
         this.email = email;
-        this.lines = lines;
+        this.lines = lines.stream().map(Resume::removeInvalidUtf8Bytes).toList();
     }
 
     public Resume() {
@@ -97,7 +99,7 @@ public class Resume {
     private String lineIsHeader(String line, String[] headers) {
         for (String header : headers) {
             if (line.toLowerCase().contains(header.toLowerCase()) &&
-                    line.length() < 2 * header.length()) {
+                line.length() < 2 * header.length()) {
                 return header;
             }
         }
@@ -170,17 +172,17 @@ public class Resume {
 
         public static List<String> getContactLines(List<String> lines) {
             return Stream.of(emailPattern, phonePattern).sequential()
-                    .flatMap(pattern -> lines.stream().map(line -> find(line, pattern)))
-                    .filter(Objects::nonNull)
-                    .toList();
+                .flatMap(pattern -> lines.stream().map(line -> find(line, pattern)))
+                .filter(Objects::nonNull)
+                .toList();
         }
 
         public static String findEmail(List<String> lines) {
             return lines.stream()
-                    .map(line -> find(line, emailPattern))
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
+                .map(line -> find(line, emailPattern))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
         }
 
         static String find(String str, Pattern pattern) {
@@ -193,4 +195,19 @@ public class Resume {
 
     }
 
+    public static String removeInvalidUtf8Bytes(String input) {
+        if (input == null) {
+            return null;
+        }
+        try {
+            // Create a CharsetDecoder to handle invalid byte sequences
+            CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
+            decoder.onMalformedInput(CodingErrorAction.IGNORE);
+            decoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
+            byte[] bytes = input.replace("\u0000", "").getBytes(StandardCharsets.UTF_8);
+            return decoder.decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (CharacterCodingException e) {
+            throw new LinchpinException(ErrorCode.SERVER_ERROR, e.getMessage());
+        }
+    }
 }
