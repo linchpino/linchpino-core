@@ -33,5 +33,5 @@ class Prompt(private val requestDetail: RequestDetail) {
             ]
         }
         Provide me response in json without any other information.
-        """
+        """.trimIndent()
 }

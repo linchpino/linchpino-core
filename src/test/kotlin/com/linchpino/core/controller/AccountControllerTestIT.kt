@@ -489,6 +489,15 @@ class AccountControllerTestIT {
             minPayment = 10.0,
             maxPayment = 25.0
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -498,13 +507,14 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = null
+            iban = null,
+            scheduleRequest = scheduleRequest
         )
 
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
@@ -520,6 +530,15 @@ class AccountControllerTestIT {
         val paymentMethodRequest = PaymentMethodRequest(
             type = PaymentMethodType.FREE,
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val request = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -529,13 +548,14 @@ class AccountControllerTestIT {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "https://www.linkedin.com/in/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = null
+            iban = null,
+            scheduleRequest = scheduleRequest
         )
 
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)

@@ -341,6 +341,14 @@ class AccountServiceTest {
             type = PaymentMethodType.FIX_PRICE,
             fixRate = 10.0
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
         val request1 = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -350,7 +358,8 @@ class AccountServiceTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = "iban" // invalid iban
+            iban = "iban", // invalid iban
+            scheduleRequest = scheduleRequest
         )
 
         val ex1 = assertThrows(LinchpinException::class.java){
@@ -367,7 +376,8 @@ class AccountServiceTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = null // invalid iban
+            iban = null, // invalid iban
+            scheduleRequest = scheduleRequest
         )
 
         val ex2 = assertThrows(LinchpinException::class.java){
@@ -383,6 +393,15 @@ class AccountServiceTest {
             maxPayment = 10.0,
             minPayment = 5.0
         )
+        val scheduleRequest = ScheduleRequest(
+            ZonedDateTime.parse("2024-08-28T12:30:45+03:00"),
+            60,
+            RecurrenceType.WEEKLY,
+            3,
+            ZonedDateTime.parse("2024-12-30T13:30:45+03:00"),
+            listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
+        )
+
         val request1 = RegisterMentorRequest(
             firstName = "John",
             lastName = "Doe",
@@ -392,7 +411,8 @@ class AccountServiceTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = "iban" // invalid iban
+            iban = "iban", // invalid iban
+            scheduleRequest = scheduleRequest
         )
 
         val ex1 = assertThrows(LinchpinException::class.java){
@@ -409,7 +429,8 @@ class AccountServiceTest {
             detailsOfExpertise = "Some expertise",
             linkedInUrl = "http://linkedin.com/johndoe",
             paymentMethodRequest = paymentMethodRequest,
-            iban = null // invalid iban
+            iban = null, // invalid iban
+            scheduleRequest = scheduleRequest
         )
 
         val ex2 = assertThrows(LinchpinException::class.java){
