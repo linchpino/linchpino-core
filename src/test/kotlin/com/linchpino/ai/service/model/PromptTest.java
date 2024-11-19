@@ -5,7 +5,7 @@ import com.linchpino.ai.model.RequestDetail;
 import com.linchpino.ai.model.Resume;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PromptTest extends ResumeMockData {
 
@@ -36,7 +36,7 @@ class PromptTest extends ResumeMockData {
                 ]
             }
             Provide me response in json without any other information.
-            """;
-        assertEquals(defaultRoadmapPrompt, new Prompt(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
+            """.trim();
+        assertThat(defaultRoadmapPrompt).isEqualTo(new Prompt(new RequestDetail("Senior Data Scientist", new Resume("en.masoomi@gmail.com", getResumeLines()))).toString());
     }
 }
