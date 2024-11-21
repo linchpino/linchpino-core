@@ -56,7 +56,8 @@ data class UpdateProfileRequest(
     val detailsOfExpertise: String? = null,
     @field:ValidIBANUpdate val iban: String? = null,
     val linkedInUrl: String? = null,
-    @field:ValidPaymentMethodUpdate val paymentMethodRequest: PaymentMethodRequest?
+    @field:ValidPaymentMethodUpdate val paymentMethodRequest: PaymentMethodRequest?,
+    val interviewTypeIDs:List<Long>?
 )
 
 data class CreateAccountResult(

@@ -398,7 +398,8 @@ class AccountControllerTest {
             "detailsOfExpertise",
             "iban",
             "linkedInUrl",
-            PaymentMethodRequest(PaymentMethodType.FREE)
+            PaymentMethodRequest(PaymentMethodType.FREE),
+            listOf(1,2)
         )
 
         // When

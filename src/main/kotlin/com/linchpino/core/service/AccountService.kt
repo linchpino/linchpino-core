@@ -341,6 +341,13 @@ class AccountService(
             detailsOfExpertise?.let { account.detailsOfExpertise = it }
             iban?.let { account.iban = it }
             linkedInUrl?.let { account.linkedInUrl = it }
+            interviewTypeIDs?.let { interviewTypes ->
+                account.interviewTypes().filter { !interviewTypes.contains(it.id) }.forEach { account.removeInterviewType(it) }
+                interviewTypeRepository.findAllByIdIn(interviewTypes)
+                    .forEach {
+                        account.addInterviewType(it)
+                    }
+            }
             paymentMethodRequest?.let { paymentRequest ->
                 if (paymentMethod == null) {
                     paymentMethod = paymentService.savePaymentMethod(paymentRequest, account)
