@@ -1228,6 +1228,15 @@ class AccountControllerTestIT {
     @Test
     fun `test update profile`() {
         // given
+        val it1 = InterviewType().apply {
+            name = "IT1"
+        }
+        val it2 = InterviewType().apply {
+            name = "IT2"
+        }
+        interviewTypeRepository.save(it1)
+        interviewTypeRepository.save(it2)
+
         val john = Account().apply {
             firstName = "John"
             lastName = "Doe"
@@ -1235,6 +1244,7 @@ class AccountControllerTestIT {
             linkedInUrl = "linkedin.com/in/john"
             detailsOfExpertise = "john's details"
             iban = "iban"
+            addInterviewType(it1)
         }
         accountRepository.save(john)
         val paymentMethod = PaymentMethod().apply {
@@ -1253,7 +1263,8 @@ class AccountControllerTestIT {
             PaymentMethodRequest(
                 PaymentMethodType.FIX_PRICE,
                 fixRate = 50.0
-            )
+            ),
+            listOf(it2.id!!)
         )
 
         // When & Then
@@ -1271,6 +1282,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.detailsOfExpertise").value(request.detailsOfExpertise))
             .andExpect(jsonPath("$.paymentMethod.type").value(request.paymentMethodRequest?.type?.name))
             .andExpect(jsonPath("$.paymentMethod.fixRate").value(request.paymentMethodRequest?.fixRate))
+            .andExpect(jsonPath("$.interviewTypes[0].id").value(it2.id))
+            .andExpect(jsonPath("$.interviewTypes[0].title").value(it2.name))
 
     }
 
@@ -1286,7 +1299,8 @@ class AccountControllerTestIT {
             PaymentMethodRequest(
                 PaymentMethodType.FIX_PRICE,
                 fixRate = 50.0
-            )
+            ),
+            listOf(1,2)
         )
 
         // When & Then

@@ -13,6 +13,7 @@ import com.linchpino.core.dto.ResetAccountPasswordRequest
 import com.linchpino.core.dto.ResetPasswordRequest
 import com.linchpino.core.dto.ScheduleRequest
 import com.linchpino.core.dto.SearchAccountResult
+import com.linchpino.core.dto.ShortInterviewTypeResponse
 import com.linchpino.core.dto.UpdateAccountRequestByAdmin
 import com.linchpino.core.dto.UpdateProfileRequest
 import com.linchpino.core.dto.ValidWindow
@@ -970,7 +971,8 @@ class AccountServiceTest {
             detailsOfExpertise = "updated details",
             iban = "updated iban",
             linkedInUrl = "updated linkedInUrl",
-            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0)
+            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0),
+            interviewTypeIDs = listOf(1)
         )
         val account = Account().apply {
             id = 1
@@ -986,6 +988,13 @@ class AccountServiceTest {
             type = PaymentMethodType.FREE
         }
 
+        val interviewType = InterviewType().apply {
+            id = 1
+            name = "test type"
+        }
+        `when`(interviewTypeRepository.findAllByIdIn(listOf(1))).thenReturn(listOf(
+            interviewType
+        ))
         val paymentMethodCaptor: ArgumentCaptor<PaymentMethod> = ArgumentCaptor.forClass(PaymentMethod::class.java)
         val accountCaptor: ArgumentCaptor<Account> = ArgumentCaptor.forClass(Account::class.java)
         val paymentMethodRequestCaptor: ArgumentCaptor<PaymentMethodRequest> =
@@ -1018,6 +1027,7 @@ class AccountServiceTest {
                 50.0
             )
         )
+        assertThat(result.interviewTypes).containsExactly(ShortInterviewTypeResponse(1,"test type"))
     }
 
     @Test
@@ -1030,7 +1040,8 @@ class AccountServiceTest {
             detailsOfExpertise = "updated details",
             iban = "updated iban",
             linkedInUrl = "updated linkedInUrl",
-            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0)
+            PaymentMethodRequest(PaymentMethodType.FIX_PRICE, fixRate = 50.0),
+            interviewTypeIDs = listOf(1)
         )
         val account = Account().apply {
             id = 1
@@ -1060,6 +1071,13 @@ class AccountServiceTest {
                 accountCaptor.captureNonNullable()
             )
         ).thenReturn(paymentMethod)
+        val interviewType = InterviewType().apply {
+            id = 1
+            name = "test type"
+        }
+        `when`(interviewTypeRepository.findAllByIdIn(listOf(1))).thenReturn(listOf(
+            interviewType
+        ))
 
         // When
         val result = accountService.updateProfile(authentication, request)
@@ -1082,6 +1100,7 @@ class AccountServiceTest {
                 50.0
             )
         )
+        assertThat(result.interviewTypes).containsExactly(ShortInterviewTypeResponse(1,"test type"))
     }
 
 
