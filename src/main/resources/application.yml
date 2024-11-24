@@ -96,3 +96,7 @@ file:
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
+build:
+  version: @project.version@
+
