@@ -26,11 +26,9 @@ import com.linchpino.core.repository.ScheduleRepository
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.CalendarService
 import com.linchpino.core.service.EmailService
+import com.linchpino.core.withZone
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import java.time.DayOfWeek
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,6 +36,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -50,6 +49,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -88,6 +89,12 @@ class InterviewControllerTestIT {
 
     @Autowired
     private lateinit var logRepository: InterviewLogRepository
+
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
+
+    @Value("\${application.default-zone}")
+    private lateinit var defaultZone: String
 
 
     @BeforeEach
@@ -170,8 +177,7 @@ class InterviewControllerTestIT {
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
 
         val john = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
+            "select a from Account a where a.email = 'john.doe@example.com'", Account::class.java
         ).singleResult
 
         val startTime = ZonedDateTime.parse("2024-08-28T12:00:00.000+03:30")
@@ -189,19 +195,16 @@ class InterviewControllerTestIT {
         mockMvc.perform(
             post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
-        ).andExpect(status().isCreated)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        ).andExpect(status().isCreated).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(jsonPath("$.timeSlotId").isNumber)
             .andExpect(jsonPath("$.mentorAccountId").value(request.mentorAccountId))
             .andExpect(jsonPath("$.jobSeekerEmail").value("john.doe@example.com"))
-            .andExpect(jsonPath("$.interviewId").exists())
-            .andExpect(jsonPath("$.interviewId").isNumber)
+            .andExpect(jsonPath("$.interviewId").exists()).andExpect(jsonPath("$.interviewId").isNumber)
 
         verify(
-            mailService,
-            times(1)
+            mailService, times(1)
         ).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.captureNonNullable())
 
         val interview = interviewCaptor.value
@@ -254,15 +257,14 @@ class InterviewControllerTestIT {
         mockMvc.perform(
             post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").value("Timeslot is invalid"))
+        ).andExpect(status().isBadRequest).andExpect(jsonPath("$.error").value("Timeslot is invalid"))
             .andExpect(jsonPath("$.status").value(400))
     }
 
     @Test
     fun `test if request start and end does not lies on mentor scheduled hours throws exception`() {
-        val startTime = ZonedDateTime.parse("2024-09-18T12:30:00.000+03:30") // WEDNESDAY 12:30 to 13:30 should fail => 13:30 is past 13:00
+        val startTime =
+            ZonedDateTime.parse("2024-09-18T12:30:00.000+03:30") // WEDNESDAY 12:30 to 13:30 should fail => 13:30 is past 13:00
         val endTime = startTime.plusMinutes(60)
 
         val request = CreateInterviewRequest(
@@ -278,9 +280,7 @@ class InterviewControllerTestIT {
         mockMvc.perform(
             post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").value("Timeslot is invalid"))
+        ).andExpect(status().isBadRequest).andExpect(jsonPath("$.error").value("Timeslot is invalid"))
             .andExpect(jsonPath("$.status").value(400))
     }
 
@@ -289,8 +289,8 @@ class InterviewControllerTestIT {
         val startTime = ZonedDateTime.parse("2024-09-18T12:00:00.000+03:30") // WEDNESDAY
         val endTime = startTime.plusMinutes(60)
 
-        val mentor = mentorAccRepo.findAll()
-            .first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }
+        val mentor =
+            mentorAccRepo.findAll().first { it.roles().map { role -> role.title }.contains(AccountTypeEnum.MENTOR) }
 
         val mentorTimeSlot1 = MentorTimeSlot().apply {
             account = mentor
@@ -299,7 +299,6 @@ class InterviewControllerTestIT {
             status = MentorTimeSlotEnum.AVAILABLE
         }
         timeSlotRepo.save(mentorTimeSlot1)
-
 
 
         val request = CreateInterviewRequest(
@@ -314,13 +313,9 @@ class InterviewControllerTestIT {
         mockMvc.perform(
             post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.error").value("Selected time slot is already booked"))
+        ).andExpect(status().isBadRequest).andExpect(jsonPath("$.error").value("Selected time slot is already booked"))
             .andExpect(jsonPath("$.status").value(400))
     }
-
-
 
 
     @Test
@@ -331,8 +326,7 @@ class InterviewControllerTestIT {
 
         val interviewCaptor: ArgumentCaptor<Interview> = ArgumentCaptor.forClass(Interview::class.java)
         val mentorAccount = entityManager.createQuery(
-            "select a from Account a where email = 'john.smith@example.com'",
-            Account::class.java
+            "select a from Account a where email = 'john.smith@example.com'", Account::class.java
         ).singleResult
 
         val request = CreateInterviewRequest(
@@ -347,19 +341,16 @@ class InterviewControllerTestIT {
         mockMvc.perform(
             post("/api/interviews").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
-        ).andExpect(status().isCreated)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        ).andExpect(status().isCreated).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.jobPositionId").value(request.jobPositionId))
             .andExpect(jsonPath("$.interviewTypeId").value(request.interviewTypeId))
             .andExpect(jsonPath("$.timeSlotId").isNumber)
             .andExpect(jsonPath("$.mentorAccountId").value(request.mentorAccountId))
             .andExpect(jsonPath("$.jobSeekerEmail").value(request.jobSeekerEmail))
-            .andExpect(jsonPath("$.interviewId").exists())
-            .andExpect(jsonPath("$.interviewId").isNumber)
+            .andExpect(jsonPath("$.interviewId").exists()).andExpect(jsonPath("$.interviewId").isNumber)
 
         verify(
-            mailService,
-            times(1)
+            mailService, times(1)
         ).sendingInterviewInvitationEmailToJobSeeker(interviewCaptor.captureNonNullable())
 
         val interview = interviewCaptor.value
@@ -382,12 +373,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/upcoming")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
+            get("/api/interviews/mentors/upcoming").param("page", "0").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray)
             .andExpect(jsonPath("$.content.size()").value(1))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[1].jobSeekerAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[1].jobSeekerAccount?.firstName} ${interviews[1].jobSeekerAccount?.lastName}"))
@@ -403,13 +390,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/upcoming")
-                .param("page", "1")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content").isEmpty)
+            get("/api/interviews/mentors/upcoming").param("page", "1").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray).andExpect(jsonPath("$.content").isEmpty)
 
     }
 
@@ -424,11 +406,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/upcoming")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isForbidden)
+            get("/api/interviews/mentors/upcoming").param("page", "0").param("size", "10")
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -439,12 +418,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/past")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
+            get("/api/interviews/mentors/past").param("page", "0").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray)
             .andExpect(jsonPath("$.content.size()").value(2))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].jobSeekerAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].jobSeekerAccount?.firstName} ${interviews[0].jobSeekerAccount?.lastName}"))
@@ -459,13 +434,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/past")
-                .param("page", "1")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content").isEmpty)
+            get("/api/interviews/mentors/past").param("page", "1").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray).andExpect(jsonPath("$.content").isEmpty)
 
     }
 
@@ -480,17 +450,13 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/mentors/past")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isForbidden)
+            get("/api/interviews/mentors/past").param("page", "0").param("size", "10")
+        ).andExpect(status().isForbidden)
     }
 
     @Test
     @WithMockJwt(
-        username = "john.doe@example.com",
-        roles = [AccountTypeEnum.JOB_SEEKER]
+        username = "john.doe@example.com", roles = [AccountTypeEnum.JOB_SEEKER]
     )
     fun `test interview validity returns valid interview response for job seeker if the interview starts within 5 minutes`() {
         // get required data set in before each
@@ -498,15 +464,12 @@ class InterviewControllerTestIT {
         val interview = interviews[2]
         val id = interview.id
 
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX")
-
         // When & Then
         mockMvc.perform(
             get("/api/interviews/$id/validity")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.format(formatter)))
-            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.withZone(defaultZone)))
+            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.withZone(defaultZone)))
             .andExpect(jsonPath("$.verifyStatus").value(true))
             .andExpect(jsonPath("$.link").value("https://meet.google.com/abc-efg-hij"))
 
@@ -517,8 +480,7 @@ class InterviewControllerTestIT {
 
     @Test
     @WithMockJwt(
-        username = "jane.smith@example.com",
-        roles = [AccountTypeEnum.JOB_SEEKER]
+        username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER]
     )
     fun `test interview validity returns invalid interview response for job seeker if the interview does not start within 5 minutes`() {
         // get required data set in before each
@@ -526,18 +488,13 @@ class InterviewControllerTestIT {
         val interview = interviews[1]
         val id = interview.id
 
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX")
-
-
         // When & Then
         mockMvc.perform(
             get("/api/interviews/$id/validity")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.format(formatter)))
-            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.format(formatter)))
-            .andExpect(jsonPath("$.verifyStatus").value(false))
-            .andExpect(jsonPath("$.link").value(""))
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.interviewDateTimeStart").value(interview.timeSlot?.fromTime?.withZone(defaultZone)))
+            .andExpect(jsonPath("$.interviewDateTimeEnd").value(interview.timeSlot?.toTime?.withZone(defaultZone)))
+            .andExpect(jsonPath("$.verifyStatus").value(false)).andExpect(jsonPath("$.link").value(""))
 
         val logs = logRepository.findAll()
         assertThat(logs.count()).isEqualTo(0)
@@ -545,8 +502,7 @@ class InterviewControllerTestIT {
 
     @Test
     @WithMockJwt(
-        username = "jane.smith@example.com",
-        roles = [AccountTypeEnum.JOB_SEEKER]
+        username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER]
     )
     fun `test interview validity returns 404 if job seeker sends an interview id that is not belong to himself`() {
         // get required data set in before each
@@ -559,16 +515,13 @@ class InterviewControllerTestIT {
         // When & Then
         mockMvc.perform(
             get("/api/interviews/$id/validity")
-        )
-            .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.status").value(404))
+        ).andExpect(status().isNotFound).andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.error").value("Interview entity not found"))
     }
 
     @Test
     @WithMockJwt(
-        username = "jane.smith@example.com",
-        roles = [AccountTypeEnum.JOB_SEEKER]
+        username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER]
     )
     fun `test interview feedback`() {
         // Given
@@ -577,24 +530,19 @@ class InterviewControllerTestIT {
         val id = interviews.filter { it.jobSeekerAccount?.email == "jane.smith@example.com" }.map { it.id }.first()
         // When & Then
         mockMvc.perform(
-            post("/api/interviews/$id/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/$id/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback))
-        )
-            .andExpect(status().isCreated)
+        ).andExpect(status().isCreated)
 
         mockMvc.perform(
-            post("/api/interviews/$id/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/$id/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback))
-        )
-            .andExpect(status().isCreated)
+        ).andExpect(status().isCreated)
     }
 
     @Test
     @WithMockJwt(
-        username = "jane.smith@example.com",
-        roles = [AccountTypeEnum.MENTOR]
+        username = "jane.smith@example.com", roles = [AccountTypeEnum.MENTOR]
     )
     fun `test interview feedback throws 403 if authenticated user is not job seeker`() {
         // Given
@@ -604,11 +552,9 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            post("/api/interviews/$id/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/$id/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback))
-        )
-            .andExpect(status().isForbidden)
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -620,17 +566,14 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            post("/api/interviews/$id/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/$id/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback))
-        )
-            .andExpect(status().isUnauthorized)
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
     @WithMockJwt(
-        username = "jane.smith@example.com",
-        roles = [AccountTypeEnum.JOB_SEEKER]
+        username = "jane.smith@example.com", roles = [AccountTypeEnum.JOB_SEEKER]
     )
     fun `test interview feedback throws fails with bad request if request is not valid`() {
         // Given
@@ -640,40 +583,28 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            post("/api/interviews/1/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/1/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback1))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(400))
+        ).andExpect(status().isBadRequest).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
             .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be less than or equal to 5"))
 
         mockMvc.perform(
-            post("/api/interviews/1/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/1/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback2))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(400))
+        ).andExpect(status().isBadRequest).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("status"))
             .andExpect(jsonPath("$.validationErrorMap[0].message").value("must be greater than or equal to 1"))
 
         mockMvc.perform(
-            post("/api/interviews/1/feedback")
-                .contentType(MediaType.APPLICATION_JSON)
+            post("/api/interviews/1/feedback").contentType(MediaType.APPLICATION_JSON)
                 .content(ObjectMapper().writeValueAsString(feedback3))
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(400))
+        ).andExpect(status().isBadRequest).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.timestamp").exists()).andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.error").value("Invalid Param"))
             .andExpect(jsonPath("$.validationErrorMap[0].field").value("content"))
             .andExpect(jsonPath("$.validationErrorMap[0].message").value("must not be blank"))
@@ -682,16 +613,13 @@ class InterviewControllerTestIT {
 
     fun saveInterviewData(): List<Interview> {
         val jobSeeker1 = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.doe@example.com'",
-            Account::class.java
+            "select a from Account a where a.email = 'john.doe@example.com'", Account::class.java
         ).singleResult
         val jobSeeker2 = entityManager.createQuery(
-            "select a from Account a where a.email = 'jane.smith@example.com'",
-            Account::class.java
+            "select a from Account a where a.email = 'jane.smith@example.com'", Account::class.java
         ).singleResult
         val mentor = entityManager.createQuery(
-            "select a from Account a where a.email = 'john.smith@example.com'",
-            Account::class.java
+            "select a from Account a where a.email = 'john.smith@example.com'", Account::class.java
         ).singleResult
         val jobPosition = jobPositionRepo.findAll().first()
         val interviewType = interviewTypeRepo.findAll().first()
@@ -761,12 +689,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/upcoming")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
+            get("/api/interviews/jobseekers/upcoming").param("page", "0").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray)
             .andExpect(jsonPath("$.content.size()").value(1))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[1].mentorAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[1].mentorAccount?.firstName} ${interviews[1].mentorAccount?.lastName}"))
@@ -783,13 +707,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/upcoming")
-                .param("page", "1")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content").isEmpty)
+            get("/api/interviews/jobseekers/upcoming").param("page", "1").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray).andExpect(jsonPath("$.content").isEmpty)
 
     }
 
@@ -805,11 +724,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/upcoming")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isForbidden)
+            get("/api/interviews/jobseekers/upcoming").param("page", "0").param("size", "10")
+        ).andExpect(status().isForbidden)
     }
 
     @Test
@@ -819,12 +735,8 @@ class InterviewControllerTestIT {
         val interviews = saveInterviewData()
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/past")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
+            get("/api/interviews/jobseekers/past").param("page", "0").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray)
             .andExpect(jsonPath("$.content.size()").value(2))
             .andExpect(jsonPath("$.content[0].intervieweeId").value(interviews[0].mentorAccount?.id))
             .andExpect(jsonPath("$.content[0].intervieweeName").value("${interviews[0].mentorAccount?.firstName} ${interviews[0].mentorAccount?.lastName}"))
@@ -843,13 +755,8 @@ class InterviewControllerTestIT {
 
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/past")
-                .param("page", "1")
-                .param("size", "10")
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content").isEmpty)
+            get("/api/interviews/jobseekers/past").param("page", "1").param("size", "10")
+        ).andExpect(status().isOk).andExpect(jsonPath("$.content").isArray).andExpect(jsonPath("$.content").isEmpty)
 
     }
 
@@ -864,10 +771,7 @@ class InterviewControllerTestIT {
         saveInterviewData()
         // When & Then
         mockMvc.perform(
-            get("/api/interviews/jobseekers/past")
-                .param("page", "0")
-                .param("size", "10")
-        )
-            .andExpect(status().isForbidden)
+            get("/api/interviews/jobseekers/past").param("page", "0").param("size", "10")
+        ).andExpect(status().isForbidden)
     }
 }

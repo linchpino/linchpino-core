@@ -31,6 +31,7 @@ import com.linchpino.core.security.WithMockBearerToken
 import com.linchpino.core.security.WithMockJwt
 import com.linchpino.core.service.EmailService
 import com.linchpino.core.service.LinkedInService
+import com.linchpino.core.withZone
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.assertj.core.api.Assertions.assertThat
@@ -42,6 +43,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
@@ -60,7 +62,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 import java.time.DayOfWeek
+import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -96,6 +100,12 @@ class AccountControllerTestIT {
     @PersistenceContext
     lateinit var entityManager: EntityManager
 
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
+
+    @Value("\${application.default-zone}")
+    private lateinit var defaultZone: String
+
     @Test
     fun `test creating jobSeeker account`() {
         val createAccountRequest =
@@ -104,7 +114,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(createAccountRequest))
+                .content(objectMapper.writeValueAsString(createAccountRequest))
         )
             .andExpect(status().isCreated)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -133,7 +143,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
@@ -150,7 +160,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
@@ -167,7 +177,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
@@ -184,7 +194,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
@@ -201,7 +211,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Invalid Param"))
@@ -229,7 +239,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(createAccountRequest))
+                .content(objectMapper.writeValueAsString(createAccountRequest))
         )
             .andExpect(status().isCreated)
 
@@ -237,7 +247,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(createAccountRequestWithDuplicateEmail))
+                .content(objectMapper.writeValueAsString(createAccountRequestWithDuplicateEmail))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Unique email violation"))
@@ -353,7 +363,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(activationRequest))
+                .content(objectMapper.writeValueAsString(activationRequest))
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value("johndoe@gmail.com"))
@@ -373,7 +383,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(activationRequest))
+                .content(objectMapper.writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
             .andExpect(status().isBadRequest)
@@ -394,7 +404,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/jobseeker/activation")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(activationRequest))
+                .content(objectMapper.writeValueAsString(activationRequest))
         )
             // todo assert against real exception after exception handling configured
             .andExpect(status().isNotFound)
@@ -437,7 +447,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)
@@ -450,8 +460,8 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$.schedule.duration").value(60))
             .andExpect(jsonPath("$.schedule.recurrenceType").value("WEEKLY"))
             .andExpect(jsonPath("$.schedule.interval").value(3))
-            .andExpect(jsonPath("$.schedule.startTime").value("2024-08-28T09:30:45Z"))
-            .andExpect(jsonPath("$.schedule.endTime").value("2024-12-30T10:30:45Z"))
+            .andExpect(jsonPath("$.schedule.startTime").value("2024-08-28T09:30:45Z".withZone(defaultZone)))
+            .andExpect(jsonPath("$.schedule.endTime").value("2024-12-30T10:30:45Z".withZone(defaultZone)))
             .andExpect(jsonPath("$.schedule.weekDays[0]").value("MONDAY"))
             .andExpect(jsonPath("$.schedule.weekDays[1]").value("WEDNESDAY"))
 
@@ -514,7 +524,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
@@ -555,7 +565,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.registerModules(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)
@@ -617,7 +627,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.timestamp").exists())
@@ -652,7 +662,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(invalidRequest))
+                .content(objectMapper.writeValueAsString(invalidRequest))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
@@ -695,7 +705,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/timeslots")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isCreated)
     }
@@ -719,7 +729,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/timeslots")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Account entity not found"))
@@ -754,7 +764,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/timeslots")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Account role is invalid"))
@@ -784,7 +794,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/timeslots")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Timeslot is invalid"))
@@ -981,7 +991,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
 
 
@@ -1053,6 +1063,7 @@ class AccountControllerTestIT {
     @Test
     fun `test adding schedule for mentor`() {
         // Given
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX").withZone(ZoneId.of(defaultZone))
         saveAccountsWithRole()
 
         val request = ScheduleRequest(
@@ -1068,16 +1079,16 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.id").isNumber)
-            .andExpect(jsonPath("$.startTime").value("2024-08-28T09:30:00Z"))
+            .andExpect(jsonPath("$.startTime").value("2024-08-28T09:30:00Z".withZone(defaultZone)))
             .andExpect(jsonPath("$.duration").value(60))
             .andExpect(jsonPath("$.accountId").isNumber)
             .andExpect(jsonPath("$.recurrenceType").value("WEEKLY"))
             .andExpect(jsonPath("$.interval").value(3))
-            .andExpect(jsonPath("$.endTime").value("2024-12-30T10:30:00Z"))
+            .andExpect(jsonPath("$.endTime").value("2024-12-30T10:30:00Z".withZone(defaultZone)))
             .andExpect(jsonPath("$.weekDays[0]").value("FRIDAY"))
             .andExpect(jsonPath("$.weekDays[1]").value("SUNDAY"))
     }
@@ -1100,7 +1111,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isUnauthorized)
     }
@@ -1124,7 +1135,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             post("/api/accounts/mentors/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModule(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isForbidden)
     }
@@ -1147,7 +1158,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isOk)
 
@@ -1170,7 +1181,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
@@ -1195,7 +1206,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.status").value(400))
@@ -1219,7 +1230,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile/change-password")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isUnauthorized)
     }
@@ -1271,7 +1282,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.firstName").value(request.firstName))
@@ -1307,7 +1318,7 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/profile")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().writeValueAsString(request))
+                .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isUnauthorized)
     }
@@ -1328,10 +1339,10 @@ class AccountControllerTestIT {
         mockMvc.perform(
             put("/api/accounts/mentors/schedule")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(ObjectMapper().registerModules(JavaTimeModule()).writeValueAsString(request))
+                .content(objectMapper.registerModules(JavaTimeModule()).writeValueAsString(request))
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.startTime").value("2024-09-28T09:30:45Z"))
+            .andExpect(jsonPath("$.startTime").value("2024-09-28T09:30:45Z".withZone(defaultZone)))
             .andExpect(jsonPath("$.recurrenceType").value(request.recurrenceType?.name))
             .andExpect(jsonPath("$.monthDays[0]").value(request.monthDays[0]))
             .andExpect(jsonPath("$.monthDays[1]").value(request.monthDays[1]))
@@ -1607,7 +1618,7 @@ class AccountControllerTestIT {
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isCreated)
-            .andExpect(MockMvcResultMatchers.content().json(ObjectMapper().writeValueAsString(response)))
+            .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(response)))
 
     }
 */
