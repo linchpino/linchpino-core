@@ -78,6 +78,7 @@ password:
 
 application:
   url: ${APPLICATION_URL:https://linchpino.liara.run}
+  default-zone: ${DEFAULT_ZONE:Asia/Tehran}
 
 meet:
   credential: ${MEET_CREDENTIAL:file:/path/to/file}
