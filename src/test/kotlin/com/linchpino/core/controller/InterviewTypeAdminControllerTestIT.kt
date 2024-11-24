@@ -61,6 +61,31 @@ class InterviewTypeAdminControllerTestIT {
 
     @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
     @Test
+    fun `test create interviewType fails if interview type name is duplicate`() {
+        val position = JobPosition().apply {
+            title = "Java Developer"
+        }
+        jobPositionRepository.save(position)
+        val interviewType = InterviewType().apply {
+            name = "Mock interview"
+            jobPositions.add(position)
+        }
+
+        interviewTypeRepository.save(interviewType)
+
+        val request = InterviewTypeCreateRequest("Mock interview", position.id!!)
+
+        mockMvc.perform(
+            post("/api/admin/interviewtypes").contentType(MediaType.APPLICATION_JSON)
+                .content(ObjectMapper().writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Unique name violated for InterviewType"))
+    }
+
+    @WithMockJwt("john.doe@example.com", roles = [AccountTypeEnum.ADMIN])
+    @Test
     fun `test create interviewType fails with 404 if jobPositionId is not valid`() {
         val request = InterviewTypeCreateRequest("Mock interview", 1)
         mockMvc.perform(

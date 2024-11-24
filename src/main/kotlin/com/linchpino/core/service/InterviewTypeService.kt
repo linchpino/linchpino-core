@@ -11,6 +11,7 @@ import com.linchpino.core.exception.LinchpinException
 import com.linchpino.core.repository.InterviewTypeRepository
 import com.linchpino.core.repository.JobPositionRepository
 import com.linchpino.core.repository.findReferenceById
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -45,7 +46,18 @@ class InterviewTypeService(
             this.name = request.name
         }
         jobPosition.addInterviewType(interviewType)
-        repository.save(interviewType)
+        try {
+            repository.save(interviewType)
+            repository.flush()
+        } catch (ex: DataIntegrityViolationException) {
+            throw LinchpinException(
+                "unique interview type",
+                ex,
+                ErrorCode.UNIQUE_ENTITY_VIOLATION,
+                "name",
+                InterviewType::class.java.simpleName
+            )
+        }
         return InterviewTypeSearchResponse(interviewType.id, interviewType.name)
     }
 
