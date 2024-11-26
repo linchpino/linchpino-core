@@ -43,5 +43,5 @@ jobs:
 
       - name: Build and push
         run: | 
-         echo ${{ steps.meta.outputs.tags }}
-         echo ${{ steps.meta.outputs.labels }}
+          mvn spring-boot:build-image 
+          docker images
