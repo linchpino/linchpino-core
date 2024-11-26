@@ -43,5 +43,5 @@ jobs:
 
       - name: Build and push
         run: | 
-          ./mvnw clean install
+          sudo ./mvnw clean install
           docker images
