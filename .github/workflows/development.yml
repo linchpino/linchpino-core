@@ -43,4 +43,6 @@ jobs:
 
       - name: Build and push
         run: | 
-         mvn spring-boot:build-image 
+         #mvn spring-boot:build-image 
+         echo ${{ steps.meta.outputs.tags }}
+         echo ${{ steps.meta.outputs.labels }}
