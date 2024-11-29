@@ -22,6 +22,7 @@ import com.linchpino.core.dto.hasOverlapWith
 import com.linchpino.core.dto.toCreateAccountResult
 import com.linchpino.core.dto.toIBAN
 import com.linchpino.core.dto.toRegisterMentorResult
+import com.linchpino.core.dto.toResponse
 import com.linchpino.core.dto.toSchedule
 import com.linchpino.core.dto.toSummary
 import com.linchpino.core.entity.Account
@@ -116,7 +117,8 @@ class AccountService(
                     it.first.lastName,
                     it.second,
                     it.first.email,
-                    it.first.avatar
+                    it.first.avatar,
+                    it.first.paymentMethod?.toResponse()
                 )
             }
         return mentors

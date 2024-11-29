@@ -88,7 +88,8 @@ data class MentorWithClosestSchedule(
     val mentorLastName: String?,
     val validWindow: ValidWindow?,
     val email: String,
-    val avatar: String?
+    val avatar: String?,
+    val paymentMethod: PaymentMethodResponse? = null
 )
 
 data class ActivateJobSeekerAccountRequest(
