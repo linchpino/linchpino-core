@@ -58,6 +58,9 @@ class Account : AbstractEntity() {
     @Column(name = "iban")
     var iban: String? = null
 
+    @OneToOne(mappedBy = "account")
+    var paymentMethod: PaymentMethod? = null
+
     fun addInterviewType(interviewType: InterviewType) {
         interviewTypes.add(interviewType)
         interviewType.accounts.add(this)

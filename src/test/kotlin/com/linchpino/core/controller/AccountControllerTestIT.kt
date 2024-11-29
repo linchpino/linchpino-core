@@ -264,8 +264,11 @@ class AccountControllerTestIT {
             .andExpect(jsonPath("$").value(hasSize<Int>(2)))
             .andExpect(jsonPath("$.[0].mentorFirstName").value("john"))
             .andExpect(jsonPath("$.[0].mentorLastName").value("doe"))
+            .andExpect(jsonPath("$.[0].paymentMethod.type").value(PaymentMethodType.FREE.name))
             .andExpect(jsonPath("$.[1].mentorFirstName").value("josh"))
             .andExpect(jsonPath("$.[1].mentorLastName").value("long"))
+            .andExpect(jsonPath("$.[1].paymentMethod.type").value(PaymentMethodType.FIX_PRICE.name))
+            .andExpect(jsonPath("$.[1].paymentMethod.fixRate").value(100.0))
     }
 
     @Test
@@ -1300,7 +1303,7 @@ class AccountControllerTestIT {
                 PaymentMethodType.FIX_PRICE,
                 fixRate = 50.0
             ),
-            listOf(1,2)
+            listOf(1, 2)
         )
 
         // When & Then
@@ -1463,7 +1466,24 @@ class AccountControllerTestIT {
         account1.addRole(mentorRole)
         account2.addRole(mentorRole)
         account3.addRole(mentorRole)
+        val paymentMethod1 = PaymentMethod().apply {
+            type = PaymentMethodType.FREE
+            this.account = account1
+        }.let {
+            entityManager.persist(it)
+            it
+        }
+        val paymentMethod2 = PaymentMethod().apply {
+            type = PaymentMethodType.FIX_PRICE
+            fixRate = 100.0
+            this.account = account2
+        }.let {
+            entityManager.persist(it)
+            it
+        }
 
+        account1.paymentMethod = paymentMethod1
+        account2.paymentMethod = paymentMethod2
         accountRepository.save(account1).also {
             schedule1.account = it
             entityManager.persist(schedule1)
